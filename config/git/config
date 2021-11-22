@@ -1,21 +1,14 @@
 [user]
-	name = Henrik Lissner
-	email = git@henrik.io
-	signingKey = FA1FADD9440B688CAA75A057B60957CA074D39A3
-[commit]
-	gpgSign = true
-[tag]
-	gpgSign = true
+	name = Siyuan Wang
+	email = c.one@thrimbda.com
 [core]
 	whitespace = trailing-space
 [init]
 	defaultBranch = main
 [github]
-	user = hlissner
-[gitlab]
-	user = hlissner
-[push]
-	autoSquash = true
+	user = thrimbda
+[rebase]
+	autosquash = true
 [push]
 	default = current
 	gpgSign = if-asked
