@@ -49,6 +49,7 @@ in {
         symbola
         noto-fonts
         noto-fonts-cjk
+	(nerdfonts.override { fonts = [ "FiraCode" ]; })
       ];
     };
 
