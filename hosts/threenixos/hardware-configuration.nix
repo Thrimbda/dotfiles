@@ -13,7 +13,7 @@
     initrd.kernelModules = [ ];
     kernelModules = [ "kvm-amd" ];
     extraModulePackages = [ ];
-  }
+  };
 
   # Mobules
   modules.hardware = {
@@ -57,6 +57,8 @@
       Option "nvidiaXineramaInfoOrder" "DFP-1"
     '';
   };
+
+  console.useXkbConfig = true;
 
   fileSystems = {
     "/" = {
