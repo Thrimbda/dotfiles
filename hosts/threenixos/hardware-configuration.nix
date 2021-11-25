@@ -8,16 +8,67 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usb_storage" "usbhid" "sd_mod" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModulePackages = [ ];
+  boot = {
+    initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usb_storage" "usbhid" "sd_mod" ];
+    initrd.kernelModules = [ ];
+    kernelModules = [ "kvm-amd" ];
+    extraModulePackages = [ ];
+  }
 
-  fileSystems."/" =
-    { device = "/dev/disk/by-uuid/cf08650d-428d-48cf-90f9-6d6db253e038";
-      fsType = "ext4";
+  # Mobules
+  modules.hardware = {
+    audio.enable = true;
+    ergodox.enable = true;
+    fs = {
+      enable = true;
+      ssd.enable = true;
     };
+    nvidia.enable = true;
+    sensors.enable = true;
+  };
 
+  # CPU
+  nix.maxJobs = lib.mkDefault 16;
+  powerManagement.cpuFreqGovernor = "performance";
+  hardware.cpu.amd.updateMicrocode = true;
+
+  # Displays
+  services.xserver = {
+    layout = "us";
+    xkbVariant = "colemak";
+    videoDrivers = ["nvidia"];
+    enable = true;
+    # This must be done manually to ensure my screen spaces are arranged exactly
+    # as I need them to be *and* the correct monitor is "primary". Using
+    # xrandrHeads does not work.
+    monitorSection = ''
+      VendorName  "Unknown"
+      ModelName   "DELL U2720QM"
+      HorizSync   30.0 - 135.0
+      VertRefresh 56.0 - 86.0
+      Option      "DPMS"
+    '';
+    screenSection = ''
+      Option "metamodes" "HDMI-0: nvidia-auto-select +1920+0, DVI-I-1: nvidia-auto-select +0+180, DVI-D-0: nvidia-auto-select +4480+180"
+      Option "SLI" "Off"
+      Option "MultiGPU" "Off"
+      Option "BaseMosaic" "off"
+      Option "Stereo" "0"
+      Option "nvidiaXineramaInfoOrder" "DFP-1"
+    '';
+  };
+
+  fileSystems = {
+    "/" = {
+      device = "/dev/disk/by-label/nixos";
+      fsType = "ext4";
+      options = [ "noatime" ];
+    };
+    "/boot" = {
+      device = "/dev/disk/by-label/BOOT";
+      fsType = "vfat";
+    };
+  };
   swapDevices = [ ];
 
 }

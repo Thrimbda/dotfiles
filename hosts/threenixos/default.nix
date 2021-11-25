@@ -5,13 +5,6 @@
     ./hardware-configuration.nix
   ];
 
-  services.xserver = {
-    layout = "us";
-    xkbVariant = "colemak";
-    videoDrivers = ["nvidia"];
-    enable = true;
-  };
-
   ## Modules
   modules = {
     desktop = {
