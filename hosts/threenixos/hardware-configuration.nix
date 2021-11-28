@@ -36,7 +36,6 @@
   services.xserver = {
     layout = "us";
     xkbVariant = "colemak";
-    videoDrivers = ["nvidia"];
     enable = true;
     # This must be done manually to ensure my screen spaces are arranged exactly
     # as I need them to be *and* the correct monitor is "primary". Using
