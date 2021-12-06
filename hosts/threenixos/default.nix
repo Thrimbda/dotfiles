@@ -38,9 +38,11 @@
       };
     };
     dev = {
+      # cc.enable = true;
       node.enable = true;
       rust.enable = true;
       python.enable = true;
+      scala.enable = true;
     };
     editors = {
       default = "nvim";
@@ -81,6 +83,8 @@
   i18n.inputMethod.fcitx5.addons = with pkgs; [
     fcitx5-rime
   ];
+
+  time.timeZone = "Asia/Shanghai";
 
 
   ## Personal backups

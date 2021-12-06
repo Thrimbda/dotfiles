@@ -11,8 +11,8 @@ in {
   config = mkIf cfg.enable {
     user.packages = with pkgs; [
       scala
-      jdk
-      sbt
+      dotty
+      jdk11
     ];
   };
 }
