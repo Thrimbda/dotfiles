@@ -63,5 +63,7 @@ with lib.my;
     wget
     gnumake
     unzip
+    zenith
+    kubectl
   ];
 }

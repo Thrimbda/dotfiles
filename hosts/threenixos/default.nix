@@ -77,6 +77,11 @@
   # generated config replicates the default behaviour.
   networking.useDHCP = false;
 
+  i18n.inputMethod.enabled =  "fcitx5";
+  i18n.inputMethod.fcitx5.addons = with pkgs; [
+    fcitx5-rime
+  ];
+
 
   ## Personal backups
   # Syncthing is a bit heavy handed for my needs, so rsync to my NAS instead.
