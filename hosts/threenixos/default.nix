@@ -18,7 +18,7 @@
         firefox.enable = true;
       };
       gaming = {
-        steam.enable = true;
+        # steam.enable = true;
         # emulators.enable = true;
         # emulators.psx.enable = true;
       };
@@ -40,14 +40,18 @@
     dev = {
       # cc.enable = true;
       node.enable = true;
+      node.enableGlobally = true;
       rust.enable = true;
+      rust.enableGlobally = true;
       python.enable = true;
+      python.enableGlobally = true;
       scala.enable = true;
     };
     editors = {
       default = "nvim";
       emacs.enable = true;
       vim.enable = true;
+      vscode.enable = true;
     };
     shell = {
       adl.enable = true;
