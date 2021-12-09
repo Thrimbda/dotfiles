@@ -64,6 +64,7 @@
       ssh.enable = true;
       docker.enable = true;
       onedrive.enable = true;
+      gnome-keyring.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };
@@ -80,6 +81,13 @@
   # here. Per-interface useDHCP will be mandatory in the future, so this
   # generated config replicates the default behaviour.
   networking.useDHCP = false;
+
+  services.xserver = {
+    layout = "us";
+    xkbVariant = "colemak";
+    enable = true;
+  };
+  console.useXkbConfig = true;
 
   i18n.inputMethod.enabled =  "fcitx5";
   i18n.inputMethod.fcitx5.addons = with pkgs; [

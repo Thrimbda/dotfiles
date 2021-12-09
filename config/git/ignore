@@ -67,3 +67,4 @@ venv/
 target/
 .pylintrc
 .tags
+.nvimlog
