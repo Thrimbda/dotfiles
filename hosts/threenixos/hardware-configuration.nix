@@ -34,9 +34,6 @@
 
   # Displays
   services.xserver = {
-    layout = "us";
-    xkbVariant = "colemak";
-    enable = true;
     # This must be done manually to ensure my screen spaces are arranged exactly
     # as I need them to be *and* the correct monitor is "primary". Using
     # xrandrHeads does not work.
@@ -56,8 +53,6 @@
 #      Option "nvidiaXineramaInfoOrder" "DFP-1"
 #    '';
   };
-
-  console.useXkbConfig = true;
 
   fileSystems = {
     "/" = {
