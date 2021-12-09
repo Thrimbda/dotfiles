@@ -48,6 +48,7 @@
     editors = {
       default = "nvim";
       emacs.enable = true;
+      idea.enable = true;
       vim.enable = true;
       vscode.enable = true;
     };
