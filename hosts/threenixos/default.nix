@@ -18,7 +18,7 @@
         firefox.enable = true;
       };
       gaming = {
-        # steam.enable = true;
+        steam.enable = true;
         # emulators.enable = true;
         # emulators.psx.enable = true;
       };
