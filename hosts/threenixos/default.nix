@@ -24,10 +24,8 @@
       };
       media = {
         documents.enable = true;
-        graphics.enable = true;
         mpv.enable = true;
-        recording.enable = true;
-        spotify.enable = true;
+        # spotify.enable = true;
       };
       term = {
         default = "xst";
