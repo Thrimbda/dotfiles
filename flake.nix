@@ -20,8 +20,8 @@
       agenix.url = "github:ryantm/agenix";
       agenix.inputs.nixpkgs.follows = "nixpkgs";
 
-      # Extras
-      emacs-overlay.url  = "github:nix-community/emacs-overlay";
+      # Extras pin emacs-overlay at 80db8e4e9f25e81662a244a96029f3427fe3d5b9
+      emacs-overlay.url  = "github:nix-community/emacs-overlay?rev=80db8e4e9f25e81662a244a96029f3427fe3d5b9";
       nixos-hardware.url = "github:nixos/nixos-hardware";
     };
 
