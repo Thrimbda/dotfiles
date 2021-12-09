@@ -20,8 +20,8 @@ in {
         owner = mkDefault config.user.name;
       }) (import secretsFile)
       else {};
-    identityPaths =
-      options.age.identityPaths.default ++ (filter pathExists [
+    sshKeyPaths =
+      options.age.sshKeyPaths.default ++ (filter pathExists [
         "${config.user.home}/.ssh/id_ed25519"
         "${config.user.home}/.ssh/id_rsa"
       ]);
