@@ -37,6 +37,7 @@
     };
     dev = {
       # cc.enable = true;
+      go.enable = true;
       node.enable = true;
       node.enableGlobally = true;
       rust.enable = true;
