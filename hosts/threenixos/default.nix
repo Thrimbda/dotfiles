@@ -39,7 +39,6 @@
       # cc.enable = true;
       go.enable = true;
       node.enable = true;
-      node.enableGlobally = true;
       rust.enable = true;
       rust.enableGlobally = true;
       python.enable = true;
