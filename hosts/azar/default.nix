@@ -3,6 +3,7 @@
   imports = [
     ../home.nix
     ./hardware-configuration.nix
+    ./networking.nix
   ];
 
   ## Modules
@@ -19,7 +20,7 @@
     };
     editors = {
       default = "nvim";
-      emacs.enable = true;
+      # emacs.enable = true;
       vim.enable = true;
     };
     shell = {

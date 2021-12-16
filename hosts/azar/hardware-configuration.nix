@@ -4,48 +4,23 @@
 { config, lib, pkgs, modulesPath, ... }:
 
 {
-  imports = [ ];
+  imports =
+    [ (modulesPath + "/profiles/qemu-guest.nix")
+    ];
 
-  boot.initrd.availableKernelModules = [ "virtio_pci" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
+  boot.initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "ehci_pci" "xhci_pci" "virtio_pci" "virtio_scsi" "virtio_blk" ];
+  boot.initrd.kernelModules = [ "nvme" ];
+  boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
+  boot.loader.grub.device = "/dev/vda";
+  boot.loader.systemd-boot.enable = false;
 
   fileSystems."/" =
-    { device = "/dev/sdc";
+    { device = "/dev/vda1";
       fsType = "ext4";
     };
 
-  fileSystems."/usr/lib/wsl/drivers" =
-    { device = "drivers";
-      fsType = "9p";
-    };
+  # swapDevices = [ ];
 
-  fileSystems."/usr/lib/wsl/lib" =
-    { device = "lib";
-      fsType = "9p";
-    };
-
-  fileSystems."/mnt/wsl" =
-    { device = "none";
-      fsType = "tmpfs";
-    };
-
-  fileSystems."/mnt/wslg" =
-    { device = "none";
-      fsType = "tmpfs";
-    };
-
-  fileSystems."/mnt/wslg/doc" =
-    { device = "none";
-      fsType = "overlay";
-    };
-
-  fileSystems."/mnt/c" =
-    { device = "drvfs";
-      fsType = "9p";
-    };
-
-  swapDevices = [ ];
-
+  # hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
