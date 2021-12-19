@@ -44,6 +44,7 @@
       python.enable = true;
       python.enableGlobally = true;
       scala.enable = true;
+      java.enable = true;
     };
     editors = {
       default = "nvim";
