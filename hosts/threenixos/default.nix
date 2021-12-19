@@ -16,6 +16,7 @@
       browsers = {
         default = "firefox";
         firefox.enable = true;
+        chrome.enable = true;
       };
       gaming = {
         steam.enable = true;
@@ -40,7 +41,6 @@
       go.enable = true;
       node.enable = true;
       rust.enable = true;
-      rust.enableGlobally = true;
       python.enable = true;
       python.enableGlobally = true;
       scala.enable = true;
