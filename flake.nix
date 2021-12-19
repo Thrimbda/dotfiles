@@ -21,7 +21,7 @@
       agenix.inputs.nixpkgs.follows = "nixpkgs";
 
       # Extras pin emacs-overlay at 80db8e4e9f25e81662a244a96029f3427fe3d5b9
-      emacs-overlay.url  = "github:nix-community/emacs-overlay?rev=80db8e4e9f25e81662a244a96029f3427fe3d5b9";
+      emacs-overlay.url  = "github:nix-community/emacs-overlay";
       nixos-hardware.url = "github:nixos/nixos-hardware";
     };
 
