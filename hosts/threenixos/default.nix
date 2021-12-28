@@ -13,6 +13,10 @@
         rofi.enable = true;
         # godot.enable = true;
       };
+      input = {
+        colemak.enable = true;
+        fcitx5-rime.enable = true;
+      };
       browsers = {
         default = "firefox";
         firefox.enable = true;
@@ -83,18 +87,6 @@
   # here. Per-interface useDHCP will be mandatory in the future, so this
   # generated config replicates the default behaviour.
   networking.useDHCP = false;
-
-  services.xserver = {
-    layout = "us";
-    xkbVariant = "colemak";
-    enable = true;
-  };
-  console.useXkbConfig = true;
-
-  i18n.inputMethod.enabled =  "fcitx5";
-  i18n.inputMethod.fcitx5.addons = with pkgs; [
-    fcitx5-rime
-  ];
 
   time.timeZone = "Asia/Shanghai";
 
