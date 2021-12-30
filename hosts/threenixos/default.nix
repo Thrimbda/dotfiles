@@ -41,7 +41,7 @@
       };
     };
     dev = {
-      # cc.enable = true;
+      cc.enable = true;
       go.enable = true;
       node.enable = true;
       rust.enable = true;

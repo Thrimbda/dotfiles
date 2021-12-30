@@ -14,8 +14,9 @@ in {
     (mkIf cfg.enable {
       user.packages = with pkgs; [
         scala
-        jdk
+        jdk11
         sbt
+        ammonite
       ];
     })
 
