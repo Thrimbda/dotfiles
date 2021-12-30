@@ -13,6 +13,7 @@ in {
       scala
       dotty
       jdk11
+      ammonite
     ];
   };
 }

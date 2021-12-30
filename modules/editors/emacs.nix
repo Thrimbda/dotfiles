@@ -40,6 +40,8 @@ in {
         pinentry_emacs)   # in-emacs gnupg prompts
       zstd                # for undo-fu-session/undo-tree compression
 
+      (if config.modules.desktop.input.fcitx5-rime.enable then librime else null)
+
       ## Module dependencies
       # :checkers spell
       (aspellWithDicts (ds: with ds; [
