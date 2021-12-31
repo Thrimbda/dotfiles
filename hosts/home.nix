@@ -4,7 +4,7 @@ with lib;
 {
   networking.hosts =
     let hostConfig = {
-          "192.168.50.211"  = [ "threenixos" ];
+          "192.168.50.211"  = [ "azar" ];
         };
         hosts = flatten (attrValues hostConfig);
         hostName = config.networking.hostName;
