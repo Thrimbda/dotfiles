@@ -45,6 +45,7 @@
       go.enable = true;
       node.enable = true;
       rust.enable = true;
+      rust.enableGlobally = true;
       python.enable = true;
       python.enableGlobally = true;
       scala.enable = true;
@@ -67,6 +68,7 @@
       zsh.enable    = true;
     };
     services = {
+      k8s.enable = true;
       ssh.enable = true;
       docker.enable = true;
       onedrive.enable = true;
