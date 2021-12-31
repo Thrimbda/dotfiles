@@ -68,7 +68,7 @@
       zsh.enable    = true;
     };
     services = {
-      k8s.enable = true;
+      # k8s.enable = true;
       ssh.enable = true;
       docker.enable = true;
       onedrive.enable = true;
