@@ -3,40 +3,27 @@
 with lib;
 with lib.my;
 let cfg = config.modules.services.k8s;
-  kubeMasterIP = "192.168.50.211";
-  kubeMasterHostname = "azar";
-  kubeMasterAPIServerPort = 6443;
 in {
   options.modules.services.k8s = {
     enable = mkBoolOpt false;
   };
 
   config = mkIf cfg.enable {
-    # resolve master hostname
-    networking.extraHosts = "${kubeMasterIP} ${kubeMasterHostname}";
 
-    # packages for administration tasks
-    environment.systemPackages = with pkgs; [
-      kompose
-      kubectl
-      kubernetes
+    user.packages = with pkgs; [
+      k9s
+      tilt
     ];
-
-    services.kubernetes = {
-      roles = ["master" "node"];
-      masterAddress = kubeMasterHostname;
-      apiserverAddress = "https://${kubeMasterHostname}:${toString kubeMasterAPIServerPort}";
-      easyCerts = true;
-      apiserver = {
-        securePort = kubeMasterAPIServerPort;
-        advertiseAddress = kubeMasterIP;
-      };
-
-      # use coredns
-      addons.dns.enable = true;
-
-      # needed if you use swap
-      # kubelet.extraOpts = "--fail-swap-on=false";
-    };
+    # This is required so that pod can reach the API server (running on port 6443 by default)
+    networking.firewall.allowedTCPPorts = [ 6443 ];
+    services.k3s.enable = true;
+    services.k3s.role = "server";
+    services.k3s.extraFlags = toString [
+      # "--kubelet-arg=v=4" # Optionally add additional args to k3s
+    ];
+    environment.systemPackages = with pkgs; [ 
+      # Aha! we're running k3s actually.
+      k3s 
+    ];
   };
 }
