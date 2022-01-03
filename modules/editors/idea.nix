@@ -5,6 +5,7 @@
 with lib;
 with lib.my;
 let cfg = config.modules.editors.idea;
+    configDir = config.dotfiles.configDir;
 in {
   options.modules.editors.idea = {
     enable = mkBoolOpt false;
@@ -14,6 +15,10 @@ in {
     user.packages = with pkgs; [
       jetbrains.idea-community
     ];
+    home.configFile = {
+      "ideavim".source = "${configDir}/ideavim";
+    };
 
   };
+
 }

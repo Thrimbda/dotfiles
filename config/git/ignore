@@ -60,7 +60,7 @@ fabric.properties
 #!.vscode/launch.json
 #!.vscode/extensions.json
 
-# thrimbda
+## thrimbda
 
 build/
 venv/
@@ -68,3 +68,7 @@ target/
 .pylintrc
 .tags
 .nvimlog
+
+# nix
+.envrc
+shell.nix
