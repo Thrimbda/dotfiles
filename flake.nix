@@ -20,16 +20,20 @@
       agenix.url = "github:ryantm/agenix";
       agenix.inputs.nixpkgs.follows = "nixpkgs";
 
-      # Extras pin emacs-overlay at 80db8e4e9f25e81662a244a96029f3427fe3d5b9
+      # Nix darwin
+      darwin.url = "github:lnl7/nix-darwin/master";
+      darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+      # Extras
       emacs-overlay.url  = "github:nix-community/emacs-overlay";
       nixos-hardware.url = "github:nixos/nixos-hardware";
     };
 
   outputs = inputs @ { self, nixpkgs, nixpkgs-unstable, ... }:
     let
-      inherit (lib.my) mapModules mapModulesRec mapHosts;
+      inherit (lib.my) mapModules mapModulesRec mapHosts mapDarwinHosts;
 
-      system = "x86_64-linux";
+      system = "x86_64-darwin";
 
       mkPkgs = pkgs: extraOverlays: import pkgs {
         inherit system;
@@ -61,6 +65,9 @@
 
       nixosConfigurations =
         mapHosts ./hosts {};
+
+      darwinConfigurations =
+        mapDarwinHosts ./macs {};
 
       devShell."${system}" =
         import ./shell.nix { inherit pkgs; };

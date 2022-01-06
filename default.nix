@@ -42,17 +42,17 @@ with lib.my;
   ## Some reasonable, global defaults
   # This is here to appease 'nix flake check' for generic hosts with no
   # hardware-configuration.nix or fileSystem config.
-  fileSystems."/".device = mkDefault "/dev/disk/by-label/nixos";
+  fileSystems."/".device = mkIf pkgs.stdEnv.isLinux (mkDefault "/dev/disk/by-label/nixos");
 
   # Use the latest kernel
-  boot = {
-    kernelPackages = mkDefault pkgs.linuxPackages_5_14;
-    loader = {
-      efi.canTouchEfiVariables = mkDefault true;
-      systemd-boot.configurationLimit = 10;
-      systemd-boot.enable = mkDefault true;
-    };
-  };
+  # boot = {
+  #   kernelPackages = mkDefault pkgs.linuxPackages_5_14;
+  #   loader = {
+  #     efi.canTouchEfiVariables = mkDefault true;
+  #     systemd-boot.configurationLimit = 10;
+  #     systemd-boot.enable = mkDefault true;
+  #   };
+  # };
 
   # Just the bear necessities...
   environment.systemPackages = with pkgs; [
