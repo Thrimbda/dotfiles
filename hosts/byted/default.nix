@@ -24,7 +24,7 @@
       vim.enable = true;
     };
     shell = {
-      adl.enable = true;
+      # adl.enable = true;
       # vaultwarden.enable = true;
       direnv.enable = true;
       git.enable    = true;
@@ -35,11 +35,12 @@
     services = {
       ssh.enable = true;
       docker.enable = true;
-      onedrive.enable = true;
+      vscode-server.enable = true;
+      # onedrive.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };
-    theme.active = "alucard";
+#    theme.active = "alucard";
   };
 
 
