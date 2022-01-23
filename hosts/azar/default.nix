@@ -45,9 +45,7 @@
       go.enable = true;
       node.enable = true;
       rust.enable = true;
-      rust.enableGlobally = true;
       python.enable = true;
-      python.enableGlobally = true;
       scala.enable = true;
       java.enable = true;
     };
@@ -73,6 +71,7 @@
       docker.enable = true;
       onedrive.enable = true;
       gnome-keyring.enable = true;
+      vscode-server.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };

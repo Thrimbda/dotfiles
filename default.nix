@@ -71,6 +71,7 @@ with lib.my;
     gnumake
     unzip
     zenith
+    htop
     kubectl
   ];
 }
