@@ -13,7 +13,6 @@
       node.enable = true;
       rust.enable = true;
       python.enable = true;
-      python.enableGlobally = true;
       scala.enable = true;
     };
     editors = {
@@ -33,7 +32,8 @@
     services = {
       ssh.enable = true;
       docker.enable = true;
-      onedrive.enable = true;
+      # onedrive.enable = true;
+      k8s.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };
@@ -50,6 +50,9 @@
   # here. Per-interface useDHCP will be mandatory in the future, so this
   # generated config replicates the default behaviour.
   networking.useDHCP = false;
+
+  networking.proxy.default = "http://127.0.0.1:7890";
+  networking.proxy.noProxy = "127.0.0.1,localhost,thrimbda.com";
 
   time.timeZone = "Asia/Shanghai";
 
