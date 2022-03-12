@@ -73,5 +73,6 @@ with lib.my;
     zenith
     htop
     kubectl
+    clash
   ];
 }
