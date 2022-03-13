@@ -14,8 +14,8 @@ in {
     doom = rec {
       enable = mkBoolOpt false;
       forgeUrl = mkOpt types.str "https://github.com";
-      repoUrl = mkOpt types.str "${forgeUrl}/doomemacs/doomemacs";
-      configRepoUrl = mkOpt types.str "${forgeUrl}/hlissner/doom-emacs-private";
+      repoUrl = mkOpt types.str "${forgeUrl}/hlissner/doom-emacs";
+      configRepoUrl = mkOpt types.str "${forgeUrl}/Thrimbda/doom-c1";
     };
   };
 
@@ -66,8 +66,8 @@ in {
     system.userActivationScripts = mkIf cfg.doom.enable {
       installDoomEmacs = ''
         if [ ! -d "$XDG_CONFIG_HOME/emacs" ]; then
-           git clone --depth=1 --single-branch "${cfg.doom.repoUrl}" "$XDG_CONFIG_HOME/emacs"
-           git clone "${cfg.doom.configRepoUrl}" "$XDG_CONFIG_HOME/doom"
+          git clone --depth=1 --single-branch "${cfg.doom.repoUrl}" "$XDG_CONFIG_HOME/emacs"
+          git clone "${cfg.doom.configRepoUrl}" "$XDG_CONFIG_HOME/doom"
         fi
       '';
     };
