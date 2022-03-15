@@ -28,7 +28,10 @@
         # emulators.psx.enable = true;
       };
       media = {
-        documents.enable = true;
+        documents = {
+          enable = true;
+          ebook.enable = true;
+        };
         mpv.enable = true;
         # spotify.enable = true;
       };

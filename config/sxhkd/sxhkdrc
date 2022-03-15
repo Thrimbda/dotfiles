@@ -42,11 +42,11 @@ super + shift + p
 super + slash
 	$DOTFILES_BIN/rofi/filemenu -x
 
-super + Escape
-	pkill -USR1 -x sxhkd
+# super + Escape
+# 	pkill -USR1 -x sxhkd
 
-super + alt + Escape
-	bspc quit
+# super + alt + Escape
+# 	bspc quit
 
 
 #
@@ -63,6 +63,9 @@ super + {_,ctrl +}{h,j,k,l}
 # Swap windows directionally; w/ ctrl = across monitors
 super + shift + {_,ctrl +}{h,j,k,l}
 	$DOTFILES_BIN/bspwm/swap {_,-m }{west,south,north,east}
+
+super + s
+ 	bspc node -f @parent && bspc node --ratio 0.28
 
 
 #
