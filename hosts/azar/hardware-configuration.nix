@@ -18,6 +18,7 @@
   # Mobules
   modules.hardware = {
     audio.enable = true;
+    bluetooth.enable = true;
     ergodox.enable = true;
     fs = {
       enable = true;
