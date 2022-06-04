@@ -30,6 +30,12 @@ in
   };
   ## Modules
   modules = {
+    # desktop = {
+    #   input = {
+    #     colemak.enable = true;
+    #     fcitx5-rime.enable = true;
+    #   };
+    # };
     dev = {
       # cc.enable = true;
       go.enable = true;
@@ -54,9 +60,11 @@ in
     };
     services = {
       ssh.enable = true;
-      # docker.enable = true;
+      docker.enable = true;
+      docker.wsl.enable = true;
       # onedrive.enable = true;
       k8s.enable = true;
+      # vscode-server.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };
