@@ -10,7 +10,7 @@ in {
 
   config = mkIf cfg.enable {
     environment.etc = with pkgs; {
-      "jdk11".source = jdk11;
+      "jdk17".source = jdk17;
     };
   };
 }
