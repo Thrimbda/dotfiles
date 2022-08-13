@@ -16,7 +16,6 @@ in {
         scala
         jdk17
         sbt
-        ammonite
       ];
     })
 
