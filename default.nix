@@ -63,6 +63,7 @@ with lib.my;
 
   # Just the bear necessities...
   environment.systemPackages = with pkgs; [
+    stdenv.cc.cc.lib
     bind
     cached-nix-shell
     git
