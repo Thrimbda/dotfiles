@@ -68,6 +68,7 @@ target/
 .pylintrc
 .tags
 .nvimlog
+.c1-cellar
 
 # nix
 .envrc
