@@ -31,9 +31,9 @@
       HISTFILE        = "$XDG_DATA_HOME/bash/history";
       INPUTRC         = "$XDG_CONFIG_HOME/readline/inputrc";
       LESSHISTFILE    = "$XDG_CACHE_HOME/lesshst";
-      WGETRC          = "$XDG_CONFIG_HOME/wgetrc";
 
       # Tools I don't use
+      # WGETRC          = "$XDG_CONFIG_HOME/wgetrc";
       # SUBVERSION_HOME = "$XDG_CONFIG_HOME/subversion";
       # BZRPATH         = "$XDG_CONFIG_HOME/bazaar";
       # BZR_PLUGIN_PATH = "$XDG_DATA_HOME/bazaar";
