@@ -74,5 +74,7 @@ with lib.my;
     htop
     kubectl
     clash
+    nix-index
+    rnix-lsp
   ];
 }

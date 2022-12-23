@@ -62,7 +62,6 @@ fabric.properties
 
 ## thrimbda
 
-build/
 venv/
 target/
 .pylintrc

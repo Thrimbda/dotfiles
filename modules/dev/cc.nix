@@ -25,6 +25,7 @@ in {
         gdb
         cmake
         llvmPackages.libcxx
+        cppzmq
       ];
     })
 

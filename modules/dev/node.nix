@@ -42,6 +42,8 @@ in {
       home.configFile."npm/config".text = ''
         cache=$XDG_CACHE_HOME/npm
         prefix=$XDG_DATA_HOME/npm
+        //npm.ntnl.io/:always-auth=true
+        //npm.ntnl.io/:_authToken="vustQ1JAu2doAeo5y6aRmBZGoE9Ti4BbEZjetDb5uYD2+Z6Yu4XHwh+SC7mkXfyQZtp94DX+ti4dIuKUfRD5Ew=="
       '';
     })
   ];
