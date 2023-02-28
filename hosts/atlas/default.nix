@@ -71,9 +71,10 @@
       k8s.enable = true;
       ssh.enable = true;
       docker.enable = true;
+      calibre.enable = true;
       # onedrive.enable = true;
       # gnome-keyring.enable = true;
-      vscode-server.enable = true;
+      # vscode-server.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };

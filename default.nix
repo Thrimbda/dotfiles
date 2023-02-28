@@ -16,6 +16,14 @@ with lib.my;
 
   # Configure nix and nixpkgs
   environment.variables.NIXPKGS_ALLOW_UNFREE = "1";
+
+  # Setup nix-ld for live quality
+  programs.nix-ld.enable = true;
+  environment.variables.NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
+    pkgs.stdenv.cc.cc
+  ];
+  environment.variables.NIX_LD = lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker";
+
   nix =
     let filteredInputs = filterAttrs (n: _: n != "self") inputs;
         nixPathInputs  = mapAttrsToList (n: v: "${n}=${v}") filteredInputs;
@@ -76,5 +84,6 @@ with lib.my;
     clash
     nix-index
     rnix-lsp
+    nix-ld
   ];
 }

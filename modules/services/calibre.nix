@@ -9,8 +9,25 @@ in {
   };
 
   config = mkIf cfg.enable {
-    services.calibre-server.enable = true;
+    services.calibre-web = {
+      enable = true;
 
-    networking.firewall.allowedTCPPorts = [ 8080 ];
+      listen = {
+        ip = "0.0.0.0";
+      };
+
+      # dataDir = "/home/c1/Books";
+      # user = "c1";
+      # group = "users";
+
+      options = {
+        # calibreLibrary = /home/c1/Books;
+        enableBookUploading = true;
+      };
+
+      openFirewall = true;
+    };
+
+    # networking.firewall.allowedTCPPorts = [ 8080 ];
   };
 }
