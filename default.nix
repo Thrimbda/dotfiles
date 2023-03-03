@@ -18,7 +18,6 @@ with lib.my;
   environment.variables.NIXPKGS_ALLOW_UNFREE = "1";
 
   # Setup nix-ld for live quality
-  programs.nix-ld.enable = true;
   environment.variables.NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
     pkgs.stdenv.cc.cc
   ];
@@ -84,6 +83,5 @@ with lib.my;
     clash
     nix-index
     rnix-lsp
-    nix-ld
   ];
 }

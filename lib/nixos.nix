@@ -1,4 +1,4 @@
-{ inputs, lib, pkgs, ... }:
+{ inputs, nix-ld, lib, pkgs, ... }:
 
 with lib;
 with lib.my;
@@ -13,6 +13,7 @@ in {
           nixpkgs.pkgs = pkgs;
           networking.hostName = mkDefault (removeSuffix ".nix" (baseNameOf path));
         }
+        nix-ld.nixosModules.nix-ld
         (filterAttrs (n: v: !elem n [ "system" ]) attrs)
         ../.   # /default.nix
         (import path)

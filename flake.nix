@@ -20,12 +20,16 @@
       agenix.url = "github:ryantm/agenix";
       agenix.inputs.nixpkgs.follows = "nixpkgs";
 
+      nix-ld.url = "github:Mic92/nix-ld";
+      # this line assume that you also have nixpkgs as an input
+      nix-ld.inputs.nixpkgs.follows = "nixpkgs";
+
       # Extras pin emacs-overlay at 80db8e4e9f25e81662a244a96029f3427fe3d5b9
       emacs-overlay.url  = "github:nix-community/emacs-overlay";
       nixos-hardware.url = "github:nixos/nixos-hardware";
     };
 
-  outputs = inputs @ { self, nixpkgs, nixpkgs-unstable, ... }:
+  outputs = inputs @ { self, nix-ld, nixpkgs, nixpkgs-unstable, ... }:
     let
       inherit (lib.my) mapModules mapModulesRec mapHosts;
 
@@ -40,7 +44,7 @@
       pkgs' = mkPkgs nixpkgs-unstable [];
 
       lib = nixpkgs.lib.extend
-        (self: super: { my = import ./lib { inherit pkgs inputs; lib = self; }; });
+        (self: super: { my = import ./lib { inherit pkgs inputs nix-ld; lib = self; }; });
     in {
       lib = lib.my;
 
