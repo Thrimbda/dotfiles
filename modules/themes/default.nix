@@ -22,6 +22,8 @@ in {
 
     wallpaper = mkOpt (either path null) null;
 
+    useX = mkBoolOpt true;
+
     loginWallpaper = mkOpt (either path null)
       (if cfg.wallpaper != null
        then toFilteredImage cfg.wallpaper "-gaussian-blur 0x2 -modulate 70 -level 5%"
@@ -82,14 +84,16 @@ in {
   config = mkIf (cfg.active != null) (mkMerge [
     # Read xresources files in ~/.config/xtheme/* to allow modular configuration
     # of Xresources.
-    (let xrdb = ''cat "$XDG_CONFIG_HOME"/xtheme/* | ${pkgs.xorg.xrdb}/bin/xrdb -load'';
-     in {
-       home.configFile."xtheme.init" = {
-         text = xrdb;
-         executable = true;
-       };
-       modules.theme.onReload.xtheme = xrdb;
-     })
+    (mkIf cfg.useX
+      (let xrdb = ''cat "$XDG_CONFIG_HOME"/xtheme/* | ${pkgs.xorg.xrdb}/bin/xrdb -load'';
+      in {
+        home.configFile."xtheme.init" = {
+          text = xrdb;
+          executable = true;
+        };
+        modules.theme.onReload.xtheme = xrdb;
+      })
+    )
 
     (mkIf config.modules.desktop.bspwm.enable {
       home.configFile."bspwm/rc.d/05-init" = {
@@ -98,7 +102,7 @@ in {
       };
     })
 
-    {
+    (mkIf cfg.useX {
       home.configFile = {
         "xtheme/00-init".text = with cfg.colors; ''
           #define bg   ${types.bg}
@@ -179,9 +183,9 @@ in {
         sansSerif = [ cfg.fonts.sans.name ];
         monospace = [ cfg.fonts.mono.name ];
       };
-    }
+    })
 
-    (mkIf (cfg.wallpaper != null)
+    (mkIf (cfg.useX && cfg.wallpaper != null)
       # Set the wallpaper ourselves so we don't need .background-image and/or
       # .fehbg polluting $HOME
       (let wCfg = config.services.xserver.desktopManager.wallpaper;

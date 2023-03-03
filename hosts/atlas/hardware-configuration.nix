@@ -14,15 +14,9 @@
   boot.extraModulePackages = [ ];
 
   # Mobules
-  modules.hardware = {
-    audio.enable = true;
-    bluetooth.enable = true;
-    ergodox.enable = true;
-    fs = {
-      enable = true;
-      ssd.enable = true;
-    };
-    sensors.enable = true;
+  modules.hardware.fs = {
+    enable = true;
+    ssd.enable = true;
   };
 
   # CPU

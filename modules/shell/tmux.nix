@@ -13,7 +13,8 @@ in {
   config = mkIf cfg.enable {
     user.packages = with pkgs; [ tmux ];
 
-    modules.theme.onReload.tmux = "${pkgs.tmux}/bin/tmux source-file $TMUX_HOME/extraInit";
+    # for some reason this does not work with some unknown command, I suspect that's something related to $PATH
+    # modules.theme.onReload.tmux = "${pkgs.tmux}/bin/tmux source-file $TMUX_HOME/extraInit";
 
     modules.shell.zsh = {
       rcInit = "_cache tmuxifier init -";

@@ -1,51 +1,14 @@
 { pkgs, config, lib, ... }:
 {
   imports = [
+    ../server.nix
     ../home.nix
     ./hardware-configuration.nix
   ];
 
   ## Modules
   modules = {
-     desktop = {
-       bspwm.enable = true;
-       apps = {
-         rofi.enable = true;
-         # godot.enable = true;
-       };
-       input = {
-         colemak.enable = true;
-         fcitx5-rime.enable = true;
-       };
-       browsers = {
-         default = "firefox";
-         firefox.enable = true;
-         chrome.enable = true;
-       };
-       gaming = {
-         steam.enable = true;
-         # emulators.enable = true;
-         # emulators.psx.enable = true;
-       };
-       media = {
-         # documents = {
-         #   enable = true;
-         #   ebook.enable = true;
-         # };
-         mpv.enable = true;
-         # spotify.enable = true;
-       };
-       term = {
-         default = "xst";
-         st.enable = true;
-       };
-       vm = {
-         qemu.enable = true;
-       };
-     };
     dev = {
-      cc.enable = true;
-      go.enable = true;
       node.enable = true;
       rust.enable = true;
       python.enable = true;
@@ -54,9 +17,7 @@
     };
     editors = {
       default = "nvim";
-      # emacs.enable = true;
       vim.enable = true;
-      vscode.enable = true;
     };
     shell = {
       adl.enable = true;
@@ -72,15 +33,10 @@
       ssh.enable = true;
       docker.enable = true;
       calibre.enable = true;
-      # onedrive.enable = true;
-      # gnome-keyring.enable = true;
-      # vscode-server.enable = true;
-      # Needed occasionally to help the parental units with PC problems
-      # teamviewer.enable = true;
     };
     theme.active = "alucard";
+    theme.useX = false;
   };
-
 
   ## Local config
   programs.ssh.startAgent = true;
@@ -93,48 +49,4 @@
   networking.useDHCP = false;
 
   time.timeZone = "Asia/Shanghai";
-
-
-  ## Personal backups
-  # Syncthing is a bit heavy handed for my needs, so rsync to my NAS instead.
-  # systemd = {
-  #   services.backups = {
-  #     description = "Backup /usr/store to NAS";
-  #     wants = [ "usr-drive.mount" ];
-  #     path  = [ pkgs.rsync ];
-  #     environment = {
-  #       SRC_DIR  = "/usr/store";
-  #       DEST_DIR = "/usr/drive";
-  #     };
-  #     script = ''
-  #       rcp() {
-  #         if [[ -d "$1" && -d "$2" ]]; then
-  #           echo "---- BACKUPING UP $1 TO $2 ----"
-  #           rsync -rlptPJ --chmod=go= --delete --delete-after \
-  #               --exclude=lost+found/ \
-  #               --exclude=@eaDir/ \
-  #               --include=.git/ \
-  #               --filter=':- .gitignore' \
-  #               --filter=':- $XDG_CONFIG_HOME/git/ignore' \
-  #               "$1" "$2"
-  #         fi
-  #       }
-  #       rcp "$HOME/projects/" "$DEST_DIR/projects"
-  #       rcp "$SRC_DIR/" "$DEST_DIR"
-  #     '';
-  #     serviceConfig = {
-  #       Type = "oneshot";
-  #       Nice = 19;
-  #       IOSchedulingClass = "idle";
-  #       User = config.user.name;
-  #       Group = config.user.group;
-  #     };
-  #   };
-  #   timers.backups = {
-  #     wantedBy = [ "timers.target" ];
-  #     partOf = [ "backups.service" ];
-  #     timerConfig.OnCalendar = "*-*-* 00,12:00:00";
-  #     timerConfig.Persistent = true;
-  #   };
-  # };
 }

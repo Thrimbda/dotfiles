@@ -17,8 +17,8 @@ in {
       };
 
       # dataDir = "/home/c1/Books";
-      # user = "c1";
-      # group = "users";
+      user = "c1";
+      group = "users";
 
       options = {
         # calibreLibrary = /home/c1/Books;
