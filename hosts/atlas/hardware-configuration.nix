@@ -10,7 +10,7 @@
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
+  boot.kernelModules = [ "kvm-amd" "amdgpu" ];
   boot.extraModulePackages = [ ];
 
   # Mobules
@@ -23,6 +23,7 @@
   nix.settings.max-jobs = lib.mkDefault 24;
   powerManagement.cpuFreqGovernor = "performance";
   hardware.cpu.amd.updateMicrocode = true;
+  hardware.opengl.enable = true;
 
   fileSystems."/" =
     { device = "/dev/disk/by-label/nixos";
