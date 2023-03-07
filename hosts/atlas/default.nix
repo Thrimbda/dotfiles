@@ -8,6 +8,26 @@
 
   ## Modules
   modules = {
+    # Sometimes it dies, and I need to see why.
+    desktop = {
+      bspwm.enable = true;
+      apps = {
+        rofi.enable = true;
+      };
+      input = {
+        colemak.enable = true;
+        fcitx5-rime.enable = true;
+      };
+      browsers = {
+        default = "firefox";
+        firefox.enable = true;
+        # chrome.enable = true;
+      };
+      term = {
+        default = "xst";
+        st.enable = true;
+      };
+    };
     dev = {
       node.enable = true;
       rust.enable = true;
@@ -23,10 +43,10 @@
       adl.enable = true;
       # vaultwarden.enable = true;
       direnv.enable = true;
-      git.enable    = true;
-      gnupg.enable  = true;
-      tmux.enable   = true;
-      zsh.enable    = true;
+      git.enable = true;
+      gnupg.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
     services = {
       k8s.enable = true;
@@ -35,9 +55,8 @@
       calibre.enable = true;
     };
     theme.active = "alucard";
-    theme.useX = false;
+    # theme.useX = false;
   };
-
   ## Local config
   programs.ssh.startAgent = true;
   services.openssh.startWhenNeeded = true;
