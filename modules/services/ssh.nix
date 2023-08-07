@@ -13,8 +13,8 @@ in
     services.openssh = {
       enable = true;
       settings = {
-        kbdInteractiveAuthentication = false;
-        passwordAuthentication = false;
+        # kbdInteractiveAuthentication = false;
+        # passwordAuthentication = false;
       };
     };
 

@@ -68,7 +68,7 @@ in {
         paper-icon-theme # for rofi
       ];
       fonts = {
-        fonts = with pkgs; [
+        packages = with pkgs; [
           fira-code
           fira-code-symbols
           open-sans
