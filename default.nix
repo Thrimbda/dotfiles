@@ -24,10 +24,12 @@ with lib.my;
   environment.variables.NIX_LD = lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker";
 
   nix =
-    let filteredInputs = filterAttrs (n: _: n != "self") inputs;
-        nixPathInputs  = mapAttrsToList (n: v: "${n}=${v}") filteredInputs;
-        registryInputs = mapAttrs (_: v: { flake = v; }) filteredInputs;
-    in {
+    let
+      filteredInputs = filterAttrs (n: _: n != "self") inputs;
+      nixPathInputs = mapAttrsToList (n: v: "${n}=${v}") filteredInputs;
+      registryInputs = mapAttrs (_: v: { flake = v; }) filteredInputs;
+    in
+    {
       package = pkgs.nixFlakes;
       extraOptions = "experimental-features = nix-command flakes";
       nixPath = nixPathInputs ++ [
@@ -67,6 +69,9 @@ with lib.my;
       systemd-boot.enable = mkDefault true;
     };
   };
+
+  # Workaround for https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501/7
+  services.logrotate.checkConfig = false;
 
   # Just the bear necessities...
   environment.systemPackages = with pkgs; [
