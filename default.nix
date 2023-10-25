@@ -17,11 +17,12 @@ with lib.my;
   # Configure nix and nixpkgs
   environment.variables.NIXPKGS_ALLOW_UNFREE = "1";
 
-  # Setup nix-ld for live quality
-  environment.variables.NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
-    pkgs.stdenv.cc.cc
-  ];
-  environment.variables.NIX_LD = lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker";
+  # Setup nix-ld for life quality
+  programs.nix-ld.dev.enable = true;
+  # environment.variables.NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
+  #   pkgs.stdenv.cc.cc
+  # ];
+  # environment.variables.NIX_LD = lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker";
 
   nix =
     let

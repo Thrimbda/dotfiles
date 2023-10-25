@@ -21,8 +21,6 @@
       };
       gaming = {
         steam.enable = true;
-        # emulators.enable = true;
-        # emulators.psx.enable = true;
       };
       media = {
         daw.enable = true;

@@ -23,8 +23,6 @@
       };
       gaming = {
         # steam.enable = true;
-        # emulators.enable = true;
-        # emulators.psx.enable = true;
       };
       media = {
         daw.enable = true;
@@ -56,10 +54,10 @@
       # adl.enable = true;
       vaultwarden.enable = true;
       direnv.enable = true;
-      git.enable    = true;
-      gnupg.enable  = true;
-      tmux.enable   = true;
-      zsh.enable    = true;
+      git.enable = true;
+      gnupg.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
     services = {
       ssh.enable = true;
