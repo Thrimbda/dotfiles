@@ -15,7 +15,7 @@ in {
 
   config = mkIf cfg.enable {
     user.packages = with pkgs; [
-      unstable.go_1_18
+      unstable.go_1_21
     ];
   };
 }

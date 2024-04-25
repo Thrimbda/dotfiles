@@ -30,23 +30,24 @@ in
   };
   ## Modules
   modules = {
-    # desktop = {
-    #   input = {
-    #     colemak.enable = true;
-    #     fcitx5-rime.enable = true;
-    #   };
-    # };
+    desktop = {
+      input = {
+        colemak.enable = true;
+        fcitx5-rime.enable = true;
+      };
+    };
     dev = {
       # cc.enable = true;
       go.enable = true;
       node.enable = true;
+      deno.enable = true;
       rust.enable = true;
       python.enable = true;
       scala.enable = true;
     };
     editors = {
       default = "nvim";
-      # emacs.enable = true;
+      emacs.enable = true;
       vim.enable = true;
     };
     shell = {
@@ -62,13 +63,13 @@ in
       ssh.enable = true;
       docker.enable = true;
       docker.wsl.enable = true;
-      # onedrive.enable = true;
-      k8s.enable = true;
+      # k8s.enable = true;
       # vscode-server.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };
     theme.active = "alucard";
+    # theme.useX = false;
   };
 
 
@@ -83,48 +84,4 @@ in
   # networking.useDHCP = false;
 
   time.timeZone = "Asia/Shanghai";
-
-
-  ## Personal backups
-  # Syncthing is a bit heavy handed for my needs, so rsync to my NAS instead.
-  # systemd = {
-  #   services.backups = {
-  #     description = "Backup /usr/store to NAS";
-  #     wants = [ "usr-drive.mount" ];
-  #     path  = [ pkgs.rsync ];
-  #     environment = {
-  #       SRC_DIR  = "/usr/store";
-  #       DEST_DIR = "/usr/drive";
-  #     };
-  #     script = ''
-  #       rcp() {
-  #         if [[ -d "$1" && -d "$2" ]]; then
-  #           echo "---- BACKUPING UP $1 TO $2 ----"
-  #           rsync -rlptPJ --chmod=go= --delete --delete-after \
-  #               --exclude=lost+found/ \
-  #               --exclude=@eaDir/ \
-  #               --include=.git/ \
-  #               --filter=':- .gitignore' \
-  #               --filter=':- $XDG_CONFIG_HOME/git/ignore' \
-  #               "$1" "$2"
-  #         fi
-  #       }
-  #       rcp "$HOME/projects/" "$DEST_DIR/projects"
-  #       rcp "$SRC_DIR/" "$DEST_DIR"
-  #     '';
-  #     serviceConfig = {
-  #       Type = "oneshot";
-  #       Nice = 19;
-  #       IOSchedulingClass = "idle";
-  #       User = config.user.name;
-  #       Group = config.user.group;
-  #     };
-  #   };
-  #   timers.backups = {
-  #     wantedBy = [ "timers.target" ];
-  #     partOf = [ "backups.service" ];
-  #     timerConfig.OnCalendar = "*-*-* 00,12:00:00";
-  #     timerConfig.Persistent = true;
-  #   };
-  # };
 }

@@ -89,5 +89,6 @@ with lib.my;
     clash
     nix-index
     rnix-lsp
+    cachix
   ];
 }

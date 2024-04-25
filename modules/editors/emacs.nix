@@ -8,6 +8,11 @@ with lib;
 with lib.my;
 let cfg = config.modules.editors.emacs;
     configDir = config.dotfiles.configDir;
+    # emacs28PgtkNativeComp = pkgs.emacs.override {
+    #   withPgtk = true;
+    #   withGTK2 = false;
+    #   nativeComp = true;
+    # };
 in {
   options.modules.editors.emacs = {
     enable = mkBoolOpt false;
@@ -26,7 +31,8 @@ in {
       ## Emacs itself
       binutils       # native-comp needs 'as', provided by this
       # 28.2 + native-comp
-      ((emacsPackagesFor emacsNativeComp).emacsWithPackages
+      # ((emacsPackagesFor emacs28PgtkNativeComp).emacsWithPackages
+      ((emacsPackagesFor emacs-unstable-pgtk).emacsWithPackages
         (epkgs: [ epkgs.vterm ]))
 
       ## Doom dependencies
@@ -38,10 +44,10 @@ in {
       fd                  # faster projectile indexing
       imagemagick         # for image-dired
       (mkIf (config.programs.gnupg.agent.enable)
-        pinentry_emacs)   # in-emacs gnupg prompts
+        pinentry-emacs)   # in-emacs gnupg prompts
       zstd                # for undo-fu-session/undo-tree compression
 
-      (if config.modules.desktop.input.fcitx5-rime.enable then librime else null)
+      librime
 
       ## Module dependencies
       # :checkers spell
