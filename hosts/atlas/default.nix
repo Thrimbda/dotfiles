@@ -21,7 +21,7 @@
       browsers = {
         default = "firefox";
         firefox.enable = true;
-        # chrome.enable = true;
+        chrome.enable = true;
       };
       term = {
         default = "xst";
@@ -61,6 +61,23 @@
   ## Local config
   programs.ssh.startAgent = true;
   services.openssh.startWhenNeeded = true;
+
+
+  # ## rdp
+  # services.xserver.desktopManager.plasma5.enable = true;
+  # services =
+  #   {
+  #     xrdp = {
+  #       enable = true;
+  #       defaultWindowManager = "startplasma-x11";
+  #       openFirewall = true;
+  #       # xrdp.port = 3389;
+  #       # xrdp.address = "
+  #     };
+  #   };
+
+  # networking.firewall.allowedTCPPorts = [ 3389 ];
+
 
   networking.networkmanager.enable = true;
   # The global useDHCP flag is deprecated, therefore explicitly set to false

@@ -10,8 +10,10 @@ in {
 
   config = mkIf cfg.enable {
     services.xserver = {
-      layout = "us";
-      xkbVariant = "colemak";
+      xkb = {
+        layout = "us";
+        variant = "colemak";
+      };
       enable = true;
     };
     console.useXkbConfig = true;

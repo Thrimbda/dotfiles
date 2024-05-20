@@ -18,7 +18,30 @@ with lib.my;
   environment.variables.NIXPKGS_ALLOW_UNFREE = "1";
 
   # Setup nix-ld for life quality
-  programs.nix-ld.dev.enable = true;
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    # common requirement for several games
+    stdenv.cc.cc.lib
+
+    # from https://github.com/NixOS/nixpkgs/blob/nixos-23.05/pkgs/games/steam/fhsenv.nix#L72-L79
+    libGL
+    libva
+
+    # from https://github.com/NixOS/nixpkgs/blob/nixos-23.05/pkgs/games/steam/fhsenv.nix#L124-L136
+    fontconfig
+    freetype
+    xorg.libXt
+    xorg.libXmu
+    libogg
+    libvorbis
+    SDL
+    SDL2_image
+    glew110
+    libdrm
+    libidn
+    tbb
+    zlib
+  ];
   # environment.variables.NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
   #   pkgs.stdenv.cc.cc
   # ];
@@ -86,9 +109,7 @@ with lib.my;
     unzip
     htop
     kubectl
-    clash
     nix-index
-    rnix-lsp
     cachix
   ];
 }
