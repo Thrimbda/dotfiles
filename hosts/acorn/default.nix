@@ -39,6 +39,11 @@
     theme.useX = false;
   };
 
+  networking.firewall = {
+    allowedTCPPorts = [ 34197 ];
+    allowedUDPPorts = [ 34197 ];
+  };
+
   ## Local config
   programs.ssh.startAgent = true;
   services.openssh.startWhenNeeded = true;
