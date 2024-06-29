@@ -18,11 +18,11 @@ in {
         maxtime = "168h";
         factor = "4";
       };
-      jails.DEFAULT = ''
-        blocktype = DROP
-        bantime = 1h
-        findtime = 1h
-      '';
+      bantime = "1h";
+      jails.DEFAULT.settings = {
+        blocktype = "DROP";
+        findtime = "1h";
+      };
     };
 
     # Extra filters

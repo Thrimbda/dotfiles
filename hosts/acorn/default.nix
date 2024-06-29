@@ -5,6 +5,8 @@
     ../server.nix
     "${modulesPath}/virtualisation/azure-common.nix"
     # ./hardware-configuration.nix
+
+    ./modules/vaultwarden.nix
   ];
 
   ## Modules
@@ -13,9 +15,10 @@
       # cc.enable = true;
       # go.enable = true;
       node.enable = true;
+      deno.enable = true;
       rust.enable = true;
       python.enable = true;
-      scala.enable = true;
+      # scala.enable = true;
     };
     editors = {
       default = "nvim";
@@ -34,6 +37,8 @@
     services = {
       ssh.enable = true;
       docker.enable = true;
+      fail2ban.enable = true;
+      nginx.enable = true;
     };
     theme.active = "alucard";
     theme.useX = false;
@@ -47,6 +52,8 @@
   ## Local config
   programs.ssh.startAgent = true;
   services.openssh.startWhenNeeded = true;
+  security.acme.defaults.email = "siyuan.arc@gmail.com";
+  # security.acme.defaults.server = "https://acme-staging-v02.api.letsencrypt.org/directory";
 
   # networking.networkmanager.enable = true;
   # The global useDHCP flag is deprecated, therefore explicitly set to false

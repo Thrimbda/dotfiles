@@ -5,11 +5,11 @@ with lib;
 let blocklist = fetchurl https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts;
 in {
   networking.extraHosts = ''
-    192.168.50.1   router.home
+    192.168.51.1   router.home
 
     # Hosts
     ${optionalString (config.time.timeZone == "Asia/Shanghai") ''
-        192.168.50.227  atlas.home
+        192.168.51.227  atlas.home
       ''}
 
     # Block garbage
@@ -26,5 +26,5 @@ in {
   };
 
   # So the vaultwarden CLI knows where to find my server.
-  modules.shell.vaultwarden.config.server = "vault.lissner.net";
+  modules.shell.vaultwarden.config.server = "vault.0xc1.space";
 }
