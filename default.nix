@@ -42,6 +42,33 @@ with hey.lib;
     # hardware-configuration.nix or fileSystem config.
     fileSystems."/".device = mkDefault "/dev/disk/by-label/nixos";
 
+    # Setup nix-ld for life quality
+    programs.nix-ld.enable = true;
+    # TODO: see if still needed
+    programs.nix-ld.libraries = with pkgs; [
+      # common requirement for several games
+      stdenv.cc.cc.lib
+
+      # from https://github.com/NixOS/nixpkgs/blob/nixos-23.05/pkgs/games/steam/fhsenv.nix#L72-L79
+      libGL
+      libva
+
+      # from https://github.com/NixOS/nixpkgs/blob/nixos-23.05/pkgs/games/steam/fhsenv.nix#L124-L136
+      fontconfig
+      freetype
+      xorg.libXt
+      xorg.libXmu
+      libogg
+      libvorbis
+      SDL
+      SDL2_image
+      glew110
+      libdrm
+      libidn
+      tbb
+      zlib
+    ];
+
     nix =
       let filteredInputs = filterAttrs (_: v: v ? outputs) hey.inputs;
           nixPathInputs  = mapAttrsToList (n: v: "${n}=${v}") filteredInputs;

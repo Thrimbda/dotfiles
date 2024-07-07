@@ -30,6 +30,9 @@ in {
       };
     };
 
+    # c1 - edits
+    # useX = mkBoolOpt true;
+
     gtk = mkOpt attrs {};
 
     preferDark = mkOpt bool true;

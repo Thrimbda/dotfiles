@@ -34,3 +34,45 @@ __pycache__/
 *.o
 *.pyc
 *.elc
+
+# IntelliJ
+out/
+.idea/
+*.iml
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# VSCODE
+
+.vscode/*
+#!.vscode/settings.json
+#!.vscode/tasks.json
+#!.vscode/launch.json
+#!.vscode/extensions.json
+
+## thrimbda
+
+venv/
+target/
+.pylintrc
+.tags
+.nvimlog
+.c1-cellar
+
+# nix
+.envrc
+shell.nix
+
+# scala
+.bloop/
+.metals/

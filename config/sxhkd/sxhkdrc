@@ -107,6 +107,9 @@ super + alt + {h,j,k,l}
 super + alt + ctrl + {h,j,k,l}
 	hey .resize {x -, y +, y -, x +} 160
 
+super + s
+ 	bspc node -f @parent && bspc node --ratio 0.28
+
 
 #
 ##
