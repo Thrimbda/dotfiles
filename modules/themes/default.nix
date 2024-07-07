@@ -25,6 +25,9 @@ in {
     # TODO: wallpaper -> wallpapers submodule
     wallpaper = mkOpt (either path null) null;
 
+    # c1 - edits
+    # useX = mkBoolOpt true;
+
     gtk = mkOpt attrs {};
 
     preferDark = mkOpt bool true;
@@ -166,6 +169,29 @@ in {
         monospace = [ cfg.fonts.mono.name ];
       };
     })
+
+    # c1 - edits
+    # (mkIf (cfg.useX && cfg.wallpaper != null)
+    #   # Set the wallpaper ourselves so we don't need .background-image and/or
+    #   # .fehbg polluting $HOME
+    #   (let wCfg = config.services.xserver.desktopManager.wallpaper;
+    #        command = ''
+    #          if [ -e "$XDG_DATA_HOME/wallpaper" ]; then
+    #            ${pkgs.feh}/bin/feh --bg-${wCfg.mode} \
+    #              ${optionalString wCfg.combineScreens "--no-xinerama"} \
+    #              --no-fehbg \
+    #              $XDG_DATA_HOME/wallpaper
+    #          fi
+    #       '';
+    #    in {
+    #      services.xserver.displayManager.sessionCommands = command;
+    #      modules.theme.onReload.wallpaper = command;
+
+    #      home.dataFile = mkIf (cfg.wallpaper != null) {
+    #        "wallpaper".source = cfg.wallpaper;
+    #      };
+
+    #    }))
 
     (mkIf (cfg.wallpaper != null) {
       home.dataFile."wallpaper".source = cfg.wallpaper;

@@ -43,6 +43,11 @@
       emacs-overlay.inputs.nixpkgs.follows = "nixpkgs-unstable";
       emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
       nixos-hardware.url = "github:nixos/nixos-hardware";
+
+      # nix-ld
+      nix-ld.url = "github:Mic92/nix-ld";
+      # this line assume that you also have nixpkgs as an input
+      nix-ld.inputs.nixpkgs.follows = "nixpkgs";
     };
 
   outputs = inputs @ { self, nixpkgs, nixos-hardware, ... }:
