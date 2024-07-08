@@ -63,7 +63,7 @@ with builtins;
         rofi.enable = true;
         steam = {
           enable = true;
-          libraryDir = "/media/windows/Program Files (x86)/Steam";
+          # libraryDir = "/media/windows/Program Files (x86)/Steam";
         };
       };
       input = {
@@ -140,6 +140,11 @@ with builtins;
         device = "/dev/disk/by-label/BOOT";
         fsType = "vfat";
       };
+      # "/media/windows" = {
+      #   device = "/dev/disk/by-label/windows";
+      #   fsType = "ntfs";
+      #   options = [ "defaults" "noauto" "nofail" "noatime" "nodev" "exec" "umask=000" "uid=1000" "gid=1000" "x-systemd.automount" ];
+      # };
     };
     swapDevices = [ ];
   };
