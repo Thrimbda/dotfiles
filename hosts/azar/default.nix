@@ -1,17 +1,70 @@
-{ pkgs, config, lib, ... }:
+
+{ hey, lib, ... }:
+
+with lib;
+with builtins;
 {
-  imports = [
-    ../home.nix
-    ./hardware-configuration.nix
-  ];
+  system = "x86_64-linux";
 
   ## Modules
   modules = {
+    theme.active = "autumnal";
+    xdg.ssh.enable = true;
+
+
+    profiles = {
+      role = "workstation";
+      user = "c1";
+      networks = [ "sh" ];
+      hardware = [
+        "cpu/amd"
+        "gpu/nvidia"
+        "audio"
+        "audio/realtime"
+        "ssd"
+      ];
+    };
+
     desktop = {
-      bspwm.enable = true;
+
+      # Wayland only
+      hyprland = rec {
+        enable = true;
+        monitors = [
+          { output = "HDMI-A-2";
+            position = "1920x2160";
+            primary = true; }
+          { output = "DP-3";
+            position = "0x2191"; }
+          { output = "DP-2";
+            position = "4480x2191"; }
+          { output = "HDMI-A-1";
+            mode = "3840x2160@120";
+            position = "1280x0"; }
+        ];
+        extraConfig = ''
+          # REVIEW: Might be a hyprland bug, but an "Unknown-1" display is
+          #   always created and reserves some desktop space, so I disable it.
+          monitor = Unknown-1,disable
+
+          # Bind fixed workspaces to external monitors
+          workspace = name:left, monitor:DP-3, default:true
+          workspace = name:right, monitor:DP-2, default:true
+          workspace = name:tv, monitor:HDMI-A-1, default:true, gapsout:4
+
+          exec-once = hyprctl keyword monitor HDMI-A-1,disable
+        '';
+      };
+
+      term.default = "foot";
+      term.foot.enable = true;
+
       apps = {
         rofi.enable = true;
-        # godot.enable = true;
+        steam = {
+          enable = true;
+          libraryDir = "/media/windows/Program Files (x86)/Steam";
+        };
       };
       input = {
         colemak.enable = true;
@@ -22,43 +75,22 @@
         firefox.enable = true;
         chrome.enable = true;
       };
-      gaming = {
-        steam.enable = true;
-      };
-      media = {
-        # documents = {
-        #   enable = true;
-        #   ebook.enable = true;
-        # };
-        mpv.enable = true;
-        # spotify.enable = true;
-      };
-      term = {
-        default = "xst";
-        st.enable = true;
-      };
-      vm = {
-        qemu.enable = true;
-      };
+
+      media.video.enable = true;
+      # media.video.capture.enable = true;
     };
     dev = {
-      cc.enable = true;
-      go.enable = true;
       node.enable = true;
+      deno.enable = true;
       rust.enable = true;
-      python.enable = true;
-      scala.enable = true;
-      java.enable = true;
     };
     editors = {
       default = "nvim";
       emacs.enable = true;
-      idea.enable = true;
       vim.enable = true;
       vscode.enable = true;
     };
     shell = {
-      adl.enable = true;
       # vaultwarden.enable = true;
       direnv.enable = true;
       git.enable    = true;
@@ -67,72 +99,60 @@
       zsh.enable    = true;
     };
     services = {
-      k8s.enable = true;
       ssh.enable = true;
       docker.enable = true;
-      onedrive.enable = true;
       gnome-keyring.enable = true;
-      vscode-server.enable = true;
-      # Needed occasionally to help the parental units with PC problems
-      # teamviewer.enable = true;
     };
-    theme.active = "alucard";
   };
 
+  hardware = { ... }: {
+
+    boot.supportedFilesystems = [ "ntfs" ];
+  # Displays
+  # services.xserver = {
+    # This must be done manually to ensure my screen spaces are arranged exactly
+    # as I need them to be *and* the correct monitor is "primary". Using
+    # xrandrHeads does not work.
+#    monitorSection = ''
+#      VendorName  "Unknown"
+#      ModelName   "DELL U2720QM"
+#      HorizSync   30.0 - 135.0
+#      VertRefresh 56.0 - 86.0
+#      Option      "DPMS"
+#    '';
+#    screenSection = ''
+#      Option "metamodes" "HDMI-0: nvidia-auto-select +1920+0, DVI-I-1: nvidia-auto-select +0+180, DVI-D-0: nvidia-auto-select +4480+180"
+#      Option "SLI" "Off"
+#      Option "MultiGPU" "Off"
+#      Option "BaseMosaic" "off"
+#      Option "Stereo" "0"
+#      Option "nvidiaXineramaInfoOrder" "DFP-1"
+#    '';
+  # };
+    networking.interfaces.eno1.useDHCP = true;
+    fileSystems = {
+      "/" = {
+        device = "/dev/disk/by-label/nixos";
+        fsType = "ext4";
+        options = [ "noatime" ];
+      };
+      "/boot" = {
+        device = "/dev/disk/by-label/BOOT";
+        fsType = "vfat";
+      };
+    };
+    swapDevices = [ ];
+  };
 
   ## Local config
-  programs.ssh.startAgent = true;
-  services.openssh.startWhenNeeded = true;
+  config = { pkgs, ... }: {
 
-  networking.networkmanager.enable = true;
-  # The global useDHCP flag is deprecated, therefore explicitly set to false
-  # here. Per-interface useDHCP will be mandatory in the future, so this
-  # generated config replicates the default behaviour.
-  networking.useDHCP = false;
-
-  time.timeZone = "Asia/Shanghai";
-
-
-  ## Personal backups
-  # Syncthing is a bit heavy handed for my needs, so rsync to my NAS instead.
-  # systemd = {
-  #   services.backups = {
-  #     description = "Backup /usr/store to NAS";
-  #     wants = [ "usr-drive.mount" ];
-  #     path  = [ pkgs.rsync ];
-  #     environment = {
-  #       SRC_DIR  = "/usr/store";
-  #       DEST_DIR = "/usr/drive";
-  #     };
-  #     script = ''
-  #       rcp() {
-  #         if [[ -d "$1" && -d "$2" ]]; then
-  #           echo "---- BACKUPING UP $1 TO $2 ----"
-  #           rsync -rlptPJ --chmod=go= --delete --delete-after \
-  #               --exclude=lost+found/ \
-  #               --exclude=@eaDir/ \
-  #               --include=.git/ \
-  #               --filter=':- .gitignore' \
-  #               --filter=':- $XDG_CONFIG_HOME/git/ignore' \
-  #               "$1" "$2"
-  #         fi
-  #       }
-  #       rcp "$HOME/projects/" "$DEST_DIR/projects"
-  #       rcp "$SRC_DIR/" "$DEST_DIR"
-  #     '';
-  #     serviceConfig = {
-  #       Type = "oneshot";
-  #       Nice = 19;
-  #       IOSchedulingClass = "idle";
-  #       User = config.user.name;
-  #       Group = config.user.group;
-  #     };
-  #   };
-  #   timers.backups = {
-  #     wantedBy = [ "timers.target" ];
-  #     partOf = [ "backups.service" ];
-  #     timerConfig.OnCalendar = "*-*-* 00,12:00:00";
-  #     timerConfig.Persistent = true;
-  #   };
-  # };
+    user.packages = with pkgs; [
+      k9s
+    ];
+    programs.ssh.startAgent = true;
+    services.openssh.startWhenNeeded = true;
+    # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
+    services.logrotate.checkConfig = false;
+  };
 }
