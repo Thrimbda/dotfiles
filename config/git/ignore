@@ -72,6 +72,7 @@ target/
 # nix
 .envrc
 shell.nix
+.direnv/
 
 # scala
 .bloop/
