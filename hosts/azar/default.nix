@@ -22,6 +22,8 @@ with builtins;
         "audio"
         "audio/realtime"
         "ssd"
+        "bluetooth"
+        "wifi"
       ];
     };
 
@@ -31,16 +33,13 @@ with builtins;
       hyprland = rec {
         enable = true;
         monitors = [
-          { output = "HDMI-A-2";
-            position = "1920x2160";
-            primary = true; }
           { output = "DP-3";
-            position = "0x2191"; }
+            scale = 2;
+            position = "0x0";
+            primary = true; }
           { output = "DP-2";
-            position = "4480x2191"; }
-          { output = "HDMI-A-1";
-            mode = "3840x2160@120";
-            position = "1280x0"; }
+            scale = 2;
+            position = "1920x0"; }
         ];
         extraConfig = ''
           # REVIEW: Might be a hyprland bug, but an "Unknown-1" display is
@@ -49,16 +48,16 @@ with builtins;
 
           # Bind fixed workspaces to external monitors
           workspace = name:left, monitor:DP-3, default:true
-          workspace = name:right, monitor:DP-2, default:true
-          workspace = name:tv, monitor:HDMI-A-1, default:true, gapsout:4
+           workspace = name:right, monitor:DP-2, default:true
 
-          exec-once = hyprctl keyword monitor HDMI-A-1,disable
+          # exec-once = hyprctl keyword monitor HDMI-A-1,disable
         '';
       };
 
       term.default = "foot";
       term.foot.enable = true;
 
+      apps.thunar.enable = true;
       apps = {
         rofi.enable = true;
         steam = {
@@ -86,7 +85,7 @@ with builtins;
     };
     editors = {
       default = "nvim";
-      emacs.enable = true;
+      # emacs.enable = true;
       vim.enable = true;
       vscode.enable = true;
     };
@@ -103,9 +102,16 @@ with builtins;
       docker.enable = true;
       gnome-keyring.enable = true;
     };
+    system = {
+      utils.enable = true;
+      fs.enable = true;
+    };
   };
 
   hardware = { ... }: {
+
+    networking.networkmanager.enable = true;
+    networking.interfaces.eno1.useDHCP = true;
 
     boot.supportedFilesystems = [ "ntfs" ];
   # Displays
@@ -129,7 +135,6 @@ with builtins;
 #      Option "nvidiaXineramaInfoOrder" "DFP-1"
 #    '';
   # };
-    networking.interfaces.eno1.useDHCP = true;
     fileSystems = {
       "/" = {
         device = "/dev/disk/by-label/nixos";
@@ -154,10 +159,12 @@ with builtins;
 
     user.packages = with pkgs; [
       k9s
+      kubectl
     ];
     programs.ssh.startAgent = true;
     services.openssh.startWhenNeeded = true;
     # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
     services.logrotate.checkConfig = false;
+
   };
 }
