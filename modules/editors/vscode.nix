@@ -12,11 +12,13 @@ in {
 
   config = mkIf cfg.enable {
     user.packages = with pkgs; [
-      (unstable.vscode-with-extensions.override {
-        vscodeExtensions = with unstable.vscode-extensions; [
-          ms-vscode.cpptools
-        ];
-      })
+      vscode.fhs
+#       (vscode-with-extensions.override {
+#         vscodeExtensions = with vscode-extensions; [
+#           vscodevim.vim
+# 
+#         ];
+#       })
     ];
   };
 }
