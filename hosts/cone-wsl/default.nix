@@ -1,15 +1,12 @@
-{ pkgs, config, lib, ... }:
+{ hey, pkgs, config, lib, ... }:
 
 with lib;
+with builtins;
 let
   nixos-wsl = import ./nixos-wsl;
 in
 {
-  imports = [
-    ../home.nix
-    #./hardware-configuration.nix
-    nixos-wsl.nixosModules.wsl
-  ];
+  system = "x86_64-linux";
 
   boot = {
     loader = {
@@ -30,6 +27,24 @@ in
   };
   ## Modules
   modules = {
+    theme.active = "autumnal";
+    xdg.ssh.enable = true;
+
+    profiles = {
+      role = "workstation";
+      user = "c1";
+      networks = [ "sh" ];
+      hardware = [
+        "cpu/amd"
+        "gpu/nvidia"
+        "audio"
+        "audio/realtime"
+        "ssd"
+        "bluetooth"
+        "wifi"
+      ];
+    };
+
     desktop = {
       input = {
         colemak.enable = true;
@@ -38,12 +53,12 @@ in
     };
     dev = {
       # cc.enable = true;
-      go.enable = true;
+      # go.enable = true;
       node.enable = true;
       deno.enable = true;
       rust.enable = true;
       python.enable = true;
-      scala.enable = true;
+      # scala.enable = true;
     };
     editors = {
       default = "nvim";
@@ -51,7 +66,6 @@ in
       vim.enable = true;
     };
     shell = {
-      adl.enable = true;
       # vaultwarden.enable = true;
       direnv.enable = true;
       git.enable    = true;
@@ -68,20 +82,53 @@ in
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };
-    theme.active = "alucard";
-    # theme.useX = false;
   };
 
 
-  ## Local config
-  programs.ssh.startAgent = true;
-  services.openssh.startWhenNeeded = true;
+  hardware = {
+    boot.supportedFilesystems = [ "ntfs" ];
 
-  # networking.networkmanager.enable = true;
-  # The global useDHCP flag is deprecated, therefore explicitly set to false
-  # here. Per-interface useDHCP will be mandatory in the future, so this
-  # generated config replicates the default behaviour.
-  # networking.useDHCP = false;
+    fileSystems."/" =
+      { device = "/dev/sdd";
+        fsType = "ext4";
+      };
 
-  time.timeZone = "Asia/Shanghai";
+    fileSystems."/usr/lib/wsl/drivers" =
+      { device = "drivers";
+        fsType = "9p";
+      };
+
+    fileSystems."/usr/lib/wsl/lib" =
+      { device = "lib";
+        fsType = "9p";
+      };
+
+    fileSystems."/mnt/wsl" =
+      { device = "none";
+        fsType = "tmpfs";
+      };
+
+    fileSystems."/mnt/wslg" =
+      { device = "none";
+        fsType = "tmpfs";
+      };
+
+    fileSystems."/mnt/wslg/doc" =
+      { device = "none";
+        fsType = "overlay";
+      };
+
+    fileSystems."/mnt/c" =
+      { device = "drvfs";
+        fsType = "9p";
+      };
+
+    swapDevices = [ ];
+  };
+
+  config = { pkgs, ... }: {
+    ## Local config
+    programs.ssh.startAgent = true;
+    services.openssh.startWhenNeeded = true;
+  };
 }
