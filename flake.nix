@@ -45,6 +45,8 @@
       nix-ld.url = "github:Mic92/nix-ld";
       # this line assume that you also have nixpkgs as an input
       nix-ld.inputs.nixpkgs.follows = "nixpkgs";
+
+      nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     };
 
   outputs = inputs @ { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }:
