@@ -2,70 +2,40 @@
 
 with lib;
 with builtins;
-let
-  nixos-wsl = (import (builtins.fetchTarball {
-    url = "https://github.com/nix-community/NixOS-WSL/releases/download/2405.5.4/nixos-wsl.tar.gz";
-    sha256 = "0000000000000000000000000000000000000000000000000000";
-  }) {}).outPath;
-in
 {
+  imports = [ hey.inputs.nixos-wsl.nixosModules.default ];
+
   system = "x86_64-linux";
 
-  boot = {
-    loader = {
-      efi.canTouchEfiVariables = mkDefault true;
-      systemd-boot.configurationLimit = 10;
-      systemd-boot.enable = false;
-    };
-  };
-
-  wsl = {
-    enable = true;
-    automountPath = "/mnt";
-    defaultUser = "c1";
-    startMenuLaunchers = true;
-
-    # Enable integration with Docker Desktop (needs to be installed)
-    # docker.enable = true;
-  };
   ## Modules
   modules = {
     theme.active = "autumnal";
     xdg.ssh.enable = true;
 
     profiles = {
-      role = "workstation";
+      # role = "server";
       user = "c1";
       networks = [ "sh" ];
       hardware = [
         "cpu/amd"
         "gpu/nvidia"
-        "audio"
-        "audio/realtime"
         "ssd"
-        "bluetooth"
-        "wifi"
+        "audio"
       ];
     };
 
-    desktop = {
-      input = {
-        colemak.enable = true;
-        fcitx5-rime.enable = true;
-      };
-    };
     dev = {
       # cc.enable = true;
       # go.enable = true;
       node.enable = true;
       deno.enable = true;
-      rust.enable = true;
-      python.enable = true;
+      # rust.enable = true;
+      # python.enable = true;
       # scala.enable = true;
     };
     editors = {
       default = "nvim";
-      emacs.enable = true;
+      # emacs.enable = true;
       vim.enable = true;
     };
     shell = {
@@ -78,17 +48,32 @@ in
     };
     services = {
       ssh.enable = true;
-      docker.enable = true;
-      docker.wsl.enable = true;
+      # docker.enable = true;
+      # docker.wsl.enable = true;
       # k8s.enable = true;
       # vscode-server.enable = true;
       # Needed occasionally to help the parental units with PC problems
       # teamviewer.enable = true;
     };
+    system = {
+      utils.enable = true;
+      fs.enable = true;
+    };
   };
 
-
   hardware = {
+    # boot = {
+    #   loader = {
+    #     efi.canTouchEfiVariables = mkDefault true;
+    #     systemd-boot.configurationLimit = 10;
+    #     systemd-boot.enable = false;
+    #   };
+    #   initrd.availableKernelModules = [ "virtio_pci" ];
+    #   initrd.kernelModules = [ ];
+    #   kernelModules = [ "kvm-amd" ];
+    #   extraModulePackages = [ ]; 
+    # };
+
     boot.supportedFilesystems = [ "ntfs" ];
 
     fileSystems."/" =
@@ -106,21 +91,6 @@ in
         fsType = "9p";
       };
 
-    fileSystems."/mnt/wsl" =
-      { device = "none";
-        fsType = "tmpfs";
-      };
-
-    fileSystems."/mnt/wslg" =
-      { device = "none";
-        fsType = "tmpfs";
-      };
-
-    fileSystems."/mnt/wslg/doc" =
-      { device = "none";
-        fsType = "overlay";
-      };
-
     fileSystems."/mnt/c" =
       { device = "drvfs";
         fsType = "9p";
@@ -133,5 +103,14 @@ in
     ## Local config
     programs.ssh.startAgent = true;
     services.openssh.startWhenNeeded = true;
+
+    wsl = {
+      enable = true;
+      defaultUser = "c1";
+      startMenuLaunchers = true;
+
+      # Enable integration with Docker Desktop (needs to be installed)
+      # docker.enable = true;
+    };
   };
 }
