@@ -1,9 +1,12 @@
-{ hey, pkgs, config, lib, ... }:
+{ hey, lib, ... }:
 
 with lib;
 with builtins;
 let
-  nixos-wsl = import ./nixos-wsl;
+  nixos-wsl = (import (builtins.fetchTarball {
+    url = "https://github.com/nix-community/NixOS-WSL/releases/download/2405.5.4/nixos-wsl.tar.gz";
+    sha256 = "0000000000000000000000000000000000000000000000000000";
+  }) {}).outPath;
 in
 {
   system = "x86_64-linux";
