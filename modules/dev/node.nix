@@ -29,7 +29,7 @@ in {
         ya = "yarn";
       };
 
-      environment.variables.PATH = [ "$(${pkgs.yarn}/bin/yarn global bin)" ];
+      # environment.variables.PATH = [ "$(${pkgs.yarn}/bin/yarn global bin)" ];
     })
 
     (mkIf cfg.xdg.enable {
