@@ -79,6 +79,7 @@ with builtins;
 
     user.packages = with pkgs; [
       k9s
+      kubectl
     ];
     programs.ssh.startAgent = true;
     services.openssh.startWhenNeeded = true;
