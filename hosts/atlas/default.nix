@@ -48,7 +48,7 @@ with builtins;
       node.enable = true;
       deno.enable = true;
       rust.enable = true;
-      # python.enable = true;
+      python.enable = true;
       # scala.enable = true;
       java.enable = true;
     };
