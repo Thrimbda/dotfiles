@@ -44,7 +44,7 @@ with hey.lib;
 
     # Setup nix-ld for life quality
     programs.nix-ld.enable = true;
-    programs.nix-ld.package = pkgs.nix-ld-rs;
+    programs.nix-ld.package = pkgs.nix-ld;
     # TODO: see if still needed
     programs.nix-ld.libraries = with pkgs; [
       # common requirement for several games
