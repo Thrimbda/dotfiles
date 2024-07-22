@@ -73,6 +73,7 @@ with builtins;
         default = "firefox";
         firefox.enable = true;
         chrome.enable = true;
+        edge.enable = true;
       };
 
       media.video.enable = true;
@@ -101,6 +102,7 @@ with builtins;
       ssh.enable = true;
       docker.enable = true;
       gnome-keyring.enable = true;
+      clash-meta.enable = true;
     };
     system = {
       utils.enable = true;
@@ -160,7 +162,15 @@ with builtins;
     user.packages = with pkgs; [
       k9s
       kubectl
+      clash-meta
+      htop
     ];
+
+    networking.proxy = {
+      httpProxy = "http://127.0.0.1:7890";
+      httpsProxy = "http://127.0.0.1:7890";
+    };
+
     programs.ssh.startAgent = true;
     services.openssh.startWhenNeeded = true;
     # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
