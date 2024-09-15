@@ -85,6 +85,17 @@ with builtins;
     services.openssh.startWhenNeeded = true;
     # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
     services.logrotate.checkConfig = false;
+
+    networking.firewall = {
+      allowedTCPPortRanges = [{
+        from = 49152;
+        to = 65535;
+      }];
+      allowedUDPPortRanges = [{
+        from = 49152;
+        to = 65535;
+      }];
+    };
   };
 
   ## hardware
