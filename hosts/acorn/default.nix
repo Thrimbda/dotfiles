@@ -3,8 +3,9 @@
 with lib;
 with builtins;
 {
+
   imports = [
-    "${modulesPath}/virtualisation/azure-common.nix"
+    <nixpkgs/nixos/modules/virtualisation/azure-common.nix>
   ];
 
   system = "x86_64-linux";
@@ -70,6 +71,10 @@ with builtins;
       allowedTCPPorts = [ 34197 ];
       allowedUDPPorts = [ 34197 ];
     };
+
+    virtualisation.docker.enableOnBoot = true;
+    # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
+    services.logrotate.checkConfig = false;
 
     ## Local config
     programs.ssh.startAgent = true;
