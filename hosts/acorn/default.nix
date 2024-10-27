@@ -6,6 +6,7 @@ with builtins;
 
   imports = [
     <nixpkgs/nixos/modules/virtualisation/azure-common.nix>
+    ./modules/vaultwarden.nix
   ];
 
   system = "x86_64-linux";
@@ -60,21 +61,32 @@ with builtins;
   };
 
   hardware = {
+    
+    boot.loader.systemd-boot.enable = true;
+    boot.loader.efi.canTouchEfiVariables = true;
+
     fileSystems."/boot" = {
       device = "/dev/disk/by-label/ESP";
       fsType = "vfat";
     };
   };
 
-  config = {
+  config = {pkgs, ...}: {
     networking.firewall = {
       allowedTCPPorts = [ 34197 ];
       allowedUDPPorts = [ 34197 ];
     };
 
+    environment.systemPackages = with pkgs; [
+      htop
+      janet
+    ];
+
     virtualisation.docker.enableOnBoot = true;
     # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
     services.logrotate.checkConfig = false;
+
+    programs.dconf.enable = true;
 
     ## Local config
     programs.ssh.startAgent = true;
