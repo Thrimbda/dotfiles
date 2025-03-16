@@ -101,7 +101,7 @@ if [[ $TERM != dumb ]]; then
 
     # Be extra careful about plugin load order, or subtle breakage can emerge.
     # This is the best order I've sussed out for these plugins.
-    zgenom load junegunn/fzf shell
+    zgenom load junegunn/fzf shell `fzf --version | awk '{gsub(/[()]/, "", $2); print $2}'` # ISSUE: https://github.com/junegunn/fzf/issues/4211#issuecomment-2623258644
     zgenom load jeffreytse/zsh-vi-mode
     zgenom load zdharma-continuum/fast-syntax-highlighting
     zgenom load zsh-users/zsh-completions src
