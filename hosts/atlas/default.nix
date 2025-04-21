@@ -35,8 +35,8 @@ with builtins;
         fcitx5-rime.enable = true;
       };
       browsers = {
-        default = "firefox";
-        firefox.enable = true;
+        default = "librewolf";
+        librewolf.enable = true;
         chrome.enable = true;
       };
       term = {
