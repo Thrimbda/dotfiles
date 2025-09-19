@@ -102,7 +102,7 @@ with builtins;
       ssh.enable = true;
       docker.enable = true;
       gnome-keyring.enable = true;
-      clash-meta.enable = true;
+      mihomo.enable = true;
     };
     system = {
       utils.enable = true;
@@ -162,7 +162,6 @@ with builtins;
     user.packages = with pkgs; [
       k9s
       kubectl
-      clash-meta
       htop
     ];
 

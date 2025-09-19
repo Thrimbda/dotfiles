@@ -68,6 +68,7 @@ with builtins;
       ssh.enable = true;
       docker.enable = true;
       calibre.enable = true;
+      mihomo.enable = true;
     };
     system = {
       utils.enable = true;
