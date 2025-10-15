@@ -3,7 +3,7 @@
 with lib;
 with hey.lib;
 let cfg = config.modules.virt.qemu;
-in {
+in mkIf pkgs.stdenv.isLinux {
   options.modules.virt.qemu = {
     enable = mkBoolOpt false;
   };

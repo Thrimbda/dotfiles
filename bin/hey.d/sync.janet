@@ -7,6 +7,7 @@
 
 (use hey)
 (use hey/cmd)
+(use sh)
 
 (defcmd sync [_ cmd & args &opts fast? --fast]
   (when (= (flake :host) "nixos")
@@ -17,6 +18,10 @@
 
   (os/setenv "HEYENV" (flake/json))
   (log "HEYENV=%s" (os/getenv "HEYENV"))
+  (ensure-heyenv!)
+
+  (var target-os (or (flake/host-meta :os) "nixos"))
+  (log "Target host %s detected as %s" (flake :host) target-os)
 
   (case* cmd
     "rollback"
@@ -33,10 +38,11 @@
          --no-write-lock-file
          --no-update-lock-file
          ,(path :home))
-    (do? $? sudo --preserve-env=HEYENV nixos-rebuild
+    (do? $? sudo --preserve-env=HEYENV
+         ,(if (= target-os "darwin") "darwin-rebuild" "nixos-rebuild")
          --show-trace
          --impure
          --flake ,(string (path :home) "#" (flake :host))
-         ,;(opts fast?)
+         ,;(if (= target-os "nixos") (opts fast?) [])
          ,;(opts (or cmd "switch"))
          ,;args)))

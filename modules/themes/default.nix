@@ -6,7 +6,9 @@ args @ { hey, heyBin, lib, options, config, pkgs, home-manager, ... }:
 
 with lib;
 with hey.lib;
-let cfg = config.modules.theme;
+let
+  cfg = config.modules.theme;
+  isDarwin = (config.os or "") == "darwin";
 in {
   imports = mapModules' ./. import;
 
@@ -112,7 +114,7 @@ in {
     };
   };
 
-  config = mkIf (cfg.active != null) (mkMerge [
+  config = mkIf (!isDarwin && cfg.active != null) (mkMerge [
     {
       hey.info.theme = {
         inherit (cfg) active colors;

@@ -4,7 +4,8 @@
 
 with lib;
 with hey.lib;
-let cfg = config.modules.theme;
+let
+  cfg = config.modules.theme;
 in mkIf (cfg.active == "autumnal") (mkMerge [
   {
     user.packages = [ pkgs.tela-circle-icon-theme ];

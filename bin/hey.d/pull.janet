@@ -23,12 +23,14 @@
 
 (defn metadata []
   (unless *metadata*
+    (ensure-heyenv!)
     (set *metadata*
          (json/decode ($<_ nix flake metadata --json ,(path :home))
                       :keywords true)))
   *metadata*)
 
 (defcmd pull [_ & args &opts override? [-o --override]]
+  (ensure-heyenv!)
   (cond
     (empty? args)
     (do

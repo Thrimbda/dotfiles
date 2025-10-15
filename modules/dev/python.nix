@@ -8,35 +8,42 @@
 
 with lib;
 with hey.lib;
-let devCfg = config.modules.dev;
-    cfg = devCfg.python;
+let
+  devCfg = config.modules.dev;
+  cfg = devCfg.python;
+  pythonPackages = with pkgs; [
+    python312
+    python312Packages.pip
+    python312Packages.ipython
+    python312Packages.black
+    python312Packages.setuptools
+    python312Packages.pylint
+    poetry
+  ];
 in {
   options.modules.dev.python = {
     enable = mkBoolOpt false;
-    xdg.enable = mkBoolOpt devCfg.xdg.enable;
+    xdg.enable = mkBoolOpt false;
   };
 
   config = mkMerge [
-    (mkIf cfg.enable {
-      user.packages = with pkgs; [
-        python312
-        python312Packages.pip
-        python312Packages.ipython
-        python312Packages.black
-        python312Packages.setuptools
-        python312Packages.pylint
-        poetry
-      ];
+    (mkIf cfg.enable (mkMerge [
+      {
+        user.packages = pythonPackages;
 
-      environment.shellAliases = {
-        py     = "python";
-        py2    = "python2";
-        py3    = "python3";
-        po     = "poetry";
-        ipy    = "ipython --no-banner";
-        ipylab = "ipython --pylab=qt5 --no-banner";
-      };
-    })
+        environment.shellAliases = {
+          py     = "python";
+          py2    = "python2";
+          py3    = "python3";
+          po     = "poetry";
+          ipy    = "ipython --no-banner";
+          ipylab = "ipython --pylab=qt5 --no-banner";
+        };
+      }
+      (mkIf pkgs.stdenv.isDarwin {
+        home.packages = pythonPackages;
+      })
+    ]))
 
     (mkIf cfg.xdg.enable {
       environment.variables = {

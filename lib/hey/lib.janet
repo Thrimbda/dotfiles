@@ -1,5 +1,6 @@
 (import spork/path)
 (import spork/json)
+(use sh)
 
 # % and mod are both modulo functions. We don't need two, so I take over one of
 # them for this common use-case:
@@ -247,6 +248,29 @@
 
 (defn flake/json []
   (string (json/encode (flake))))
+
+(defn ensure-heyenv!
+  []
+  (when (= "" (or (os/getenv "HEYENV") ""))
+    (os/setenv "HEYENV" (flake/json))))
+
+(def- *host-meta* nil)
+
+(defn flake/host-meta [&opt key]
+  (ensure-heyenv!)
+  (when (nil? *host-meta*)
+    (let [host (flake :host)
+          flake-path (flake :path)]
+      (unless host
+        (abort "HOST environment variable is not set"))
+      (set *host-meta*
+           (json/decode
+            ($<_ nix eval --impure --json
+                ,(string flake-path "#hostMetadata." host))
+            :keywords true))))
+  (if key
+    (get *host-meta* key)
+    *host-meta*))
 
 (def exec-path
   (distinct

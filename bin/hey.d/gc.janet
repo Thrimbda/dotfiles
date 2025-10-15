@@ -20,6 +20,8 @@
             all? -a
             system? -s
             delete-old? -d]
+  (ensure-heyenv!)
+  (var host-os (or (flake/host-meta :os) "nixos"))
   (when (or all? system?)
     (echo :g "> Cleaning your system profile...")
     (do? $ sudo nix-collect-garbage ,;(opts delete-old?))
@@ -29,10 +31,11 @@
         # old boot entries until you do a nixos-rebuild (which means we'll
         # always have 2 boot entries at any time); reloading the current
         # environment deletes them immediately.
-        (echo :g "> Deleting left-over boot entries...")
-        (let [profile (path :profile)]
-          (do? $ sudo nix-env --delete-generations old --profile ,profile)
-          (do? $ sudo ,(string profile "/bin/switch-to-configuration") switch)))
+        (when (= host-os "nixos")
+          (echo :g "> Deleting left-over boot entries...")
+          (let [profile (path :profile)]
+            (do? $ sudo nix-env --delete-generations old --profile ,profile)
+            (do? $ sudo ,(string profile "/bin/switch-to-configuration") switch)))))
       ([err fib]
        (propagate err fib)))
 

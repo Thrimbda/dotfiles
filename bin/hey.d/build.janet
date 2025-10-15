@@ -12,6 +12,9 @@
   (hey sync -- ,;args ,(string "build-" type)))
 
 (defn- build-iso [& args]
+  (ensure-heyenv!)
+  (when (= (flake/host-meta :os) "darwin")
+    (abort "ISO images are only supported for NixOS hosts."))
   (echo :g "> Building an ISO for this host...")
   (do? $ nix build
        ,(string/format "%s#nixosConfigurations.%s.config.system.build.isoImage"
@@ -29,6 +32,7 @@
     (echo :check "Done!")))
 
 (defcmd build [_ cmd & args]
+  (ensure-heyenv!)
   (case* cmd
     "iso" ((cmdfn [all? -a] (build-iso all?)) ;args)
     ["vm" "vm-with-bootloader"] (build-vm cmd)

@@ -16,18 +16,23 @@ let devCfg = config.modules.dev;
 in {
   options.modules.dev.rust = {
     enable = mkBoolOpt false;
-    xdg.enable = mkBoolOpt devCfg.xdg.enable;
+    xdg.enable = mkBoolOpt false;
   };
 
   config = mkMerge [
-    (mkIf cfg.enable {
-      user.packages = [ pkgs.rustup ];
-      environment.shellAliases = {
-        rs  = "rustc";
-        rsp = "rustup";
-        ca  = "cargo";
-      };
-    })
+    (mkIf cfg.enable (mkMerge [
+      {
+        user.packages = [ pkgs.rustup ];
+        environment.shellAliases = {
+          rs  = "rustc";
+          rsp = "rustup";
+          ca  = "cargo";
+        };
+      }
+      (mkIf pkgs.stdenv.isDarwin {
+        home.packages = [ pkgs.rustup ];
+      })
+    ]))
 
     (mkIf cfg.xdg.enable {
       environment.variables = rec {

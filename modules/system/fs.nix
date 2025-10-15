@@ -7,7 +7,7 @@
 with lib;
 with hey.lib;
 let cfg = config.modules.system.fs;
-in {
+in mkIf pkgs.stdenv.isLinux {
   options.modules.system.fs = {
     enable = mkBoolOpt true;
     zfs.enable = mkBoolOpt (any (x: x ? fsType && x.fsType == "zfs") (attrValues config.fileSystems));

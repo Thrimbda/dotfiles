@@ -11,17 +11,26 @@ let devCfg = config.modules.dev;
 in {
   options.modules.dev.java = {
     enable = mkBoolOpt false;
-    xdg.enable = mkBoolOpt devCfg.xdg.enable;
+    xdg.enable = mkBoolOpt false;
   };
 
   config = mkMerge [
-    (mkIf cfg.enable {
-      # TODO
-    })
+    (mkIf cfg.enable (mkMerge [
+      {
+        user.packages = [ pkgs.openjdk ];
+      }
+      (mkIf pkgs.stdenv.isDarwin {
+        home.packages = [ pkgs.openjdk ];
+      })
+    ]))
 
-    (mkIf cfg.xdg.enable {
-      environment.sessionVariables._JAVA_OPTIONS =
-        ''-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME/java"'';
-    })
+    (mkIf cfg.xdg.enable (
+      if pkgs.stdenv.isDarwin then {
+        environment.variables._JAVA_OPTIONS =
+          ''-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME/java"'';
+      } else {
+        environment.sessionVariables._JAVA_OPTIONS =
+          ''-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME/java"'';
+      }))
   ];
 }

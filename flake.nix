@@ -13,10 +13,13 @@
   inputs = 
     {
       # Core dependecies
-      nixpkgs.url = "nixpkgs/nixos-24.11";
+      nixpkgs.url = "nixpkgs/nixos-25.05";
       nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
-      home-manager.url = "github:nix-community/home-manager/release-24.11";
+      nixpkgs-darwin.url = "nixpkgs/nixpkgs-25.05-darwin";
+      home-manager.url = "github:nix-community/home-manager/release-25.05";
       home-manager.inputs.nixpkgs.follows = "nixpkgs";
+      darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
+      darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
       agenix.url = "github:ryantm/agenix";
       agenix.inputs.nixpkgs.follows = "nixpkgs";
       disko.url = "github:nix-community/disko";
@@ -59,11 +62,14 @@
       lib = import ./lib args;
     in
       with builtins; with lib; mkFlake inputs {
-        systems = [ "x86_64-linux" "aarch64-linux" ];
+        systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
         inherit lib;
 
         hosts = mapHosts ./hosts;
-        modules.default = import ./.;
+        modules = {
+          nixos.default = import ./.;
+          darwin.default = import ./darwin;
+        };
 
         apps.install = mkApp ./install.zsh;
         devShells.default = import ./shell.nix;

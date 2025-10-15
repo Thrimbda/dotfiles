@@ -13,36 +13,15 @@
 # than what I had before NixOS). home-manager is one black box too many for my
 # liking.
 
-{ hey, lib, config, options, home-manager, pkgs, ... }:
+{ hey, lib, config, options, pkgs, ... }:
 
 with builtins;
 with lib;
 with hey.lib;
 let cfg = config.home;
-in {
-  imports = [
-    hey.modules.home-manager.default
-  ];
-
-  options.home = with types; {
-    file       = mkOpt' attrs {} "Files to place directly in $HOME";
-    configFile = mkOpt' attrs {} "Files to place in $XDG_CONFIG_HOME";
-    dataFile   = mkOpt' attrs {} "Files to place in $XDG_DATA_HOME";
-    fakeFile   = mkOpt' attrs {} "Files to place in $XDG_FAKE_HOME";
-
-    dir        = mkOpt str "${config.user.home}";
-    binDir     = mkOpt str "${cfg.dir}/.local/bin";
-    cacheDir   = mkOpt str "${cfg.dir}/.cache";
-    configDir  = mkOpt str "${cfg.dir}/.config";
-    dataDir    = mkOpt str "${cfg.dir}/.local/share";
-    stateDir   = mkOpt str "${cfg.dir}/.local/state";
-    fakeDir    = mkOpt str "${cfg.dir}/.local/user";
-  };
-
-  config = {
-    environment.localBinInPath = true;
-
-    environment.sessionVariables = mkOrder 10 {
+    userCfg = config.user or {};
+    userName = userCfg.name or "";
+    baseSessionVars = {
       # These are the defaults, and xdg.enable does set them, but due to load
       # order, they're not set before environment.variables are set, which
       # could cause race conditions.
@@ -57,44 +36,94 @@ in {
       XDG_FAKE_HOME = cfg.fakeDir;
       XDG_DESKTOP_DIR = cfg.fakeDir;
     };
+in {
+  imports =
+    (optional (!pkgs.stdenv.isDarwin) hey.modules.home-manager.default)
+    ++ (optional pkgs.stdenv.isDarwin hey.inputs.home-manager.darwinModules.home-manager);
 
-    home.file =
-      mapAttrs' (k: v: nameValuePair "${config.home.fakeDir}/${k}" v)
-        config.home.fakeFile;
+  options.home = with types; {
+    file       = mkOpt' attrs {} "Files to place directly in $HOME";
+    configFile = mkOpt' attrs {} "Files to place in $XDG_CONFIG_HOME";
+    dataFile   = mkOpt' attrs {} "Files to place in $XDG_DATA_HOME";
+    fakeFile   = mkOpt' attrs {} "Files to place in $XDG_FAKE_HOME";
+    packages   = mkOpt' (listOf package) [] "Packages to install into the user's home profile";
 
-    # Install user packages to /etc/profiles instead. Necessary for
-    # nixos-rebuild build-vm to work.
-    home-manager = {
-      useUserPackages = true;
-
-      # I only need a subset of home-manager's capabilities. That is, access to
-      # its home.file, home.xdg.configFile and home.xdg.dataFile so I can deploy
-      # files easily to my $HOME, but 'home-manager.users.hlissner.home.file.*'
-      # is much too long and harder to maintain, so I've made aliases in:
-      #
-      #   home.file        ->  home-manager.users.hlissner.home.file
-      #   home.configFile  ->  home-manager.users.hlissner.home.xdg.configFile
-      #   home.dataFile    ->  home-manager.users.hlissner.home.xdg.dataFile
-      users.${config.user.name} = {
-        home = {
-          file = mkAliasDefinitions options.home.file;
-          # Necessary for home-manager to work with flakes, otherwise it will
-          # look for a nixpkgs channel.
-          stateVersion = config.system.stateVersion;
-        };
-        xdg = {
-          # enable = true;
-          configFile = mkAliasDefinitions options.home.configFile;
-          dataFile   = mkAliasDefinitions options.home.dataFile;
-
-          # Force these, since it'll be considered an abstraction leak to use
-          # home-manager's API anywhere outside this module.
-          cacheHome  = mkForce cfg.cacheDir;
-          configHome = mkForce cfg.configDir;
-          dataHome   = mkForce cfg.dataDir;
-          stateHome  = mkForce cfg.stateDir;
-        };
-      };
-    };
+    dir        = mkOpt str "${config.user.home}";
+    binDir     = mkOpt str "${cfg.dir}/.local/bin";
+    cacheDir   = mkOpt str "${cfg.dir}/.cache";
+    configDir  = mkOpt str "${cfg.dir}/.config";
+    dataDir    = mkOpt str "${cfg.dir}/.local/share";
+    stateDir   = mkOpt str "${cfg.dir}/.local/state";
+    fakeDir    = mkOpt str "${cfg.dir}/.local/user";
   };
+
+  config = mkIf (userName != "") (mkMerge [
+    (optionalAttrs (!pkgs.stdenv.isDarwin) {
+      environment.localBinInPath = true;
+    })
+
+    (if pkgs.stdenv.isDarwin then {
+      environment.variables = mkOrder 10 baseSessionVars;
+    } else {
+      environment.sessionVariables = mkOrder 10 baseSessionVars;
+    })
+
+    {
+      home.file =
+        mapAttrs' (k: v: nameValuePair "${config.home.fakeDir}/${k}" v)
+          config.home.fakeFile;
+    }
+
+    {
+      home-manager = {
+        useGlobalPkgs = false;
+        useUserPackages = true;
+
+        users.${config.user.name} =
+          let
+            mkHomeFiles = prefix: files:
+              mapAttrs'
+                (name: value: nameValuePair "${prefix}/${name}" value)
+                files;
+          in {
+          home = {
+            username = config.user.name;
+            homeDirectory = config.user.home;
+            stateVersion =
+              let sysVersion = config.system.stateVersion;
+              in if isString sysVersion then sysVersion else "24.11";
+            file =
+              mkAliasDefinitions options.home.file
+              // mkHomeFiles ".config" cfg.configFile
+              // mkHomeFiles ".local/share" cfg.dataFile;
+            packages = mkAliasDefinitions options.home.packages;
+          };
+          xdg = {
+            enable = true;
+            cacheHome  = mkForce cfg.cacheDir;
+            configHome = mkForce cfg.configDir;
+            dataHome   = mkForce cfg.dataDir;
+            stateHome  = mkForce cfg.stateDir;
+          };
+        } // (optionalAttrs pkgs.stdenv.isDarwin (
+          let
+            hmPkgsBase =
+              import hey.inputs.home-manager.inputs.nixpkgs {
+                inherit (pkgs) config;
+                system = pkgs.stdenv.hostPlatform.system;
+              };
+            kdeconnectStub = hmPkgsBase.writeShellScriptBin "kdeconnect-kde" ''exit 0'';
+            hmPkgs = hmPkgsBase // {
+              plasma5Packages = (hmPkgsBase.plasma5Packages or {}) // {
+                kdeconnect-kde = kdeconnectStub;
+              };
+            };
+          in {
+            services.kdeconnect.package = mkForce kdeconnectStub;
+            _module.args.pkgs = mkForce hmPkgs;
+          }
+        ));
+      };
+    }
+  ]);
 }

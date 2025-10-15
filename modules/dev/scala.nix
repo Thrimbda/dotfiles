@@ -7,7 +7,7 @@ let devCfg = config.modules.dev;
 in {
   options.modules.dev.scala = {
     enable = mkBoolOpt false;
-    xdg.enable = mkBoolOpt devCfg.xdg.enable;
+    xdg.enable = mkBoolOpt false;
   };
 
   config = mkMerge [

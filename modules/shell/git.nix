@@ -2,29 +2,37 @@
 
 with lib;
 with hey.lib;
-let cfg = config.modules.shell.git;
+let
+  cfg = config.modules.shell.git;
+  gitPackagesBase = with pkgs; [
+    gitAndTools.git-annex
+    gitAndTools.gh
+    gitAndTools.git-open
+    gitAndTools.diff-so-fancy
+    act
+  ];
+  gitPackages =
+    gitPackagesBase
+    ++ optional config.modules.shell.gnupg.enable pkgs.gitAndTools.git-crypt;
 in {
   options.modules.shell.git = {
     enable = mkBoolOpt false;
   };
 
-  config = mkIf cfg.enable {
-    user.packages = with pkgs; [
-      gitAndTools.git-annex
-      gitAndTools.gh
-      gitAndTools.git-open
-      gitAndTools.diff-so-fancy
-      (mkIf config.modules.shell.gnupg.enable
-        gitAndTools.git-crypt)
-      act
-    ];
+  config = mkIf cfg.enable (mkMerge [
+    {
+      user.packages = gitPackages;
 
-    home.configFile = {
-      "git/config".source = "${hey.configDir}/git/config";
-      "git/ignore".source = "${hey.configDir}/git/ignore";
-      "git/attributes".source = "${hey.configDir}/git/attributes";
-    };
+      home.configFile = {
+        "git/config".source = "${hey.configDir}/git/config";
+        "git/ignore".source = "${hey.configDir}/git/ignore";
+        "git/attributes".source = "${hey.configDir}/git/attributes";
+      };
 
-    modules.shell.zsh.rcFiles = [ "${hey.configDir}/git/aliases.zsh" ];
-  };
+      modules.shell.zsh.rcFiles = [ "${hey.configDir}/git/aliases.zsh" ];
+    }
+    (mkIf pkgs.stdenv.isDarwin {
+      home.packages = gitPackages;
+    })
+  ]);
 }

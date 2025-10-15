@@ -3,6 +3,11 @@
 with lib;
 with hey.lib;
 let cfg = config.modules.desktop;
+    isDarwin = pkgs.stdenv.isDarwin;
+    setEnv = name: value:
+      if isDarwin
+      then {}
+      else { environment.sessionVariables.${name} = value; };
 in {
   options.modules.desktop = {
     type = with types; mkOpt (nullOr str) null;
@@ -33,7 +38,7 @@ in {
       hey.info.desktop.type = cfg.type;
     }
 
-    (mkIf (cfg.type != null) {
+    (mkIf (!isDarwin && cfg.type != null) {
       fonts = {
         fontDir.enable = true;
         enableGhostscriptFonts = true;
@@ -70,12 +75,10 @@ in {
       ];
     })
 
-    (mkIf (cfg.type == "x11") {
-      environment.sessionVariables.QT_QPA_PLATFORMTHEME = "gnome";
-
+    (mkIf (!isDarwin && cfg.type == "x11") {
       # Try really hard to get QT to respect my GTK theme.
-      # environment.sessionVariables.GTK_DATA_PREFIX = [ "${config.system.path}" ];
-      # environment.sessionVariables.QT_STYLE_OVERRIDE = "kvantum";
+      # setEnv "GTK_DATA_PREFIX" [ "${config.system.path}" ];
+      # setEnv "QT_STYLE_OVERRIDE" "kvantum";
 
       user.packages = with pkgs; [
         feh       # image viewer

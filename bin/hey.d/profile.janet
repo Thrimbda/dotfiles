@@ -23,9 +23,15 @@
 
 (def- *vars* (vars/new (:dir vars/temp :profile)))
 
+(defn- rebuild-cmd []
+  (ensure-heyenv!)
+  (if (= (flake/host-meta :os) "darwin")
+    "darwin-rebuild"
+    "nixos-rebuild"))
+
 (defn- generations [&opt reload?]
   (:cache *vars* :generations
-    |(json/decode ($<_ nixos-rebuild list-generations --json)
+    |(json/decode ($<_ ,(rebuild-cmd) list-generations --json)
                   :keywords true)
     reload?))
 
@@ -65,6 +71,7 @@
 (defcmd profile [_ cmd & args &opts
                  reload? -r
                  user? [-u --user]]
+  (ensure-heyenv!)
   (case* cmd
     "ls" (echo :json (generations reload?))
     "rm" (each g args (rm (scan-number g) reload?))

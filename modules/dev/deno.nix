@@ -15,9 +15,16 @@ in
     enable = mkBoolOpt false;
   };
 
-  config = mkIf cfg.enable {
-    user.packages = [
-      pkgs.deno
-    ];
-  };
+  config = mkIf cfg.enable (mkMerge [
+    {
+      user.packages = [
+        pkgs.deno
+      ];
+    }
+    (mkIf pkgs.stdenv.isDarwin {
+      home.packages = [
+        pkgs.deno
+      ];
+    })
+  ]);
 }

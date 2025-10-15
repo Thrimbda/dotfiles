@@ -4,6 +4,9 @@
 
 with lib;
 with hey.lib;
+let
+  isDarwin = pkgs.stdenv.isDarwin;
+in
 {
   imports = mapModulesRec' ./modules import;
 
@@ -20,10 +23,20 @@ with hey.lib;
       message = "config.user.name is not set!";
     }];
 
-    environment.sessionVariables = mkOrder 10 {
-      DOTFILES_HOME = hey.dir;
-      NIXPKGS_ALLOW_UNFREE = "1";   # Forgive me Stallman-senpai.
-    };
+    environment = mkMerge [
+      (mkIf isDarwin {
+        variables = mkOrder 10 {
+          DOTFILES_HOME = hey.dir;
+          NIXPKGS_ALLOW_UNFREE = "1";   # Forgive me Stallman-senpai.
+        };
+      })
+      (mkIf (!isDarwin) {
+        sessionVariables = mkOrder 10 {
+          DOTFILES_HOME = hey.dir;
+          NIXPKGS_ALLOW_UNFREE = "1";   # Forgive me Stallman-senpai.
+        };
+      })
+    ];
 
     # FIXME: Make this optional
     user = {
