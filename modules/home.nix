@@ -75,6 +75,21 @@ in {
     }
 
     {
+      # Unify XDG-mapped files into our home.file option so downstream
+      # consumers (home-manager alias) see them reliably on all platforms.
+      home.file =
+        (let
+          mkHomeFiles = prefix: files:
+            mapAttrs'
+              (name: value: nameValuePair "${prefix}/${name}" value)
+              (filterAttrs (_: v:
+                isAttrs v && (v ? source || v ? text || v ? onChange || v ? executable || v ? recursive)
+              ) files);
+        in mkHomeFiles ".config" cfg.configFile
+           // mkHomeFiles ".local/share" cfg.dataFile);
+    }
+
+    {
       home-manager = {
         useGlobalPkgs = false;
         useUserPackages = true;
@@ -92,10 +107,8 @@ in {
             stateVersion =
               let sysVersion = config.system.stateVersion;
               in if isString sysVersion then sysVersion else "24.11";
-            file =
-              mkAliasDefinitions options.home.file
-              // mkHomeFiles ".config" cfg.configFile
-              // mkHomeFiles ".local/share" cfg.dataFile;
+            # Delegate to our unified home.file (above) via aliasing.
+            file = mkAliasDefinitions options.home.file;
             packages = mkAliasDefinitions options.home.packages;
           };
           xdg = {

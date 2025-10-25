@@ -77,3 +77,6 @@ shell.nix
 # scala
 .bloop/
 .metals/
+
+# direnv
+.direnv/

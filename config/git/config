@@ -3,6 +3,7 @@
 	email = c.one@thrimbda.com
 [core]
 	whitespace = trailing-space
+	excludesfile = ~/.config/git/ignore
 [github]
 	user = thrimbda
 [rebase]
