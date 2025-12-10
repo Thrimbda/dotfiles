@@ -54,10 +54,25 @@
 
   outputs = inputs @ { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }:
     let
+      detectSystem =
+        let
+          inherit (nixpkgs.lib.strings) hasInfix toLower;
+          envSystem = builtins.getEnv "NIX_SYSTEM";
+          envHost = toLower (builtins.getEnv "HOSTTYPE");
+          envOs = toLower (builtins.getEnv "OSTYPE");
+          isDarwin = hasInfix "darwin" envOs;
+          isArm = hasInfix "arm" envHost || hasInfix "aarch64" envHost;
+        in
+          if builtins ? currentSystem then builtins.currentSystem
+          else if envSystem != "" then envSystem
+          else if isDarwin then (if isArm then "aarch64-darwin" else "x86_64-darwin")
+          else if isArm then "aarch64-linux"
+          else "x86_64-linux";
+
       args = {
         inherit self;
         inherit (nixpkgs) lib;
-        pkgs = import nixpkgs {};
+        pkgs = import nixpkgs { system = detectSystem; };
       };
       lib = import ./lib args;
     in

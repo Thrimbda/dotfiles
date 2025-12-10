@@ -50,17 +50,42 @@ rec {
         # it is pulled, so...
         config.permittedInsecurePackages = [ "python-2.7.18.6" ];
       };
+      detectSystem =
+        let
+          envSystem = getEnv "NIX_SYSTEM";
+          envHost = toLower (getEnv "HOSTTYPE");
+          envOs = toLower (getEnv "OSTYPE");
+          isDarwin = hasInfix "darwin" envOs;
+          isArm = hasInfix "arm" envHost || hasInfix "aarch64" envHost;
+        in
+          if builtins ? currentSystem then builtins.currentSystem
+          else if envSystem != "" then envSystem
+          else if isDarwin then (if isArm then "aarch64-darwin" else "x86_64-darwin")
+          else if isArm then "aarch64-linux"
+          else "x86_64-linux";
 
       overlaysList = attrValues overlays;
 
       # Processes external arguments that bin/hey will feed to this flake (using
-      # a json payload in an envvar). The internal var is kept in lib to stop
-      # 'nix flake check' from complaining more than it has to.
+      # a json payload in an envvar). Falls back to common envvars so plain
+      # darwin/nixos rebuilds don't choke without HEYENV. The internal var is
+      # kept in lib to stop 'nix flake check' from complaining more than it has
+      # to.
       args =
-        let hargs = getEnv "HEYENV"; in
-        if hargs == ""
-        then abort "HEYENV envvar is missing"
-        else fromJSON hargs;
+        let
+          hargs = getEnv "HEYENV";
+          mkNullable = val: if val == "" then null else val;
+          mkOptional = name: val: optionalAttrs (val != null) { "${name}" = val; };
+          defaults =
+            { path =
+                let dotfilesHome = getEnv "DOTFILES_HOME";
+                in if dotfilesHome == "" then toString self else dotfilesHome;
+            }
+            // (mkOptional "host"  (mkNullable (getEnv "HOST")))
+            // (mkOptional "user"  (mkNullable (getEnv "USER")))
+            // (mkOptional "theme" (mkNullable (getEnv "THEME")));
+        in
+          defaults // (optionalAttrs (hargs != "") (fromJSON hargs));
 
       moduleSets =
         if modules ? nixos || modules ? darwin then modules else { nixos = modules; };
@@ -88,7 +113,7 @@ rec {
       modulesSelf = mkModules self.inputs;
       modulesHey = mkModules hey.inputs;
 
-      bootstrapPkgs = import nixpkgs {};
+      bootstrapPkgs = import nixpkgs { system = detectSystem; };
       bootstrapModulesPath = "${nixpkgs}/nixos/modules";
 
       mkDotfiles = dir: hostPath:

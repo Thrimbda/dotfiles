@@ -8,7 +8,8 @@
 
 with lib;
 with hey.lib;
-let cfg = config.modules.desktop.hyprland;
+let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
+    cfg = config.modules.desktop.hyprland;
     primaryMonitor = findFirst (x: x.primary) {} cfg.monitors;
 in {
   options.modules.desktop.hyprland = with types; {

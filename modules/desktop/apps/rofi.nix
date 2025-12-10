@@ -2,7 +2,7 @@
 
 with builtins;
 with lib;
-let inherit (hey.lib.pkgs) mkWrapper mkLauncherEntry;
+let inherit (hey.lib.pkgs.for pkgs) mkWrapper mkLauncherEntry;
     cfg = config.modules.desktop.apps.rofi;
 
     rofiPkg = if config.modules.desktop.type == "wayland"

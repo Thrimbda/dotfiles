@@ -7,6 +7,7 @@
 with lib;
 with hey.lib;
 let
+  inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
   cfg = config.modules.editors.emacs;
   desktop = config.modules.desktop or {};
   desktopType = desktop.type or null;

@@ -55,7 +55,7 @@ in {
       };
     };
 
-    user.packages = with pkgs; with hey.lib.pkgs; [
+    user.packages = with pkgs; with (hey.lib.pkgs.for pkgs); [
       # Obey XDG, damn it!
       (writeShellScriptBin "librewolf" ''
         export HOME="$XDG_FAKE_HOME"

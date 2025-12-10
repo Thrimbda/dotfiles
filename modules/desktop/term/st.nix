@@ -7,7 +7,8 @@
 
 with lib;
 with hey.lib;
-let cfg = config.modules.desktop.term.st;
+let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
+    cfg = config.modules.desktop.term.st;
 in {
   options.modules.desktop.term.st = {
     enable = mkBoolOpt false;

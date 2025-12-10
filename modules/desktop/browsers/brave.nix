@@ -6,7 +6,8 @@
 
 with lib;
 with hey.lib;
-let cfg = config.modules.desktop.browsers.brave;
+let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
+    cfg = config.modules.desktop.browsers.brave;
 in {
   options.modules.desktop.browsers.brave = {
     enable = mkBoolOpt false;
