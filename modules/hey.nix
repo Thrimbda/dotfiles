@@ -45,10 +45,15 @@ in {
       ++ optional (!isDarwin) pkgs.wget
       ++ optional (!isDarwin) pkgs.nix-prefetch-git;
 
-    environment.variables = {
-      JANET_PATH = hey.libDir;
-      JANET_TREE = hey.libDir;
-    };
+    environment.variables =
+      {
+        JANET_PATH = hey.libDir;
+        JANET_TREE = hey.libDir;
+      }
+      // (optionalAttrs (!isDarwin) {
+        JANET_PATH = mkForce "${janetTreeDir}/lib";
+        JANET_TREE = mkForce janetTreeDir;
+      });
   }
 
     (optionalAttrs (!isDarwin) {

@@ -249,11 +249,13 @@ rec {
             host = hostInfo.host;
             storageValue = hostInfo.storage';
           in
-            nixpkgs.lib.nixosSystem {
+              nixpkgs.lib.nixosSystem {
               system = hostInfo.system;
               specialArgs = {
                 self = hostInfo.selfSpecial;
                 hey = hostInfo.heySpecial;
+                pkgs = hostInfo.pkgs;
+                home-manager = hey.inputs.home-manager;
               };
               modules =
                 [
@@ -294,6 +296,7 @@ rec {
                 specialArgs = {
                   self = hostInfo.selfSpecial;
                   hey = hostInfo.heySpecial;
+                  home-manager = hey.inputs.home-manager;
                   pkgs = hostInfo.pkgs;
                 };
                 modules =

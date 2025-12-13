@@ -18,6 +18,10 @@ in
   };
 
   config = {
+    # Allow unchecked freeform attributes (e.g., cross OS modules) to pass
+    # through without failing evaluation.
+    _module.check = false;
+
     assertions = [{
       assertion = config.user ? name;
       message = "config.user.name is not set!";

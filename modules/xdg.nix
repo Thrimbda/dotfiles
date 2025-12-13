@@ -15,7 +15,7 @@ let
     then { environment.sessionVariables.${name} = value; }
     else { environment.variables.${name} = value; };
 in {
-  imports = optional isLinux hey.modules.home-manager.default;
+  imports = optional isLinux hey.inputs.home-manager.nixosModules.home-manager;
 
   options.modules.xdg = {
     enable = mkBoolOpt true;

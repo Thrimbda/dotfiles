@@ -38,7 +38,7 @@ let cfg = config.home;
     };
 in {
   imports =
-    (optional (!pkgs.stdenv.isDarwin) hey.modules.home-manager.default)
+    (optional (!pkgs.stdenv.isDarwin) hey.inputs.home-manager.nixosModules.home-manager)
     ++ (optional pkgs.stdenv.isDarwin hey.inputs.home-manager.darwinModules.home-manager);
 
   options.home = with types; {

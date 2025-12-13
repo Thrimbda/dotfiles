@@ -8,9 +8,14 @@ with lib;
 with hey.lib;
 let
   cfg = config.modules.theme;
-  isDarwin = (config.os or "") == "darwin";
+  isDarwin = pkgs.stdenv.isDarwin;
 in {
-  imports = mapModules' ./. import;
+  # Load theme submodules, but only pull in the darwin-specific helper when
+  # we're actually on macOS to avoid duplicate option declarations.
+  imports =
+    let submodules = mapModules ./. import;
+    in attrValues (removeAttrs submodules [ "darwin" ])
+       ++ optional isDarwin submodules.darwin;
 
   options.modules.theme = with types; {
     active = mkOption {

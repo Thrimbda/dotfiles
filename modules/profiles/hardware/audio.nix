@@ -4,6 +4,8 @@ with lib;
 with hey.lib;
 mkMerge [
   (mkIf (any (s: hasPrefix "audio" s) config.modules.profiles.hardware) {
+    disabledModules = [ "services/audio/pulseaudio.nix" ];
+
     services.pipewire = {
       enable = true;
       alsa.enable = true;
@@ -44,7 +46,8 @@ mkMerge [
     };
 
     # Disable Pulseaudio because Pipewire is used.
-    hardware.pulseaudio.enable = lib.mkForce false;
+    hardware.pulseaudio.enable = false;
+    services.pulseaudio.enable = false;
 
     # HACK: Prevent ~/.esd_auth files by disabling the esound protocol module
     #   for pulseaudio, which I likely don't need. Is there a better way?
