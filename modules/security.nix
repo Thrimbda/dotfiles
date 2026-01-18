@@ -1,6 +1,8 @@
-{ lib, config, ... }:
+{ lib, config, pkgs, ... }:
 
-{
+# This module contains NixOS-specific security configurations.
+# All settings here are Linux-only and will be skipped on Darwin.
+lib.mkIf pkgs.stdenv.isLinux {
   ## System security tweaks
   # tmpfs = /tmp is mounted in ram. Doing so makes temp file management speedy
   # on ssd systems and more secure (and volatile!) because it's wiped on reboot.

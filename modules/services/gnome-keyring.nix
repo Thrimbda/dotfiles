@@ -13,7 +13,7 @@ in {
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.lightdm.enableGnomeKeyring = true;
     user.packages = with pkgs; [
-      gnome.seahorse
+      seahorse
     ];
   };
 }

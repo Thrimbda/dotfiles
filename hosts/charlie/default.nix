@@ -61,7 +61,7 @@ with lib;
     };
 
     environment.variables = {
-      HAHA = "1";
+      PATH = "$HOME/.opencode/bin:$PATH";
     };
 
     user.packages = with pkgs; [

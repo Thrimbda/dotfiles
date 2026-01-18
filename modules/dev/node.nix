@@ -61,26 +61,47 @@ in {
       })
     ]))
 
-    (mkIf cfg.xdg.enable {
-      # NPM refuses to adopt XDG conventions upstream, so I enforce it myself.
-      environment.variables = {
-        NPM_CONFIG_USERCONFIG = npmConfigFile;
-        NPM_CONFIG_CACHE      = npmCacheDir;
-        NPM_CONFIG_PREFIX     = npmDataDir;
-        NPM_CONFIG_TMP        = npmTmpDir;
-        NODE_REPL_HISTORY     = "${config.home.cacheDir}/node/repl_history";
-      };
+    (mkIf cfg.xdg.enable (
+      if pkgs.stdenv.isDarwin then {
+        # NPM refuses to adopt XDG conventions upstream, so I enforce it myself.
+        environment.variables = {
+          NPM_CONFIG_USERCONFIG = npmConfigFile;
+          NPM_CONFIG_CACHE      = npmCacheDir;
+          NPM_CONFIG_PREFIX     = npmDataDir;
+          NPM_CONFIG_TMP        = npmTmpDir;
+          NODE_REPL_HISTORY     = "${config.home.cacheDir}/node/repl_history";
+        };
 
-      home.configFile."npm/config".text = ''
-        cache=${config.home.cacheDir}/npm
-        prefix=${config.home.dataDir}/npm
-        tmp=$XDG_RUNTIME_DIR/npm
-      '';
+        home.configFile."npm/config".text = ''
+          cache=${config.home.cacheDir}/npm
+          prefix=${config.home.dataDir}/npm
+          tmp=$XDG_RUNTIME_DIR/npm
+        '';
 
-      home.file = {
-        ".local/share/npm/.keep".text = "";
-        ".cache/npm/.keep".text = "";
-      };
-    })
+        home.file = {
+          ".local/share/npm/.keep".text = "";
+          ".cache/npm/.keep".text = "";
+        };
+      } else {
+        # NPM refuses to adopt XDG conventions upstream, so I enforce it myself.
+        environment.sessionVariables = {
+          NPM_CONFIG_USERCONFIG = npmConfigFile;
+          NPM_CONFIG_CACHE      = npmCacheDir;
+          NPM_CONFIG_PREFIX     = npmDataDir;
+          NPM_CONFIG_TMP        = npmTmpDir;
+          NODE_REPL_HISTORY     = "${config.home.cacheDir}/node/repl_history";
+        };
+
+        home.configFile."npm/config".text = ''
+          cache=${config.home.cacheDir}/npm
+          prefix=${config.home.dataDir}/npm
+          tmp=$XDG_RUNTIME_DIR/npm
+        '';
+
+        home.file = {
+          ".local/share/npm/.keep".text = "";
+          ".cache/npm/.keep".text = "";
+        };
+      }))
   ];
 }

@@ -1,0 +1,113 @@
+{
+  "version": "1.0.0",
+  "currentTask": "cross-platform-compatibility-audit",
+  "settings": {
+    "autoRemind": true,
+    "remindBeforeReset": true,
+    "taskCreationPolicy": "agent-with-approval"
+  },
+  "tasks": [
+    {
+      "id": "cross-platform-compatibility-audit",
+      "name": "cross-platform-compatibility-audit",
+      "status": "active",
+      "createdAt": "2026-01-18T03:23:37.365Z",
+      "updatedAt": "2026-01-18T03:29:01.107Z"
+    }
+  ],
+  "pendingProposals": [
+    {
+      "id": "proposal-mkj691hv-c0099e",
+      "name": "cross-platform-compatibility-audit",
+      "goal": "确保 dotfiles 项目在 NixOS 和 nix-darwin 两个平台上都能正常工作",
+      "rationale": "用户遇到 node.nix 环境变量在 Darwin 上不生效的问题，通过深入审视发现项目存在多个关键的跨平台兼容性问题。已完成修复并验证，需要使用 legionmind 正式记录整个审计过程、修复决策和未来优化建议，以便后续维护参考。",
+      "points": [
+        "修复关键模块的平台保护缺失问题",
+        "创建统一的环境变量设置辅助函数",
+        "编写跨平台模块开发指南",
+        "验证两个平台的构建成功"
+      ],
+      "scope": [
+        "modules/dev/node.nix",
+        "modules/security.nix",
+        "modules/services/docker.nix",
+        "modules/services/ssh.nix",
+        "modules/services/gnome-keyring.nix",
+        "lib/options.nix",
+        "CROSS_PLATFORM.md"
+      ],
+      "phases": [
+        {
+          "name": "问题诊断",
+          "tasks": [
+            {
+              "acceptance": "使用 explore agent 完成全面的代码库探索，输出问题清单",
+              "description": "审视项目架构，识别平台兼容性问题"
+            },
+            {
+              "acceptance": "确认是 environment.variables vs sessionVariables 的平台差异问题",
+              "description": "分析 node.nix 环境变量不生效的根本原因"
+            }
+          ]
+        },
+        {
+          "tasks": [
+            {
+              "acceptance": "使用平台条件分离 Darwin 和 Linux 的环境变量配置，Darwin 构建成功",
+              "description": "修复 modules/dev/node.nix 环境变量设置"
+            },
+            {
+              "acceptance": "整个模块包裹在 lib.mkIf pkgs.stdenv.isLinux 中",
+              "description": "修复 modules/security.nix 添加 Linux 平台保护"
+            },
+            {
+              "description": "修复 modules/services/docker.nix 添加 Linux 平台检查",
+              "acceptance": "config 条件改为 mkIf (cfg.enable && pkgs.stdenv.isLinux)"
+            },
+            {
+              "acceptance": "systemd.user.tmpfiles.rules 包裹在 Linux 检查中",
+              "description": "修复 modules/services/ssh.nix 的 systemd 依赖"
+            },
+            {
+              "description": "更新 modules/services/gnome-keyring.nix 包名",
+              "acceptance": "gnome.seahorse 改为 seahorse"
+            }
+          ],
+          "name": "关键修复"
+        },
+        {
+          "name": "基础设施改进",
+          "tasks": [
+            {
+              "acceptance": "函数自动根据平台选择 environment.variables 或 sessionVariables",
+              "description": "在 lib/options.nix 创建 mkEnvVars 辅助函数"
+            },
+            {
+              "acceptance": "创建 CROSS_PLATFORM.md，包含架构说明、最佳实践、常见模式、完整示例",
+              "description": "编写完整的跨平台模块开发指南"
+            }
+          ]
+        },
+        {
+          "name": "验证测试",
+          "tasks": [
+            {
+              "acceptance": "nix build .#darwinConfigurations.charlie.system 成功",
+              "description": "构建验证 Darwin 配置 (charlie)"
+            },
+            {
+              "acceptance": "删除手动创建的 task/ 目录，使用 legionmind 正式记录",
+              "description": "清理临时文件并准备提交"
+            }
+          ]
+        }
+      ],
+      "proposedBy": "Claude",
+      "proposedAt": "2026-01-18T03:23:33.716Z",
+      "status": "approved",
+      "decidedAt": "2026-01-18T03:23:37.365Z",
+      "decidedBy": "Claude",
+      "createdTaskId": "cross-platform-compatibility-audit"
+    }
+  ]
+}

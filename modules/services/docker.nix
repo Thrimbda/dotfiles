@@ -9,7 +9,8 @@ in {
     # portainer.enable = mkBoolOpt false;
   };
 
-  config = mkIf cfg.enable (mkMerge [
+  # Docker is only available on Linux
+  config = mkIf (cfg.enable && pkgs.stdenv.isLinux) (mkMerge [
     {
       user.packages = with pkgs; [
         docker

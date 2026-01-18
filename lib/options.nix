@@ -15,4 +15,12 @@ rec {
     type = types.bool;
     example = true;
   };
+
+  # Platform-aware environment variable setter
+  # On Linux: uses environment.sessionVariables
+  # On Darwin: uses environment.variables
+  mkEnvVars = pkgs: vars:
+    if pkgs.stdenv.isDarwin
+    then { environment.variables = vars; }
+    else { environment.sessionVariables = vars; };
 }
