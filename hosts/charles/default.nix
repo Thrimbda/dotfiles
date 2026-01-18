@@ -45,6 +45,8 @@ with lib;
       shell = pkgs.zsh;
     };
 
+    networking.hostName = "charles";
+
     security.pam.services.sudo_local.touchIdAuth = true;
 
     system.defaults = {
@@ -54,11 +56,12 @@ with lib;
         KeyRepeat = 2;
       };
       dock.autohide = false;
+      dock.orientation = "left";
       finder.AppleShowAllFiles = true;
     };
 
     environment.variables = {
-      HAHA = "1";
+      PATH = "$HOME/.opencode/bin:$PATH";
     };
 
     user.packages = with pkgs; [
