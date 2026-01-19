@@ -104,7 +104,7 @@ with builtins;
     modules.services.cloudflared = {
       enable = true;
       # TODO: Replace with actual tunnel ID after running cloudflared-setup
-      # tunnelId = "your-tunnel-id-here";
+      # tunnelId = "atlas-tunnel-id";
       # TODO: Create credentials file with agenix
       # credentialsFile = ./secrets/cloudflared-credentials.age;
       warpRouting = {
@@ -112,7 +112,7 @@ with builtins;
         cidrs = [ "192.168.50.0/24" ];
       };
       config = {
-        tunnelName = "home";
+        tunnelName = "home-atlas";
       };
     };
   };

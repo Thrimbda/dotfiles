@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "currentTask": "cross-platform-compatibility-audit",
+  "currentTask": "dual-cloudflared-topology",
   "settings": {
     "autoRemind": true,
     "remindBeforeReset": true,
@@ -10,9 +10,16 @@
     {
       "id": "cross-platform-compatibility-audit",
       "name": "cross-platform-compatibility-audit",
-      "status": "active",
+      "status": "paused",
       "createdAt": "2026-01-18T03:23:37.365Z",
-      "updatedAt": "2026-01-18T03:29:01.107Z"
+      "updatedAt": "2026-01-19T12:05:07.086Z"
+    },
+    {
+      "id": "dual-cloudflared-topology",
+      "name": "dual-cloudflared-topology",
+      "status": "active",
+      "createdAt": "2026-01-19T12:05:07.086Z",
+      "updatedAt": "2026-01-19T12:09:18.369Z"
     }
   ],
   "pendingProposals": [
@@ -108,6 +115,60 @@
       "decidedAt": "2026-01-18T03:23:37.365Z",
       "decidedBy": "Claude",
       "createdTaskId": "cross-platform-compatibility-audit"
+    },
+    {
+      "id": "proposal-mkl4bfnz-05e9c5",
+      "name": "dual-cloudflared-topology",
+      "goal": "改造 Zero Trust 方案，让 atlas 与 charlie 各自运行 cloudflared，去除多级依赖并更新相关配置与文档。",
+      "rationale": "用户要求两台主机独立运行 cloudflared，避免单点依赖并提升可用性，需要调整 Nix 配置与文档说明。",
+      "points": [
+        "为 atlas/charlie 各自配置独立 tunnel 与凭证",
+        "更新 NixOS 与 darwin 的 cloudflared 模块或配置",
+        "更新文档说明新拓扑与设置步骤",
+        "明确 WARP 路由与浏览器 SSH 的各自主机入口"
+      ],
+      "scope": [
+        "modules/services/cloudflared.nix",
+        "hosts/atlas/default.nix",
+        "hosts/charlie/default.nix",
+        "docs/cloudflare-zero-trust.md",
+        "docs/charlie-macos-ssh-config.md"
+      ],
+      "phases": [
+        {
+          "name": "设计",
+          "tasks": [
+            {
+              "description": "给出双隧道拓扑与配置落点设计",
+              "acceptance": "设计包含流程、文件变更清单、风险说明"
+            }
+          ]
+        },
+        {
+          "name": "实现",
+          "tasks": [
+            {
+              "description": "按设计更新 Nix 模块/主机配置",
+              "acceptance": "atlas/charlie 均含 cloudflared 配置占位与说明"
+            }
+          ]
+        },
+        {
+          "name": "文档",
+          "tasks": [
+            {
+              "description": "更新 Zero Trust 与 macOS SSH 文档",
+              "acceptance": "文档明确双隧道流程与测试步骤"
+            }
+          ]
+        }
+      ],
+      "proposedBy": "Claude",
+      "proposedAt": "2026-01-19T12:04:58.511Z",
+      "status": "approved",
+      "decidedAt": "2026-01-19T12:05:07.086Z",
+      "decidedBy": "Claude",
+      "createdTaskId": "dual-cloudflared-topology"
     }
   ]
 }

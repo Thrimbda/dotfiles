@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cloudflare Zero Trust setup script for NixOS/darwin dotfiles
-# This script helps set up Cloudflare Tunnel for private network access.
+# Cloudflare Zero Trust 设置脚本，适用于 NixOS/darwin dotfiles
+# 此脚本帮助设置 Cloudflare 隧道以实现私有网络访问。
 
-HELP="Usage: $0 [OPTIONS]
-Setup Cloudflare Tunnel for Zero Trust private network access.
+HELP="用法: $0 [选项]
+设置 Cloudflare 隧道以实现 Zero Trust 私有网络访问。
 
-Options:
-  --host HOST        Hostname to configure (e.g., ramen, harusame)
-  --user USER        Username (default: c1)
-  --cidr CIDR        Private network CIDR (default: 192.168.50.0/24)
-  --help             Show this help
+选项:
+  --host 主机名       要配置的主机名（例如，ramen, harusame）
+  --user 用户名       用户名（默认: c1）
+  --cidr CIDR        私有网络 CIDR（默认: 192.168.50.0/24）
+  --help             显示此帮助信息
 
-Steps:
-  1. Install cloudflared and login
-  2. Create tunnel and get tunnel ID
-  3. Encrypt credentials with agenix
-  4. Add cloudflared module to host configuration
-  5. Deploy configuration
+步骤:
+  1. 安装 cloudflared 并登录
+  2. 创建隧道并获取隧道 ID
+  3. 使用 agenix 加密凭证
+  4. 添加 cloudflared 模块到主机配置
+  5. 部署配置
 
-Example:
+示例:
   $0 --host harusame --cidr 192.168.50.0/24
 "
 
@@ -48,7 +48,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "Unknown option: $1"
+      echo "未知选项: $1"
       echo "$HELP"
       exit 1
       ;;
@@ -68,41 +68,41 @@ print_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 
 # Check prerequisites
-print_info "Checking prerequisites..."
+print_info "检查先决条件..."
 
 command -v cloudflared >/dev/null 2>&1 || {
-  print_warning "cloudflared not found. Installing..."
+  print_warning "未找到 cloudflared，正在安装..."
   if command -v nix-env >/dev/null 2>&1; then
     nix-env -iA nixpkgs.cloudflared
   elif command -v apt >/dev/null 2>&1; then
     sudo apt update && sudo apt install -y cloudflared
   else
-    print_error "Please install cloudflared manually: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/"
+    print_error "请手动安装 cloudflared：https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/"
     exit 1
   fi
 }
 
 command -v agenix >/dev/null 2>&1 || {
-  print_warning "agenix not found. It's required for secret management."
-  print_info "Install via: nix-env -iA nixpkgs.agenix"
+  print_warning "未找到 agenix，这是秘密管理所必需的。"
+  print_info "通过以下命令安装：nix-env -iA nixpkgs.agenix"
   exit 1
 }
 
-print_success "Prerequisites satisfied"
+print_success "先决条件已满足"
 
 # Step 1: Login
-print_info "Step 1: Cloudflare Tunnel login"
-print_warning "This will open a browser for authentication..."
-read -p "Press Enter to continue or Ctrl+C to cancel..."
+print_info "步骤 1: Cloudflare 隧道登录"
+print_warning "这将打开浏览器进行认证..."
+read -p "按 Enter 继续或 Ctrl+C 取消..."
 cloudflared tunnel login || {
-  print_error "Login failed. Please check your network and try again."
+  print_error "登录失败，请检查您的网络并重试。"
   exit 1
 }
 
 # Step 2: Create tunnel
-print_info "Step 2: Create tunnel"
+print_info "步骤 2: 创建隧道"
 TUNNEL_NAME="home"
-print_info "Creating tunnel: $TUNNEL_NAME"
+print_info "正在创建隧道: $TUNNEL_NAME"
 TUNNEL_OUTPUT=$(cloudflared tunnel create "$TUNNEL_NAME")
 echo "$TUNNEL_OUTPUT"
 
@@ -113,18 +113,18 @@ if [[ -z "$TUNNEL_ID" ]]; then
 fi
 
 if [[ -z "$TUNNEL_ID" ]]; then
-  print_error "Could not extract tunnel ID. Please find it manually from output."
+  print_error "无法提取隧道 ID，请手动从输出中查找。"
   exit 1
 fi
 
-print_success "Tunnel created with ID: $TUNNEL_ID"
+print_success "隧道创建成功，ID: $TUNNEL_ID"
 
 # Step 3: Prepare credentials
-print_info "Step 3: Prepare encrypted credentials"
+print_info "步骤 3: 准备加密凭证"
 CREDENTIALS_FILE="$HOME/.cloudflared/$TUNNEL_ID.json"
 if [[ ! -f "$CREDENTIALS_FILE" ]]; then
-  print_error "Credentials file not found: $CREDENTIALS_FILE"
-  print_info "Please check if tunnel was created successfully."
+  print_error "未找到凭证文件: $CREDENTIALS_FILE"
+  print_info "请检查隧道是否创建成功。"
   exit 1
 fi
 
@@ -136,29 +136,29 @@ elif [[ -n "$HOST" && -d "$(pwd)/hosts/$HOST" ]]; then
   HOST_DIR="$(pwd)/hosts/$HOST"
   SECRETS_DIR="$HOST_DIR/secrets"
 else
-  print_warning "Host directory not found or not specified. Using current directory."
+  print_warning "未找到或未指定主机目录，使用当前目录。"
   SECRETS_DIR="$(pwd)/secrets"
 fi
 
 mkdir -p "$SECRETS_DIR"
 SECRET_FILE="$SECRETS_DIR/cloudflared-credentials.age"
 
-print_info "Encrypting credentials with agenix..."
-print_warning "Make sure you have the host's SSH key for encryption."
-read -p "Press Enter to continue..."
+print_info "正在使用 agenix 加密凭证..."
+print_warning "请确保您拥有主机的 SSH 密钥用于加密。"
+read -p "按 Enter 继续..."
 
 agenix -e "$SECRET_FILE" -i /etc/ssh/host_ed25519 "$CREDENTIALS_FILE" || {
-  print_error "Encryption failed. You may need to use a different identity file."
-  print_info "Try: agenix -e $SECRET_FILE $CREDENTIALS_FILE"
+  print_error "加密失败，您可能需要使用不同的身份文件。"
+  print_info "尝试：agenix -e $SECRET_FILE $CREDENTIALS_FILE"
   exit 1
 }
 
-print_success "Credentials encrypted: $SECRET_FILE"
+print_success "凭证已加密: $SECRET_FILE"
 
 # Step 4: Generate configuration snippet
-print_info "Step 4: Generate Nix configuration"
+print_info "步骤 4: 生成 Nix 配置"
 CONFIG_SNIPPET=$(cat <<EOF
-# Cloudflare Zero Trust Tunnel configuration
+# Cloudflare Zero Trust 隧道配置
 modules.services.cloudflared = {
   enable = true;
   tunnelId = "$TUNNEL_ID";
@@ -168,31 +168,31 @@ modules.services.cloudflared = {
     cidrs = [ "$CIDR" ];
   };
   config = {
-    # Additional YAML config (optional)
+    # 额外的 YAML 配置（可选）
     # ingress = [ ... ];
   };
 };
 EOF
 )
 
-print_info "Add the following to your host configuration ($HOST_DIR/default.nix):"
+print_info "将以下内容添加到您的主机配置 ($HOST_DIR/default.nix)："
 echo ""
 echo "$CONFIG_SNIPPET"
 echo ""
 
 # Step 5: Deployment instructions
-print_info "Step 5: Deployment"
-print_info "1. Add the above configuration to your host's modules section"
-print_info "2. Commit and push changes"
-print_info "3. Deploy with: hey sync $HOST"
+print_info "步骤 5: 部署"
+print_info "1. 将上述配置添加到主机的 modules 部分"
+print_info "2. 提交并推送更改"
+print_info "3. 使用以下命令部署：hey sync $HOST"
 print_info ""
-print_info "After deployment, test with:"
-print_info "  ssh ${USER}@192.168.50.227  # Linux server (atlas)"
+print_info "部署后，使用以下命令测试："
+print_info "  ssh ${USER}@192.168.50.227  # Linux 服务器 (atlas)"
 print_info "  ssh ${USER}@192.168.50.143  # Mac (charlie)"
 print_info ""
-print_info "For browser SSH emergency access:"
-print_info "1. Configure public hostnames in Cloudflare Zero Trust dashboard"
-print_info "2. Create SSH applications for each server"
-print_info "3. Enable browser rendering (SSH)"
+print_info "对于浏览器 SSH 紧急访问："
+print_info "1. 在 Cloudflare Zero Trust 控制台中配置公开主机名"
+print_info "2. 为每个服务器创建 SSH 应用"
+print_info "3. 启用浏览器渲染 (SSH)"
 print_info ""
-print_success "Setup complete! Review the configuration before deploying."
+print_success "设置完成！部署前请审查配置。"

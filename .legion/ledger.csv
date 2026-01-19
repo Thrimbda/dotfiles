@@ -27,3 +27,14 @@
 2026-01-18T03:25:24.955Z,legion_update_tasks,cross-platform-compatibility-audit,cross-platform-compatibility-audit,Claude,completeTask: 清理临时文件并准备提交,success
 2026-01-18T03:28:56.701Z,legion_update_plan,cross-platform-compatibility-audit,cross-platform-compatibility-audit,Claude,,success
 2026-01-18T03:29:01.109Z,legion_update_tasks,cross-platform-compatibility-audit,cross-platform-compatibility-audit,Claude,completeTask: 清理临时文件并准备提交,success
+2026-01-19T12:04:50.671Z,legion_get_status,cross-platform-compatibility-audit,cross-platform-compatibility-audit,Claude,,success
+2026-01-19T12:04:58.513Z,legion_propose_task,cross-platform-compatibility-audit,cross-platform-compatibility-audit,Claude,name: dual-cloudflared-topology,success
+2026-01-19T12:05:07.090Z,legion_approve_proposal,dual-cloudflared-topology,dual-cloudflared-topology,Claude,proposalId: proposal-mkl4bfnz-05e9c5,success
+2026-01-19T12:05:14.499Z,legion_update_plan,dual-cloudflared-topology,dual-cloudflared-topology,Claude,,success
+2026-01-19T12:05:18.974Z,legion_update_tasks,dual-cloudflared-topology,dual-cloudflared-topology,Claude,setCurrentTask: 给出双隧道拓扑与配置落点设计,success
+2026-01-19T12:05:56.672Z,legion_update_context,dual-cloudflared-topology,dual-cloudflared-topology,Claude,addDecision: 采用 atlas 与 charlie 各自独立运行 cloudflared 的双隧道拓扑，并同步更新 Nix 配置与文档。,success
+2026-01-19T12:06:00.092Z,legion_update_tasks,dual-cloudflared-topology,dual-cloudflared-topology,Claude,completeTask: 给出双隧道拓扑与配置落点设计,success
+2026-01-19T12:09:04.703Z,legion_update_context,dual-cloudflared-topology,dual-cloudflared-topology,Claude,addFile: modules/services/cloudflared.nix,success
+2026-01-19T12:09:11.765Z,legion_update_tasks,dual-cloudflared-topology,dual-cloudflared-topology,Claude,completeTask: 按设计更新 Nix 模块/主机配置,success
+2026-01-19T12:09:13.958Z,legion_update_tasks,dual-cloudflared-topology,dual-cloudflared-topology,Claude,completeTask: 更新 Zero Trust 与 macOS SSH 文档,success
+2026-01-19T12:09:18.370Z,legion_update_context,dual-cloudflared-topology,dual-cloudflared-topology,Claude,progress.completed: 更新 cloudflared 模块注释为双隧道拓扑,success

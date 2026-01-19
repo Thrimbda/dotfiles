@@ -12,7 +12,7 @@
 #
 # 3. Add the modules.services.cloudflared configuration below to hosts/atlas/default.nix
 #
-# 4. Deploy: hey sync atlas
+# 4. Deploy: sudo nixos-rebuild switch --flake .#atlas
 #
 # After deployment, external devices with WARP client can access:
 #   ssh c1@192.168.50.143  # charlie (macOS)

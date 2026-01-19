@@ -41,16 +41,17 @@
 #    };
 #
 # 5. Deploy and test:
-#    $ hey sync <hostname>
-#    $ ssh c1@192.168.50.143  # Test Linux access
-#    $ ssh c1@192.168.50.227  # Test Mac access
+#    $ sudo nixos-rebuild switch --flake .#<hostname>
+#    $ darwin-rebuild switch --flake .#<hostname>
+#    $ ssh c1@192.168.50.227  # Test atlas (Linux)
+#    $ ssh c1@192.168.50.143  # Test charlie (macOS)
 #
-# Network topology:
+# Network topology (dual tunnel):
 #
 #   Home Network (192.168.50.0/24)
 #   ├── atlas (Linux, 192.168.50.227) runs cloudflared tunnel
-#   ├── charlie (macOS, 192.168.50.143) accessible via SSH
-#   └── Cloudflare Tunnel
+#   ├── charlie (macOS, 192.168.50.143) runs cloudflared tunnel
+#   └── Cloudflare Zero Trust
 #       ├── WARP clients (external devices with Zero Trust enrollment)
 #       └── Browser SSH (emergency access via public hostnames)
 #

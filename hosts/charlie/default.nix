@@ -35,6 +35,10 @@ with lib;
       vim.enable = true;
       emacs.enable = true;
     };
+
+    services = {
+      cloudflared.enable = true;
+    };
   };
 
   ## Local configuration
@@ -72,6 +76,21 @@ with lib;
       k9s
       kubectl
     ];
+
+    modules.services.cloudflared = {
+      enable = true;
+      # TODO: Replace with actual tunnel ID after running cloudflared-setup
+      # tunnelId = "charlie-tunnel-id";
+      # TODO: Create credentials file with agenix
+      # credentialsFile = ./secrets/cloudflared-credentials.age;
+      warpRouting = {
+        enabled = true;
+        cidrs = [ "192.168.50.0/24" ];
+      };
+      config = {
+        tunnelName = "home-charlie";
+      };
+    };
 
     system.primaryUser = "c1";
     system.stateVersion = 6;
