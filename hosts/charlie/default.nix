@@ -95,6 +95,10 @@ with lib;
       };
       extraConfig = {
         tunnelName = "home-charlie";
+        ingress = [
+          { hostname = "charlie.host.0xc1.space"; service = "ssh://localhost:22"; }
+          { service = "http_status:404"; }
+        ];
       };
     };
 

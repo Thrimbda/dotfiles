@@ -73,6 +73,7 @@ with lib;
       vim
       k9s
       kubectl
+      cloudflared
     ];
 
     system.primaryUser = "c1";
