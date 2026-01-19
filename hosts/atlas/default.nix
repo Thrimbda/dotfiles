@@ -111,7 +111,7 @@ with builtins;
         enabled = true;
         cidrs = [ "192.168.50.0/24" ];
       };
-      config = {
+      extraConfig = {
         tunnelName = "home-atlas";
       };
     };

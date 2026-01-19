@@ -5,7 +5,8 @@
 with builtins;
 with lib;
 with hey.lib;
-let hostKey = "/etc/ssh/host_ed25519";
+let
+  cfg = config.modules.agenix;
 in {
   imports = [ hey.modules.agenix.age ];
 
@@ -14,14 +15,15 @@ in {
       "${hey.hostDir}/secrets"
       "${hey.configDir}/secrets"
     ];
+    sshKey = mkOpt str "/etc/ssh/host_ed25519";
   };
 
   config = {
     assertions = [
       {
         assertion =
-          config.age.secrets == {} || (pathExists hostKey);
-        message = "Secrets provided, but no host key was found";
+          config.age.secrets == {} || (pathExists cfg.sshKey);
+        message = "Secrets provided, but no host key was found at ${cfg.sshKey}";
       }
     ];
 
@@ -31,7 +33,7 @@ in {
     # system with bitwarden set up).
     programs.ssh.extraConfig = ''
       Host *
-        IdentityFile ${hostKey}
+        IdentityFile ${cfg.sshKey}
     '';
 
     # Ensure this hostkey is the default key used by agenix.
@@ -41,11 +43,9 @@ in {
         ARGS=( "$@" )
         ${optionalString config.modules.xdg.ssh.enable ''
           if [[ "''${ARGS[*]}" != *"--identity"* && "''${ARGS[*]}" != *"-i"* ]]; then
-            for hostkey in "${hostKey}"; do
-              if [[ -f "$hostkey" ]]; then
-                ARGS=( --identity "$hostkey" "''${ARGS[@]}" )
-              fi
-            done
+             if [[ -f "${cfg.sshKey}" ]]; then
+               ARGS=( --identity "${cfg.sshKey}" "''${ARGS[@]}" )
+             fi
           fi
         ''}
         exec ${hey.inputs.agenix.packages.${system}.default}/bin/agenix "''${ARGS[@]}"
@@ -53,7 +53,7 @@ in {
     ];
 
     age = {
-      identityPaths = [ hostKey ];
+      identityPaths = [ cfg.sshKey ];
       secrets = foldl (a: b: a // b) {}
         (map (dir: mapAttrs'
           (n: v: nameValuePair (removeSuffix ".age" n) {
@@ -62,7 +62,7 @@ in {
           })
           (import "${dir}/secrets.nix"))
           (filter (dir: pathExists "${dir}/secrets.nix")
-            config.modules.agenix.dirs));
+            cfg.dirs));
     };
   };
 }

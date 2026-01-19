@@ -82,7 +82,7 @@ command -v cloudflared >/dev/null 2>&1 || {
   fi
 }
 
-command -v agenix >/dev/null 2>&1 || {
+command -v age >/dev/null 2>&1 || {
   print_warning "未找到 agenix，这是秘密管理所必需的。"
   print_info "通过以下命令安装：nix-env -iA nixpkgs.agenix"
   exit 1
@@ -92,24 +92,60 @@ print_success "先决条件已满足"
 
 # Step 1: Login
 print_info "步骤 1: Cloudflare 隧道登录"
-print_warning "这将打开浏览器进行认证..."
-read -p "按 Enter 继续或 Ctrl+C 取消..."
-cloudflared tunnel login || {
-  print_error "登录失败，请检查您的网络并重试。"
-  exit 1
-}
+if [[ -f "$HOME/.cloudflared/cert.pem" ]]; then
+  print_success "检测到现有证书 ($HOME/.cloudflared/cert.pem)，跳过登录。"
+else
+  print_warning "这将打开浏览器进行认证..."
+  read -p "按 Enter 继续或 Ctrl+C 取消..."
+  cloudflared tunnel login || {
+    print_error "登录失败，请检查您的网络并重试。"
+    exit 1
+  }
+fi
 
 # Step 2: Create tunnel
 print_info "步骤 2: 创建隧道"
 TUNNEL_NAME="home"
-print_info "正在创建隧道: $TUNNEL_NAME"
-TUNNEL_OUTPUT=$(cloudflared tunnel create "$TUNNEL_NAME")
-echo "$TUNNEL_OUTPUT"
+if [[ -n "$HOST" ]]; then
+    TUNNEL_NAME="home-$HOST"
+fi
 
-# Extract tunnel ID
-TUNNEL_ID=$(echo "$TUNNEL_OUTPUT" | grep -oP 'Created tunnel \K[^\s]+' | head -1)
-if [[ -z "$TUNNEL_ID" ]]; then
-  TUNNEL_ID=$(echo "$TUNNEL_OUTPUT" | grep -oP '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+print_info "检查隧道: $TUNNEL_NAME"
+
+# Check if tunnel already exists
+EXISTING_ID=""
+if command -v rg >/dev/null 2>&1; then
+    EXISTING_ID=$(cloudflared tunnel list | (rg "$TUNNEL_NAME" || true) | (rg -o '[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}' || true) | head -1)
+else
+    EXISTING_ID=$(cloudflared tunnel list | (grep "$TUNNEL_NAME" || true) | (grep -oE '[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}' || true) | head -1)
+fi
+
+if [[ -n "$EXISTING_ID" ]]; then
+    print_success "隧道 $TUNNEL_NAME 已存在 (ID: $EXISTING_ID)，跳过创建。"
+    TUNNEL_ID="$EXISTING_ID"
+    # Ensure local credentials file exists for this ID
+    if [[ ! -f "$HOME/.cloudflared/$TUNNEL_ID.json" ]]; then
+        print_warning "警告: 隧道存在但在本地未找到凭证文件 $HOME/.cloudflared/$TUNNEL_ID.json"
+        print_info "尝试重新创建凭证文件..."
+        # Note: cloudflared doesn't have an easy "regenerate-token" command that outputs json directly without recreating
+        # But 'cloudflared tunnel token $TUNNEL_ID' gives a token.
+        # We might need to instruct user to re-login or delete tunnel if credentials are lost.
+        print_error "请删除现有隧道 'cloudflared tunnel delete $TUNNEL_ID' 后重试，或手动恢复 JSON 凭证。"
+        exit 1
+    fi
+else
+    print_info "正在创建隧道: $TUNNEL_NAME"
+    TUNNEL_OUTPUT=$(cloudflared tunnel create "$TUNNEL_NAME")
+    echo "$TUNNEL_OUTPUT"
+
+    # Extract tunnel ID
+    if command -v rg >/dev/null 2>&1; then
+      # Use || true to prevent pipefail if no match is found
+      TUNNEL_ID=$(echo "$TUNNEL_OUTPUT" | (rg -o '[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}' || true) | head -1)
+    else
+      # Fallback to grep -E for systems without ripgrep
+      TUNNEL_ID=$(echo "$TUNNEL_OUTPUT" | (grep -oE '[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}' || true) | head -1)
+    fi
 fi
 
 if [[ -z "$TUNNEL_ID" ]]; then
@@ -144,16 +180,55 @@ mkdir -p "$SECRETS_DIR"
 SECRET_FILE="$SECRETS_DIR/cloudflared-credentials.age"
 
 print_info "正在使用 agenix 加密凭证..."
-print_warning "请确保您拥有主机的 SSH 密钥用于加密。"
-read -p "按 Enter 继续..."
-
-agenix -e "$SECRET_FILE" -i /etc/ssh/host_ed25519 "$CREDENTIALS_FILE" || {
-  print_error "加密失败，您可能需要使用不同的身份文件。"
-  print_info "尝试：agenix -e $SECRET_FILE $CREDENTIALS_FILE"
-  exit 1
-}
-
-print_success "凭证已加密: $SECRET_FILE"
+if [[ -f "$SECRET_FILE" ]]; then
+    print_warning "加密凭证文件已存在: $SECRET_FILE"
+    read -p "是否覆盖? (y/N) " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_info "跳过加密步骤。"
+    else
+        print_warning "请确保您拥有主机的 SSH 密钥用于加密。"
+        # Fix: age -e argument order changed in recent versions or our usage was wrong
+        # Correct usage: age -e -i IDENTITY_FILE -o OUTPUT_FILE INPUT_FILE
+        # But agenix typically uses public keys. Here we are using an identity file (private key) which implies decryption?
+        # Wait, to ENCRYPT to a host, we need the host's PUBLIC key (ssh-ed25519 ...), not the private key file path with -i.
+        # -i is for identities (private keys) to DECRYPT.
+        # To encrypt for a recipient (public key): -r "ssh-ed25519 ..."
+        
+        # However, agenix CLI often abstracts this. But here we are using raw 'age'.
+        # If we want to encrypt FOR the host key we found at /etc/ssh/host_ed25519.pub, we should use that.
+        
+        # Let's check if we have a public key available.
+        if [[ -f "/etc/ssh/host_ed25519.pub" ]]; then
+            PUBKEY=$(cat /etc/ssh/host_ed25519.pub)
+            age -e -o "$SECRET_FILE" -r "$PUBKEY" "$CREDENTIALS_FILE"
+        elif [[ -f "$HOME/.ssh/id_ed25519.pub" ]]; then
+             # Fallback to user key if host key not found (typical on macOS without root)
+             PUBKEY=$(cat "$HOME/.ssh/id_ed25519.pub")
+             age -e -o "$SECRET_FILE" -r "$PUBKEY" "$CREDENTIALS_FILE"
+        else
+            print_error "未找到 SSH 公钥 (/etc/ssh/host_ed25519.pub 或 ~/.ssh/id_ed25519.pub)"
+            exit 1
+        fi
+        print_success "凭证已重新加密: $SECRET_FILE"
+    fi
+else
+    print_warning "请确保您拥有主机的 SSH 密钥用于加密。"
+    read -p "按 Enter 继续..."
+    
+    if [[ -f "/etc/ssh/host_ed25519.pub" ]]; then
+        PUBKEY=$(cat /etc/ssh/host_ed25519.pub)
+        age -e -o "$SECRET_FILE" -r "$PUBKEY" "$CREDENTIALS_FILE"
+    elif [[ -f "$HOME/.ssh/id_ed25519.pub" ]]; then
+         PUBKEY=$(cat "$HOME/.ssh/id_ed25519.pub")
+         age -e -o "$SECRET_FILE" -r "$PUBKEY" "$CREDENTIALS_FILE"
+    else
+        print_error "未找到 SSH 公钥 (/etc/ssh/host_ed25519.pub 或 ~/.ssh/id_ed25519.pub)"
+        exit 1
+    fi
+    
+    print_success "凭证已加密: $SECRET_FILE"
+fi
 
 # Step 4: Generate configuration snippet
 print_info "步骤 4: 生成 Nix 配置"

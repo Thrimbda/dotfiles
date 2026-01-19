@@ -106,18 +106,18 @@ in {
   options.modules.services.cloudflared = with types; {
     enable = mkBoolOpt false;
 
-    tunnelId = mkOpt str "" "Cloudflare Tunnel ID (from 'cloudflared tunnel create')";
+    tunnelId = mkOpt' str "" "Cloudflare Tunnel ID (from 'cloudflared tunnel create')";
 
-    tunnelName = mkOpt str "home" "Tunnel name (used for routing commands)";
+    tunnelName = mkOpt' str "home" "Tunnel name (used for routing commands)";
 
-    credentialsFile = mkOpt (nullOr path) null
+    credentialsFile = mkOpt' (nullOr path) null
       "Age-encrypted credentials JSON file (e.g., secrets/cloudflared-credentials.age)";
 
-    config = mkOpt attrs {} "Additional YAML config attributes";
+    extraConfig = mkOpt' attrs {} "Additional YAML config attributes";
 
     warpRouting = {
       enabled = mkBoolOpt true;
-      cidrs = mkOpt (listOf str) [] "Private CIDRs to route through WARP (e.g., [\"192.168.50.0/24\"])";
+      cidrs = mkOpt' (listOf str) [] "Private CIDRs to route through WARP (e.g., [\"192.168.50.0/24\"])";
     };
 
     package = mkOpt package pkgs.cloudflared;
@@ -142,79 +142,117 @@ in {
       age.secrets."cloudflared-credentials" = {
         file = cfg.credentialsFile;
         owner = user;
-        group = "users";
+        group = "staff";
         path = "${configDir}/${cfg.tunnelId}.json";
       };
 
       # Create config.yml
       home.file.".cloudflared/config.yml" = {
         text = let
-          tunnelName = cfg.config.tunnelName or "home";
+          tunnelName = cfg.extraConfig.tunnelName or "home";
           baseConfig = {
             tunnel = cfg.tunnelId;
             credentials-file = "${configDir}/${cfg.tunnelId}.json";
             warp-routing.enabled = cfg.warpRouting.enabled;
           };
-          mergedConfig = recursiveUpdate baseConfig cfg.config;
+          mergedConfig = recursiveUpdate baseConfig cfg.extraConfig;
         in builtins.toJSON mergedConfig;
-      };
-
-      # Ensure config directory exists with correct permissions
-      systemd.user.tmpfiles.rules = [
-        "d ${configDir} 0700 ${user} users - -"
-      ];
-
-      # Systemd service for cloudflared
-      systemd.services.cloudflared = {
-        description = "Cloudflare Tunnel daemon";
-        after = [ "network.target" "age-secrets-cloudflared-credentials.service" ];
-        wants = [ "age-secrets-cloudflared-credentials.service" ];
-        wantedBy = [ "multi-user.target" ];
-
-        serviceConfig = {
-          Type = "simple";
-          User = user;
-          Group = "users";
-          ExecStart = "${cfg.package}/bin/cloudflared --config ${configFile} tunnel run";
-          Restart = "on-failure";
-          RestartSec = "10s";
-          LimitNOFILE = 100000;
-          # Protect sensitive credentials
-          ReadWritePaths = configDir;
-          PrivateTmp = true;
-          NoNewPrivileges = true;
-          ProtectSystem = "strict";
-          ProtectHome = "read-only";
-        };
-
-        environment = {
-          # Cloudflared needs to write logs and cache
-          XDG_CACHE_HOME = "${homeDir}/.cache";
-          XDG_STATE_HOME = "${homeDir}/.local/state";
-        };
-      };
-
-      # Add WARP routes if specified
-      systemd.services.cloudflared-routes = mkIf (cfg.warpRouting.enabled && cfg.warpRouting.cidrs != []) {
-        description = "Add WARP routes for Cloudflare Tunnel";
-        after = [ "cloudflared.service" ];
-        requires = [ "cloudflared.service" ];
-        wantedBy = [ "multi-user.target" ];
-        serviceConfig.Type = "oneshot";
-         script = let
-           tunnelName = cfg.tunnelName;
-           routeCommands = map (cidr: ''
-            ${cfg.package}/bin/cloudflared tunnel route ip add ${cidr} ${tunnelName} || true
-          '') cfg.warpRouting.cidrs;
-        in ''
-          # Wait for tunnel to be ready
-          sleep 10
-          ${concatStringsSep "\n" routeCommands}
-        '';
       };
     }
 
-    # Browser SSH emergency configuration notes
+    # Ensure config directory exists with correct permissions
+    (optionalAttrs pkgs.stdenv.isLinux {
+        systemd.user.tmpfiles.rules = [
+          "d ${configDir} 0700 ${user} users - -"
+        ];
+
+        # Systemd service for cloudflared
+        systemd.services.cloudflared = {
+          description = "Cloudflare Tunnel daemon";
+          after = [ "network.target" "age-secrets-cloudflared-credentials.service" ];
+          wants = [ "age-secrets-cloudflared-credentials.service" ];
+          wantedBy = [ "multi-user.target" ];
+
+          serviceConfig = {
+            Type = "simple";
+            User = user;
+            Group = "users";
+            ExecStart = "${cfg.package}/bin/cloudflared --config ${configFile} tunnel run";
+            Restart = "on-failure";
+            RestartSec = "10s";
+            LimitNOFILE = 100000;
+            # Protect sensitive credentials
+            ReadWritePaths = configDir;
+            PrivateTmp = true;
+            NoNewPrivileges = true;
+            ProtectSystem = "strict";
+            ProtectHome = "read-only";
+          };
+
+          environment = {
+            # Cloudflared needs to write logs and cache
+            XDG_CACHE_HOME = "${homeDir}/.cache";
+            XDG_STATE_HOME = "${homeDir}/.local/state";
+          };
+        };
+
+        # Add WARP routes if specified
+        systemd.services.cloudflared-routes = mkIf (cfg.warpRouting.enabled && cfg.warpRouting.cidrs != []) {
+          description = "Add WARP routes for Cloudflare Tunnel";
+          after = [ "cloudflared.service" ];
+          requires = [ "cloudflared.service" ];
+          wantedBy = [ "multi-user.target" ];
+          serviceConfig.Type = "oneshot";
+           script = let
+             tunnelName = cfg.tunnelName;
+             routeCommands = map (cidr: ''
+              ${cfg.package}/bin/cloudflared tunnel route ip add ${cidr} ${tunnelName} || true
+            '') cfg.warpRouting.cidrs;
+          in ''
+            # Wait for tunnel to be ready
+            sleep 10
+            ${concatStringsSep "\n" routeCommands}
+          '';
+        };
+      })
+
+      (optionalAttrs pkgs.stdenv.isDarwin {
+        launchd.user.agents.cloudflared = {
+          serviceConfig = {
+            ProgramArguments = [ "${cfg.package}/bin/cloudflared" "--config" configFile "tunnel" "run" ];
+            KeepAlive = true;
+            RunAtLoad = true;
+            EnvironmentVariables = {
+              XDG_CACHE_HOME = "${homeDir}/.cache";
+              XDG_STATE_HOME = "${homeDir}/.local/state";
+            };
+            StandardOutPath = "/tmp/cloudflared.out";
+            StandardErrorPath = "/tmp/cloudflared.err";
+          };
+        };
+
+        # Ensure correct permissions on activation
+        system.activationScripts.cloudflaredPermissions.text = ''
+          echo "Fixing cloudflared directory permissions..."
+          if [ -d "${configDir}" ]; then
+            chown -R ${user} "${configDir}"
+            chmod 700 "${configDir}"
+          fi
+          
+          # Fix agenix secret permissions
+          # On Darwin, agenix might create secrets as root:admin 400 in /run/agenix
+          # We need to ensure the user can read the credentials file
+          CRED_LINK="${configDir}/${cfg.tunnelId}.json"
+          if [ -L "$CRED_LINK" ]; then
+            TARGET=$(readlink "$CRED_LINK")
+            if [ -f "$TARGET" ]; then
+              echo "Fixing permission for cloudflared credentials: $TARGET"
+              chown ${user} "$TARGET"
+              chmod 600 "$TARGET"
+            fi
+          fi
+        '';
+      })
     (mkIf cfg.warpRouting.enabled {
       warnings = optional (cfg.warpRouting.cidrs == [])
         "WARP routing enabled but no CIDRs specified. Add private networks to modules.services.cloudflared.warpRouting.cidrs.";

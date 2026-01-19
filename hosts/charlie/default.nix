@@ -59,8 +59,12 @@ with lib;
         InitialKeyRepeat = 15;
         KeyRepeat = 2;
       };
-      dock.autohide = false;
-      dock.orientation = "left";
+      dock = {
+        autohide = false;
+        tilesize = 32;
+        largesize = 64;
+        orientation = "left";
+      };
       finder.AppleShowAllFiles = true;
     };
 
@@ -75,22 +79,26 @@ with lib;
       vim
       k9s
       kubectl
+      cloudflared
+      agenix
     ];
 
     modules.services.cloudflared = {
       enable = true;
       # TODO: Replace with actual tunnel ID after running cloudflared-setup
-      # tunnelId = "charlie-tunnel-id";
+      tunnelId = "9f33127c-3a10-47dc-9383-e27115780db8";
       # TODO: Create credentials file with agenix
-      # credentialsFile = ./secrets/cloudflared-credentials.age;
+      credentialsFile = ./secrets/cloudflared-credentials.age;
       warpRouting = {
         enabled = true;
         cidrs = [ "192.168.50.0/24" ];
       };
-      config = {
+      extraConfig = {
         tunnelName = "home-charlie";
       };
     };
+
+    modules.agenix.sshKey = "/Users/c1/.ssh/id_ed25519";
 
     system.primaryUser = "c1";
     system.stateVersion = 6;
