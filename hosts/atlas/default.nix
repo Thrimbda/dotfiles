@@ -68,6 +68,7 @@ with builtins;
       ssh.enable = true;
       docker.enable = true;
       calibre.enable = true;
+      cloudflared.enable = true;
     };
     system = {
       utils.enable = true;
@@ -87,6 +88,8 @@ with builtins;
     services.logrotate.checkConfig = false;
 
     networking.firewall = {
+      allowedTCPPorts = [ 22 ]; # SSH for cloudflared tunnel
+      allowedUDPPorts = [ 7844 ]; # QUIC for cloudflared
       allowedTCPPortRanges = [{
         from = 49152;
         to = 65535;
@@ -95,6 +98,22 @@ with builtins;
         from = 49152;
         to = 65535;
       }];
+    };
+
+    # Cloudflare Tunnel configuration
+    modules.services.cloudflared = {
+      enable = true;
+      # TODO: Replace with actual tunnel ID after running cloudflared-setup
+      # tunnelId = "your-tunnel-id-here";
+      # TODO: Create credentials file with agenix
+      # credentialsFile = ./secrets/cloudflared-credentials.age;
+      warpRouting = {
+        enabled = true;
+        cidrs = [ "192.168.50.0/24" ];
+      };
+      config = {
+        tunnelName = "home";
+      };
     };
   };
 
