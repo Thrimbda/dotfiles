@@ -35,8 +35,6 @@ with lib;
       vim.enable = true;
       emacs.enable = true;
     };
-
-    agenix.enable = true;
   };
 
   ## Local configuration
@@ -67,6 +65,7 @@ with lib;
     };
 
     user.packages = with pkgs; [
+      pandoc
       coreutils
       curl
       git

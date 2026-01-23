@@ -68,6 +68,12 @@ in {
       environment.sessionVariables = mkOrder 10 baseSessionVars;
     })
 
+    # On Darwin, automatically map user.packages to home.packages
+    # since nix-darwin doesn't support users.users.*.packages
+    (mkIf (pkgs.stdenv.isDarwin && userCfg ? packages) {
+      home.packages = userCfg.packages or [];
+    })
+
     {
       home.file =
         mapAttrs' (k: v: nameValuePair "${config.home.fakeDir}/${k}" v)

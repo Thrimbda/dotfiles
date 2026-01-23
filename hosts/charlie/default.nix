@@ -80,7 +80,6 @@ with lib;
       k9s
       kubectl
       cloudflared
-      agenix
     ];
 
     modules.services.cloudflared = {
