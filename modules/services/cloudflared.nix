@@ -153,9 +153,11 @@ in {
           baseConfig = {
             tunnel = cfg.tunnelId;
             credentials-file = "${configDir}/${cfg.tunnelId}.json";
-            warp-routing.enabled = cfg.warpRouting.enabled;
           };
-          mergedConfig = recursiveUpdate baseConfig cfg.extraConfig;
+          warpConfig = optionalAttrs cfg.warpRouting.enabled {
+            warp-routing.enabled = true;
+          };
+          mergedConfig = recursiveUpdate (baseConfig // warpConfig) cfg.extraConfig;
         in builtins.toJSON mergedConfig;
       };
     }

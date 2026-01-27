@@ -82,24 +82,24 @@ with lib;
       cloudflared
     ];
 
-    modules.services.cloudflared = {
-      enable = true;
-      # TODO: Replace with actual tunnel ID after running cloudflared-setup
-      tunnelId = "9f33127c-3a10-47dc-9383-e27115780db8";
-      # TODO: Create credentials file with agenix
-      credentialsFile = ./secrets/cloudflared-credentials.age;
-      warpRouting = {
-        enabled = true;
-        cidrs = [ "192.168.50.0/24" ];
-      };
-      extraConfig = {
-        tunnelName = "home-charlie";
-        ingress = [
-          { hostname = "charlie.host.0xc1.space"; service = "ssh://localhost:22"; }
-          { service = "http_status:404"; }
-        ];
-      };
-    };
+    # modules.services.cloudflared = {
+    #   enable = true;
+    #   # TODO: Replace with actual tunnel ID after running cloudflared-setup
+    #   tunnelId = "9f33127c-3a10-47dc-9383-e27115780db8";
+    #   # TODO: Create credentials file with agenix
+    #   credentialsFile = ./secrets/cloudflared-credentials.age;
+    #   warpRouting = {
+    #     enabled = false;
+    #     # cidrs = [ "192.168.50.0/24" ];
+    #   };
+    #   extraConfig = {
+    #     tunnelName = "home-charlie";
+    #     ingress = [
+    #       { hostname = "charlie-ssh.0xc1.space"; service = "ssh://localhost:22"; }
+    #       { service = "http_status:404"; }
+    #     ];
+    #   };
+    # };
 
     modules.agenix.sshKey = "/Users/c1/.ssh/id_ed25519";
 
