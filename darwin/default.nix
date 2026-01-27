@@ -39,7 +39,7 @@ in {
     ../modules/xdg.nix
     ../modules/hey.nix
     ../modules/agenix.nix
-    ../modules/services/cloudflared.nix
+    # ../modules/services/cloudflared.nix
 
     # Shell
     ../modules/shell/zsh.nix

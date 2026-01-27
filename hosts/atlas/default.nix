@@ -68,7 +68,7 @@ with builtins;
       ssh.enable = true;
       docker.enable = true;
       calibre.enable = true;
-      cloudflared.enable = true;
+      # cloudflared.enable = true;
     };
     system = {
       utils.enable = true;
@@ -100,21 +100,21 @@ with builtins;
       }];
     };
 
-    # Cloudflare Tunnel configuration
-    modules.services.cloudflared = {
-      enable = true;
-      # TODO: Replace with actual tunnel ID after running cloudflared-setup
-      # tunnelId = "atlas-tunnel-id";
-      # TODO: Create credentials file with agenix
-      # credentialsFile = ./secrets/cloudflared-credentials.age;
-      warpRouting = {
-        enabled = true;
-        cidrs = [ "192.168.50.0/24" ];
-      };
-      extraConfig = {
-        tunnelName = "home-atlas";
-      };
-    };
+  #   # Cloudflare Tunnel configuration
+  #   modules.services.cloudflared = {
+  #     enable = true;
+  #     # TODO: Replace with actual tunnel ID after running cloudflared-setup
+  #     # tunnelId = "atlas-tunnel-id";
+  #     # TODO: Create credentials file with agenix
+  #     # credentialsFile = ./secrets/cloudflared-credentials.age;
+  #     warpRouting = {
+  #       enabled = true;
+  #       cidrs = [ "192.168.50.0/24" ];
+  #     };
+  #     extraConfig = {
+  #       tunnelName = "home-atlas";
+  #     };
+  #   };
   };
 
   ## hardware

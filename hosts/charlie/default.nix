@@ -33,12 +33,12 @@ with lib;
     editors = {
       default = "nvim";
       vim.enable = true;
-      emacs.enable = true;
+      # emacs.enable = true;
     };
 
-    services = {
-      cloudflared.enable = true;
-    };
+    # services = {
+    #   cloudflared.enable = true;
+    # };
   };
 
   ## Local configuration
@@ -61,7 +61,7 @@ with lib;
       };
       dock = {
         autohide = false;
-        tilesize = 32;
+        tilesize = 48;
         largesize = 64;
         orientation = "left";
       };
