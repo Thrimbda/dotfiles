@@ -11,9 +11,6 @@ let cfg = config.modules.editors.vim;
 in {
   options.modules.editors.vim = {
     enable = mkBoolOpt false;
-    vimrc = {
-      enable = mkBoolOpt true;
-    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -31,27 +28,27 @@ in {
         v   = "nvim";
       };
 
-      environment.extraInit = mkIf cfg.vimrc.enable ''
-        if [ ! -d "$HOME/.config/nvim/vim_runtime" ]; then
-          git clone --depth=1 https://github.com/amix/vimrc.git $HOME/.config/nvim/vim_runtime
-        fi
-      '';
+      # environment.extraInit = mkIf cfg.vimrc.enable ''
+      #   if [ ! -d "$HOME/.config/nvim/vim_runtime" ]; then
+      #     git clone --depth=1 https://github.com/amix/vimrc.git $HOME/.config/nvim/vim_runtime
+      #   fi
+      # '';
 
-      home.configFile = mkIf cfg.vimrc.enable {
-        "nvim/init.vim".text = ''
-          set runtimepath+=$HOME/.config/nvim/vim_runtime
+      # home.configFile = mkIf cfg.vimrc.enable {
+      #   "nvim/init.vim".text = ''
+      #     set runtimepath+=$HOME/.config/nvim/vim_runtime
 
-          source $HOME/.config/nvim/vim_runtime/vimrcs/basic.vim
-          source $HOME/.config/nvim/vim_runtime/vimrcs/filetypes.vim
-          source $HOME/.config/nvim/vim_runtime/vimrcs/plugins_config.vim
-          source $HOME/.config/nvim/vim_runtime/vimrcs/extended.vim
+      #     source $HOME/.config/nvim/vim_runtime/vimrcs/basic.vim
+      #     source $HOME/.config/nvim/vim_runtime/vimrcs/filetypes.vim
+      #     source $HOME/.config/nvim/vim_runtime/vimrcs/plugins_config.vim
+      #     source $HOME/.config/nvim/vim_runtime/vimrcs/extended.vim
 
-          try
-            source $HOME/.config/nvim/my_configs.vim
-          catch
-          endtry
-        '';
-      };
+      #     try
+      #       source $HOME/.config/nvim/my_configs.vim
+      #     catch
+      #     endtry
+      #   '';
+      # };
     }
     (mkIf pkgs.stdenv.isDarwin {
       home.packages = [

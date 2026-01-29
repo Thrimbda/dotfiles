@@ -80,6 +80,7 @@ with lib;
       k9s
       kubectl
       cloudflared
+      autossh
     ];
 
     # modules.services.cloudflared = {
