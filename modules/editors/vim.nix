@@ -17,6 +17,7 @@ in {
     {
       user.packages = with pkgs; [
         editorconfig-core-c
+        lazygit
         neovim
       ];
 

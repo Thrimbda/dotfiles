@@ -81,6 +81,7 @@ with lib;
       kubectl
       cloudflared
       autossh
+      lazygit
     ];
 
     # modules.services.cloudflared = {
