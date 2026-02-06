@@ -13,12 +13,12 @@
   inputs = 
     {
       # Core dependecies
-      nixpkgs.url = "nixpkgs/nixos-25.05";
+      nixpkgs.url = "nixpkgs/nixos-25.11";
       nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
-      nixpkgs-darwin.url = "nixpkgs/nixpkgs-25.05-darwin";
-      home-manager.url = "github:nix-community/home-manager/release-25.05";
+      nixpkgs-darwin.url = "nixpkgs/nixpkgs-25.11-darwin";
+      home-manager.url = "github:nix-community/home-manager/release-25.11";
       home-manager.inputs.nixpkgs.follows = "nixpkgs";
-      darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
+      darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
       darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
       agenix.url = "github:ryantm/agenix";
       agenix.inputs.nixpkgs.follows = "nixpkgs";

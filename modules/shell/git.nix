@@ -5,15 +5,15 @@ with hey.lib;
 let
   cfg = config.modules.shell.git;
   gitPackagesBase = with pkgs; [
-    gitAndTools.git-annex
-    gitAndTools.gh
-    gitAndTools.git-open
-    gitAndTools.diff-so-fancy
+    git-annex
+    gh
+    git-open
+    diff-so-fancy
     act
   ];
   gitPackages =
     gitPackagesBase
-    ++ optional config.modules.shell.gnupg.enable pkgs.gitAndTools.git-crypt;
+    ++ optional config.modules.shell.gnupg.enable pkgs.git-crypt;
 in {
   options.modules.shell.git = {
     enable = mkBoolOpt false;
