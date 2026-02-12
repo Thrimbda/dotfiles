@@ -72,7 +72,35 @@ with lib;
       PATH = "$HOME/.opencode/bin:$PATH";
     };
 
+    launchd.user.agents.autossh-reverse-ssh = {
+      serviceConfig = {
+        ProgramArguments = [
+          "${pkgs.autossh}/bin/autossh"
+          "-M"
+          "0"
+          "-N"
+          "-o"
+          "ServerAliveInterval=30"
+          "-o"
+          "ServerAliveCountMax=3"
+          "-o"
+          "ExitOnForwardFailure=yes"
+          "-R"
+          "127.0.0.1:2222:127.0.0.1:22"
+          "root@8.159.128.125"
+        ];
+        EnvironmentVariables = {
+          AUTOSSH_GATETIME = "0";
+        };
+        RunAtLoad = true;
+        KeepAlive = true;
+        StandardOutPath = "/tmp/autossh-reverse-ssh.out.log";
+        StandardErrorPath = "/tmp/autossh-reverse-ssh.err.log";
+      };
+    };
+
     user.packages = with pkgs; [
+      htop
       coreutils
       curl
       git
