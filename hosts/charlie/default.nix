@@ -70,6 +70,8 @@ with lib;
 
     environment.variables = {
       PATH = "$HOME/.opencode/bin:$PATH";
+      OPENCODE_ENABLE_EXA = "1";
+      OPENCODE_EXPERIMENTAL = "true";
     };
 
     launchd.user.agents.autossh-reverse-ssh = {

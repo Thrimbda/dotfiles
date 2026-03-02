@@ -33,7 +33,8 @@ with lib;
     editors = {
       default = "nvim";
       vim.enable = true;
-      emacs.enable = true;
+      # load-path bugs https://github.com/doomemacs/doomemacs/issues/8541#issuecomment-3698465569
+      # emacs.enable = true;
     };
   };
 
@@ -62,6 +63,8 @@ with lib;
 
     environment.variables = {
       PATH = "$HOME/.opencode/bin:$PATH";
+      OPENCODE_ENABLE_EXA = "1";
+      OPENCODE_EXPERIMENTAL = "true";
     };
 
     user.packages = with pkgs; [
@@ -73,6 +76,7 @@ with lib;
       k9s
       kubectl
       cloudflared
+      lazygit
     ];
 
     system.primaryUser = "c1";
