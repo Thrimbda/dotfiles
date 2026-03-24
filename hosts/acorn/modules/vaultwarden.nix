@@ -3,6 +3,12 @@
 {
   modules.services.vaultwarden.enable = true;
 
+  age.secrets.vaultwarden-env = {
+    owner = "vaultwarden";
+    group = "vaultwarden";
+    mode = "0400";
+  };
+
   services.vaultwarden = {
     backupDir = "/backup/vaultwarden";
     # Inject secrets at runtime

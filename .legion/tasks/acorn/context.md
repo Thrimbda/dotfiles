@@ -11,16 +11,20 @@
 - 将 agenix 主机 key 断言改为仅在可获取 currentSystem 且为目标平台本机构建时强校验
 - 完成 eval/build 验证，确认旧 kernel attr 错误消失且当前仅受 darwin 缺少 x86_64-linux builder 阻断
 - 完成 test-report、review-code、review-security 文档产出
+- 确认项目根目录的 `ssh_host_ed25519_key` 已恢复为可解密 `vaultwarden-env.age` 的旧私钥
+- 将 `hosts/acorn/secrets/vaultwarden-env.age` 重新按当前 host key rekey
+- 为 `age.secrets.vaultwarden-env` 明确设置 `owner/group/mode` 以收紧 vaultwarden 环境文件权限
 
 
 ### 🟡 进行中
 
-- 准备按 RFC 实施共享 server profile 的最小 hardened kernel 入口替换
+- 已确认项目根目录 `ssh_host_ed25519_key` 的公钥与 acorn 当前 secrets recipient 不匹配，正在切换 recipient 并等待 secret 重新加密
 
 
 ### ⚠️ 阻塞/待定
 
 (暂无)
+
 
 ---
 
@@ -37,6 +41,9 @@
 | 先以构建失败信号驱动 design-lite，而不是预先扩展到完整 RFC | 当前任务目标是让 acorn 尽快适配新配置并达到可构建，优先以最小设计收敛问题边界；仅在发现公共接口/高风险改动时升级为 RFC。 | 直接先写完整 RFC；但在问题尚未定位前会增加成本。 | 2026-03-24 |
 | 任务按 Medium 风险处理，先补短 RFC 再实现 | 修复点触及共享 server profile 与系统内核安全基线，虽当前实际主要影响 acorn，但仍需在实现前明确验证口径和回滚策略。 | 按 Low 风险直接改代码；但不利于记录 darwin/Linux/目标机三段式验证与运行时回滚策略。 | 2026-03-24 |
 | 不在 acorn 上永久关闭 agenix host key 校验，而是将例外收敛到纯求值/无 currentSystem 场景 | 这样既能让 darwin 侧的 flake 评估继续推进，又不削弱目标机上 age secrets/vaultwarden 的 secure-by-default 边界。 | 在 acorn 上设置 checkSshKey = false；但会把 host key 配置错误推迟到运行时。 | 2026-03-24 |
+| 优先按 secrets 解密链路排查 vaultwarden 启动失败，而不是先改 vaultwarden 服务参数 | systemd 报错是 environmentFile 不存在，首先应确认 agenix 是否成功产出 secret 文件；若 secret 未解密，调整 vaultwarden service 本身不能根治问题。 | 先修改 vaultwarden 服务依赖/重启策略；但无法解决缺失的 secret 文件。 | 2026-03-24 |
+| 先把 acorn secrets recipient 对齐到项目根目录提供的 host key 公钥 | 这样可以让仓库声明和目标机解密身份保持一致，避免后续继续把 secret 加密到错误 recipient。 | 保持旧 recipient；但当前已确认本地和目标机都无匹配私钥，无法恢复解密链路。 | 2026-03-24 |
+| 在恢复 vaultwarden secret 解密链路的同时为环境文件显式收紧权限 | 当前故障点虽是 environmentFile 缺失，但补上 owner/group/mode 可以让 `/run/agenix/vaultwarden-env` 的归属更符合 vaultwarden 运行边界。 | 仅 rekey secret 文件；但会继续依赖 agenix 默认 owner。 | 2026-03-24 |
 
 ---
 
@@ -56,4 +63,4 @@
 
 ---
 
-*最后更新: 2026-03-24 20:40 by Claude*
+*最后更新: 2026-03-24 22:09 by Claude*

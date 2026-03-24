@@ -32,7 +32,9 @@
 ## 发现的新任务
 
 (暂无)
+- [ ] 排查并修复 acorn 上 vaultwarden-env age secret 未落盘导致的 vaultwarden 启动失败 | 来源: 用户反馈 vaultwarden.service 缺少 environmentFile
+
 
 ---
 
-*最后更新: 2026-03-24 20:40*
+*最后更新: 2026-03-24 22:09*
