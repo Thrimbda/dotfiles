@@ -15,6 +15,7 @@
 - 将 `hosts/acorn/secrets/vaultwarden-env.age` 重新按当前 host key rekey
 - 为 `age.secrets.vaultwarden-env` 明确设置 `owner/group/mode` 以收紧 vaultwarden 环境文件权限
 - 确认 acorn 实际应使用 `/home/c1/.ssh/id_ed25519` 作为 agenix 解密身份，而不是 `/etc/ssh/ssh_host_ed25519_key`
+- 通过 SSH 登录 acorn，定位 cloud-init 失败根因为其 service PATH 中缺少 `resize2fs`，导致 `cc_resizefs` 在 switch 后报错
 
 
 ### 🟡 进行中
@@ -46,6 +47,7 @@
 | 先把 acorn secrets recipient 对齐到项目根目录提供的 host key 公钥 | 这样可以让仓库声明和目标机解密身份保持一致，避免后续继续把 secret 加密到错误 recipient。 | 保持旧 recipient；但当前已确认本地和目标机都无匹配私钥，无法恢复解密链路。 | 2026-03-24 |
 | 在恢复 vaultwarden secret 解密链路的同时为环境文件显式收紧权限 | 当前故障点虽是 environmentFile 缺失，但补上 owner/group/mode 可以让 `/run/agenix/vaultwarden-env` 的归属更符合 vaultwarden 运行边界。 | 仅 rekey secret 文件；但会继续依赖 agenix 默认 owner。 | 2026-03-24 |
 | 将 acorn 的 `modules.agenix.sshKey` 改回用户密钥 `/home/c1/.ssh/id_ed25519` | 用户确认目标机的真实解密身份是用户私钥，agenix 激活报错也说明当前 host key 路径与 secrets recipient 不匹配。 | 继续使用 `/etc/ssh/ssh_host_ed25519_key`；但已被目标机日志证伪。 | 2026-03-24 |
+| 为 acorn 的 `cloud-init` / `cloud-config` / `cloud-final` systemd 单元显式注入 `pkgs.e2fsprogs` 到 PATH | 目标机日志显示 `resize2fs` 已存在于系统 profile，但 cloud-init unit 自带 PATH 未包含它；通过 host 级 unit path 覆盖可以最小修复 Azure cloud-init resizefs 失败。 | 禁用 cloud-init resizefs 模块；但会改变 Azure 首次扩容行为。 | 2026-03-24 |
 
 ---
 
@@ -65,4 +67,4 @@
 
 ---
 
-*最后更新: 2026-03-24 22:14 by Claude*
+*最后更新: 2026-03-24 22:22 by Claude*

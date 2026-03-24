@@ -46,7 +46,7 @@
     theme.useX = false;
   };
 
-  config = { modulesPath, lib, ... }: {
+  config = { modulesPath, lib, pkgs, ... }: {
     imports = [
       "${modulesPath}/virtualisation/azure-common.nix"
       ./modules/vaultwarden.nix
@@ -82,6 +82,9 @@
     systemd.services."serial-getty@hvc0".enable = lib.mkForce true;
     systemd.services."getty@tty1".enable = lib.mkForce true;
     systemd.services."autovt@".enable = lib.mkForce true;
+    systemd.services.cloud-init.path = [ pkgs.e2fsprogs ];
+    systemd.services.cloud-config.path = [ pkgs.e2fsprogs ];
+    systemd.services.cloud-final.path = [ pkgs.e2fsprogs ];
 
     fileSystems."/boot" = {
       device = "/dev/disk/by-label/ESP";
