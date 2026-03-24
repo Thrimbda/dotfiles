@@ -58,3 +58,5 @@
 2026-03-24T14:04:23.825Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,setCurrentTask: 修复 acorn vaultwarden-env secret 的 recipient 与重加密链路,success
 2026-03-24T14:09:50.817Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,setCurrentTask: 验证 vaultwarden secret 恢复并指导目标机切换,success
 2026-03-24T14:09:50.817Z,legion_update_context,acorn,acorn 新配置适配与构建修复,Claude,addDecision: 在恢复 vaultwarden secret 解密链路的同时为环境文件显式收紧权限,success
+2026-03-24T14:14:46.586Z,legion_update_context,acorn,acorn 新配置适配与构建修复,Claude,addDecision: 将 acorn 的 `modules.agenix.sshKey` 改回用户密钥 `/home/c1/.ssh/id_ed25519`,success
+2026-03-24T14:14:46.591Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,setCurrentTask: 切换 acorn agenix 解密身份到实际使用的用户私钥并验证 vaultwarden secret,success

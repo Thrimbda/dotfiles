@@ -52,7 +52,7 @@
       ./modules/vaultwarden.nix
     ];
 
-    modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
+    modules.agenix.sshKey = "/home/c1/.ssh/id_ed25519";
 
     boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;

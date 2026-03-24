@@ -14,6 +14,7 @@
 - 确认项目根目录的 `ssh_host_ed25519_key` 已恢复为可解密 `vaultwarden-env.age` 的旧私钥
 - 将 `hosts/acorn/secrets/vaultwarden-env.age` 重新按当前 host key rekey
 - 为 `age.secrets.vaultwarden-env` 明确设置 `owner/group/mode` 以收紧 vaultwarden 环境文件权限
+- 确认 acorn 实际应使用 `/home/c1/.ssh/id_ed25519` 作为 agenix 解密身份，而不是 `/etc/ssh/ssh_host_ed25519_key`
 
 
 ### 🟡 进行中
@@ -44,6 +45,7 @@
 | 优先按 secrets 解密链路排查 vaultwarden 启动失败，而不是先改 vaultwarden 服务参数 | systemd 报错是 environmentFile 不存在，首先应确认 agenix 是否成功产出 secret 文件；若 secret 未解密，调整 vaultwarden service 本身不能根治问题。 | 先修改 vaultwarden 服务依赖/重启策略；但无法解决缺失的 secret 文件。 | 2026-03-24 |
 | 先把 acorn secrets recipient 对齐到项目根目录提供的 host key 公钥 | 这样可以让仓库声明和目标机解密身份保持一致，避免后续继续把 secret 加密到错误 recipient。 | 保持旧 recipient；但当前已确认本地和目标机都无匹配私钥，无法恢复解密链路。 | 2026-03-24 |
 | 在恢复 vaultwarden secret 解密链路的同时为环境文件显式收紧权限 | 当前故障点虽是 environmentFile 缺失，但补上 owner/group/mode 可以让 `/run/agenix/vaultwarden-env` 的归属更符合 vaultwarden 运行边界。 | 仅 rekey secret 文件；但会继续依赖 agenix 默认 owner。 | 2026-03-24 |
+| 将 acorn 的 `modules.agenix.sshKey` 改回用户密钥 `/home/c1/.ssh/id_ed25519` | 用户确认目标机的真实解密身份是用户私钥，agenix 激活报错也说明当前 host key 路径与 secrets recipient 不匹配。 | 继续使用 `/etc/ssh/ssh_host_ed25519_key`；但已被目标机日志证伪。 | 2026-03-24 |
 
 ---
 
@@ -63,4 +65,4 @@
 
 ---
 
-*最后更新: 2026-03-24 22:09 by Claude*
+*最后更新: 2026-03-24 22:14 by Claude*
