@@ -28,6 +28,7 @@ with lib;
       deno.enable = true;
       rust.enable = true;
       python.enable = true;
+      playwright.enable = true;
     };
 
     editors = {

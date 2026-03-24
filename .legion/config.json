@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "currentTask": "dual-cloudflared-topology",
+  "currentTask": "acorn",
   "settings": {
     "autoRemind": true,
     "remindBeforeReset": true,
@@ -17,9 +17,16 @@
     {
       "id": "dual-cloudflared-topology",
       "name": "dual-cloudflared-topology",
-      "status": "active",
+      "status": "paused",
       "createdAt": "2026-01-19T12:05:07.086Z",
-      "updatedAt": "2026-01-19T12:09:18.369Z"
+      "updatedAt": "2026-03-24T12:11:05.278Z"
+    },
+    {
+      "id": "acorn",
+      "name": "acorn 新配置适配与构建修复",
+      "status": "active",
+      "createdAt": "2026-03-24T12:11:05.278Z",
+      "updatedAt": "2026-03-24T12:40:11.707Z"
     }
   ],
   "pendingProposals": [
@@ -169,6 +176,72 @@
       "decidedAt": "2026-01-19T12:05:07.086Z",
       "decidedBy": "Claude",
       "createdTaskId": "dual-cloudflared-topology"
+    },
+    {
+      "id": "proposal-mn4kpqai-886d1e",
+      "name": "acorn 新配置适配与构建修复",
+      "goal": "让 acorn 主机配置适配当前仓库的新配置方式，并在 darwin 环境下尽可能验证到 nix build 通过，同时优先保障 vaultwarden 相关服务稳定安全。",
+      "rationale": "用户明确要求对 acorn 做一次端到端交付，且任务涉及配置调研、设计、实现、构建验证、评审与交付文档，多步且跨文件，适合单独建立 LegionMind 任务以持久化计划、上下文和交付产物。",
+      "points": [
+        "以 plan.md 作为唯一任务契约，先完成风险分级与 design-lite/RFC 决策。",
+        "优先检查 hosts/acorn 及其引用模块在当前配置体系下的兼容性。",
+        "使用 nix build 验证；对 darwin 无法完整验证的 NixOS 运行时部分做显式假设并记录。",
+        "vaultwarden 相关配置若需调整，优先保证安全边界、密钥依赖与备份/权限逻辑不退化。"
+      ],
+      "scope": [
+        "hosts/acorn/**",
+        "modules/services/**",
+        "flake.nix",
+        "相关共享模块（仅在 acorn 适配最小必要范围内）",
+        ".legion/tasks/*"
+      ],
+      "phases": [
+        {
+          "name": "阶段 1 - 设计与现状确认",
+          "tasks": [
+            {
+              "description": "审阅 acorn 与 vaultwarden 相关配置及当前 .legion 状态，确认问题边界与验证入口",
+              "acceptance": "plan.md 完成并记录风险分级、允许 Scope、验证策略"
+            },
+            {
+              "description": "执行 design-lite 或 RFC 决策并形成设计索引",
+              "acceptance": "plan.md 的 Design Index 可指向 design-lite 或 docs/rfc.md"
+            }
+          ]
+        },
+        {
+          "name": "阶段 2 - 实现与构建修复",
+          "tasks": [
+            {
+              "description": "按设计修改 acorn 配置及最小必要共享模块",
+              "acceptance": "修改保持在允许 Scope 内，并在 context.md 记录关键决策"
+            },
+            {
+              "description": "运行 nix build 验证并修复阻塞",
+              "acceptance": "能在当前环境完成最大化验证；不可验证部分有明确假设"
+            }
+          ]
+        },
+        {
+          "name": "阶段 3 - 验证与交付文档",
+          "tasks": [
+            {
+              "description": "产出测试/评审报告",
+              "acceptance": "docs/test-report.md 与 docs/review-code.md 生成；必要时包含 review-security.md"
+            },
+            {
+              "description": "生成 walkthrough 与 PR body",
+              "acceptance": "docs/report-walkthrough.md 与 docs/pr-body.md 可直接用于交付"
+            }
+          ]
+        }
+      ],
+      "proposedBy": "Claude",
+      "proposedAt": "2026-03-24T12:11:01.339Z",
+      "status": "approved",
+      "decidedAt": "2026-03-24T12:11:05.278Z",
+      "decidedBy": "Claude",
+      "createdTaskId": "acorn"
     }
   ]
 }

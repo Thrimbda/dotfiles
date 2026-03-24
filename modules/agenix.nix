@@ -22,7 +22,10 @@ in {
     assertions = [
       {
         assertion =
-          config.age.secrets == {} || (pathExists cfg.sshKey);
+          config.age.secrets == {}
+          || !(builtins ? currentSystem)
+          || builtins.currentSystem != pkgs.stdenv.hostPlatform.system
+          || (pathExists cfg.sshKey);
         message = "Secrets provided, but no host key was found at ${cfg.sshKey}";
       }
     ];
@@ -48,7 +51,7 @@ in {
              fi
           fi
         ''}
-        exec ${hey.inputs.agenix.packages.${system}.default}/bin/agenix "''${ARGS[@]}"
+        exec ${hey.inputs.agenix.packages.${pkgs.system}.default}/bin/agenix "''${ARGS[@]}"
       '')
     ];
 

@@ -42,7 +42,7 @@
       nginx.enable = true;
     };
 
-    theme.active = "alucard";
+    theme.active = null;
     theme.useX = false;
   };
 
@@ -51,6 +51,12 @@
       "${modulesPath}/virtualisation/azure-common.nix"
       ./modules/vaultwarden.nix
     ];
+
+    modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
+
+    boot.loader.systemd-boot.enable = true;
+    boot.loader.efi.canTouchEfiVariables = true;
+    virtualisation.docker.enableOnBoot = lib.mkForce true;
 
     networking.firewall = {
       allowedTCPPorts = [ 34197 ];

@@ -38,3 +38,16 @@
 2026-01-19T12:09:11.765Z,legion_update_tasks,dual-cloudflared-topology,dual-cloudflared-topology,Claude,completeTask: 按设计更新 Nix 模块/主机配置,success
 2026-01-19T12:09:13.958Z,legion_update_tasks,dual-cloudflared-topology,dual-cloudflared-topology,Claude,completeTask: 更新 Zero Trust 与 macOS SSH 文档,success
 2026-01-19T12:09:18.370Z,legion_update_context,dual-cloudflared-topology,dual-cloudflared-topology,Claude,progress.completed: 更新 cloudflared 模块注释为双隧道拓扑,success
+2026-03-24T12:10:29.976Z,legion_get_status,dual-cloudflared-topology,dual-cloudflared-topology,Claude,,success
+2026-03-24T12:10:48.157Z,legion_create_task,dual-cloudflared-topology,dual-cloudflared-topology,Claude,goal: 让 acorn 主机配置适配当前仓库的新配置方式，并在 darwin 环境下尽可能验证到 nix build 通过，同时优先保障 vaultwarden 相关服务稳定安全。,failed
+2026-03-24T12:11:01.340Z,legion_propose_task,dual-cloudflared-topology,dual-cloudflared-topology,Claude,name: acorn 新配置适配与构建修复,success
+2026-03-24T12:11:05.281Z,legion_approve_proposal,acorn,acorn 新配置适配与构建修复,Claude,proposalId: proposal-mn4kpqai-886d1e,success
+2026-03-24T12:11:13.447Z,legion_switch_task,acorn,acorn 新配置适配与构建修复,Claude,taskId: acorn,success
+2026-03-24T12:11:45.347Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,setCurrentTask: phase 1,success
+2026-03-24T12:11:45.353Z,legion_update_context,acorn,acorn 新配置适配与构建修复,Claude,addDecision: 先以构建失败信号驱动 design-lite，而不是预先扩展到完整 RFC,success
+2026-03-24T12:19:53.818Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,completeTask: phase 1,success
+2026-03-24T12:19:53.899Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,setCurrentTask: phase 2,success
+2026-03-24T12:19:53.899Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,completeTask: phase 1,success
+2026-03-24T12:19:53.900Z,legion_update_context,acorn,acorn 新配置适配与构建修复,Claude,addDecision: 任务按 Medium 风险处理，先补短 RFC 再实现,success
+2026-03-24T12:40:11.707Z,legion_update_tasks,acorn,acorn 新配置适配与构建修复,Claude,setCurrentTask: 生成 walkthrough 与 PR body,success
+2026-03-24T12:40:11.707Z,legion_update_context,acorn,acorn 新配置适配与构建修复,Claude,addDecision: 不在 acorn 上永久关闭 agenix host key 校验，而是将例外收敛到纯求值/无 currentSystem 场景,success
