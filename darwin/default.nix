@@ -39,7 +39,7 @@ in {
     ../modules/xdg.nix
     ../modules/hey.nix
     ../modules/agenix.nix
-    # ../modules/services/cloudflared.nix
+    ../modules/services/cloudflared.nix
 
     # Shell
     ../modules/shell/zsh.nix
@@ -55,6 +55,7 @@ in {
     ../modules/dev/rust.nix
     ../modules/dev/python.nix
     ../modules/dev/java.nix
+    ../modules/dev/playwright.nix
 
     # Editors & Theme
     ../modules/editors/default.nix

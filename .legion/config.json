@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "currentTask": "acorn",
+  "currentTask": "charlie-opencode-server-cloudflare-access",
   "settings": {
     "autoRemind": true,
     "remindBeforeReset": true,
@@ -24,9 +24,16 @@
     {
       "id": "acorn",
       "name": "acorn 新配置适配与构建修复",
-      "status": "active",
+      "status": "paused",
       "createdAt": "2026-03-24T12:11:05.278Z",
-      "updatedAt": "2026-03-24T14:22:49.755Z"
+      "updatedAt": "2026-04-12T03:02:09.684Z"
+    },
+    {
+      "id": "charlie-opencode-server-cloudflare-access",
+      "name": "charlie 上 opencode server Cloudflare Access 暴露与自启动",
+      "status": "active",
+      "createdAt": "2026-04-12T03:02:09.684Z",
+      "updatedAt": "2026-04-15T09:25:31.226Z"
     }
   ],
   "pendingProposals": [
@@ -242,6 +249,72 @@
       "decidedAt": "2026-03-24T12:11:05.278Z",
       "decidedBy": "Claude",
       "createdTaskId": "acorn"
+    },
+    {
+      "id": "proposal-mnv6gztj-337388",
+      "name": "charlie 上 opencode server Cloudflare Access 暴露与自启动",
+      "goal": "为 charlie 主机增加一个随重启自动启动的 opencode server，并通过 Cloudflare Access 以邮箱访问控制方式暴露。",
+      "rationale": "用户要求在尽量少打断的前提下完成一次端到端交付，并明确要求产出独立的 .legion 任务文档与可直接作为 PR 的 pr-body.md；现有 active task 已完成且与本次 charlie/opencode/cloudflare 目标无关，因此需要为本次工作创建独立任务以保持任务契约、scope 和交付物可追踪。",
+      "points": [
+        "在现有 Darwin/launchd 与 cloudflared 模式上最小增量实现 opencode server 的声明式配置。",
+        "把 Cloudflare Access 暴露所需的 tunnel ingress、服务端口与运行方式写入主机配置和任务文档。",
+        "补齐验证、评审与可直接用于 PR 的交付文档，尽量减少后续人工操作。"
+      ],
+      "scope": [
+        "darwin/default.nix",
+        "hosts/charlie/default.nix",
+        "modules/services/cloudflared.nix",
+        "docs/cloudflare-zero-trust.md",
+        "docs/charlie-macos-ssh-config.md",
+        "bin/cloudflared-setup"
+      ],
+      "phases": [
+        {
+          "name": "设计",
+          "tasks": [
+            {
+              "description": "确认 charlie/cloudflared/opencode 的现状并确定最小 scope",
+              "acceptance": "plan.md 完整记录目标、范围、假设、约束与风险分级"
+            },
+            {
+              "description": "为 Cloudflare Access 暴露与自启动方案形成 RFC",
+              "acceptance": "docs/rfc.md 给出端口、launchd、ingress 与安全约束设计，并通过 RFC 审查"
+            }
+          ]
+        },
+        {
+          "name": "实现",
+          "tasks": [
+            {
+              "description": "实现 charlie 上 opencode server 自启动与 cloudflared 暴露配置",
+              "acceptance": "相关 Nix/脚本/文档改动完成，scope 内文件保持一致"
+            },
+            {
+              "description": "同步更新使用文档与运维说明",
+              "acceptance": "文档可指导后续部署与 Access 配置"
+            }
+          ]
+        },
+        {
+          "name": "验证与交付",
+          "tasks": [
+            {
+              "description": "运行验证与代码/安全评审",
+              "acceptance": "test-report、review-code、review-security 产出并结论已记录"
+            },
+            {
+              "description": "生成 walkthrough 与 PR body",
+              "acceptance": "docs/report-walkthrough.md 与 docs/pr-body.md 可直接交付"
+            }
+          ]
+        }
+      ],
+      "proposedBy": "Claude",
+      "proposedAt": "2026-04-12T03:02:05.912Z",
+      "status": "approved",
+      "decidedAt": "2026-04-12T03:02:09.684Z",
+      "decidedBy": "Claude",
+      "createdTaskId": "charlie-opencode-server-cloudflare-access"
     }
   ]
 }

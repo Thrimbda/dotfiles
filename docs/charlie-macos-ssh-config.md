@@ -32,7 +32,7 @@ sudo chown siyuan.arc:staff /Users/siyuan.arc
 sudo dscl . -passwd /Users/siyuan.arc "temporary-password-here"
 ```
 
-**注意**：浏览器 SSH 需要密码认证。仅临时启用用于测试。
+**注意**：默认保持密钥认证与最小监听范围。若为了某次浏览器 SSH 兼容性测试必须临时启用密码认证，请在测试完成后立即回退并记录变更窗口。
 
 ### 2. SSH 配置文件
 
@@ -46,7 +46,7 @@ sudo nano /etc/ssh/sshd_config
 
 ```
 # Security settings
-PasswordAuthentication yes          # Enable for browser SSH testing
+PasswordAuthentication no
 PermitRootLogin no
 ChallengeResponseAuthentication no
 UsePAM yes
@@ -63,7 +63,7 @@ AuthorizedKeysFile .ssh/authorized_keys
 
 # Port and listening
 Port 22
-ListenAddress 0.0.0.0  # Or 192.168.50.143 for local only
+ListenAddress 192.168.50.143
 ```
 
 ### 3. SSH 服务管理
@@ -102,7 +102,7 @@ ssh c1@192.168.50.143
 ssh siyuan.arc@192.168.50.143
 ```
 
-### 6. cloudflared（独立隧道）
+### 6. cloudflared（独立隧道 / opencode 回源）
 
 在 charlie 上为独立隧道启用 cloudflared：
 
@@ -111,15 +111,53 @@ modules.services.cloudflared = {
   enable = true;
   # tunnelId = "charlie-tunnel-id";
   # credentialsFile = ./secrets/cloudflared-credentials.age;
-  warpRouting = {
-    enabled = true;
-    cidrs = [ "192.168.50.0/24" ];
-  };
-  config = {
+  warpRouting.enabled = false;
+  extraConfig = {
     tunnelName = "home-charlie";
+    ingress = [
+      {
+        hostname = "opencode-charlie.0xc1.space";
+        service = "http://127.0.0.1:4096";
+      }
+      { service = "http_status:404"; }
+    ];
   };
 };
 ```
+
+如果本次要暴露的是 `opencode`，还需要一个只监听本机的 launchd user agent：
+
+```nix
+launchd.user.agents.opencode-server.serviceConfig = {
+  ProgramArguments = [
+    "/Users/c1/.opencode/bin/opencode"
+    "serve"
+    "--hostname"
+    "127.0.0.1"
+    "--port"
+    "4096"
+  ];
+  EnvironmentVariables = {
+    HOME = "/Users/c1";
+    OPENCODE_ENABLE_EXA = "1";
+    OPENCODE_EXPERIMENTAL = "true";
+  };
+  RunAtLoad = true;
+  KeepAlive = true;
+  StandardOutPath = "/Users/c1/Library/Logs/opencode-server.out.log";
+  StandardErrorPath = "/Users/c1/Library/Logs/opencode-server.err.log";
+};
+```
+
+### 7. Cloudflare Access 是上线前置条件
+
+即使 tunnel 已建立、`opencode server` 已在 `127.0.0.1:4096` 监听，也**不能**直接视为上线完成。发布前还必须在 Cloudflare Access 中：
+
+1. 为 `opencode-charlie.0xc1.space` 创建 self-hosted application。
+2. 配置 allow policy，仅允许目标邮箱访问，并启用 MFA。
+3. 分别验证授权邮箱可访问、未授权邮箱被拒绝，并保留审计记录。
+
+推荐把 Access 完成情况作为变更上线检查项，而不是事后补做。
 
 ## Nix 集成（可选）
 
@@ -171,7 +209,7 @@ modules.services.cloudflared = {
 ## 安全注意事项
 
 ### 浏览器 SSH 测试的临时设置
-1. 仅在初始测试期间启用 `PasswordAuthentication`
+1. 仅在初始测试期间临时启用 `PasswordAuthentication yes`
 2. 在 `https://ssh-mac.your-domain.com` 测试浏览器 SSH 访问
 3. 确认浏览器 SSH 工作后，禁用密码认证：
    ```
@@ -208,10 +246,11 @@ sudo log show --predicate 'process == "sshd"' --last 10m
 3. 检查 Cloudflare Access 策略允许您的邮箱
 4. 首先本地测试：`ssh siyuan.arc@localhost`
 
-### Cloudflare WARP 访问
-1. 确保 charlie 的 IP 在路由的 CIDR 中（`192.168.50.0/24`）
-2. 从带有 WARP 的外部设备测试：`ssh c1@192.168.50.143`
-3. 验证隧道路由：`cloudflared tunnel route ip list`（在 charlie 或 atlas 上）
+### Cloudflare / opencode 访问
+1. 本机先验证 `curl -I http://127.0.0.1:4096`
+2. 验证 `launchctl list | grep opencode-server`
+3. 验证 `launchctl list | grep cloudflared`
+4. 完成 Access 策略后，再从外部浏览器访问 `https://opencode-charlie.0xc1.space`
 
 ## 维护
 
@@ -233,8 +272,24 @@ sudo dscl . -read /Users/siyuan.arc > ~/siyuan.arc-user-backup.txt
 
 ## 集成清单
 
+### charlie opencode 发布必需项
+
+- [ ] charlie：确认 `/Users/c1/.opencode/bin/opencode` 可执行
+- [ ] charlie：配置 `launchd.user.agents.opencode-server`
+- [ ] charlie：启用 `modules.services.cloudflared`
+- [ ] charlie：使用 `sudo darwin-rebuild switch --flake .#charlie` 部署
+- [ ] charlie：本机验证 `launchctl list | grep opencode-server`
+- [ ] charlie：本机验证 `curl -I http://127.0.0.1:4096`
+- [ ] charlie：本机验证 `launchctl list | grep cloudflared`
+- [ ] Cloudflare：为 `opencode-charlie.0xc1.space` 配置 Access self-hosted 应用
+- [ ] Cloudflare：Access allow policy 仅放行目标邮箱并启用 MFA
+- [ ] 测试：授权邮箱可访问 opencode hostname
+- [ ] 测试：未授权邮箱被 Access 拒绝
+
+### 浏览器 SSH / 双机拓扑附加项
+
 - [ ] 路由器：为 charlie 配置 DHCP 保留 (192.168.50.143)
-- [ ] 路由器：为 atlas 配置 DHCP 保留 (192.168.50.227) 
+- [ ] 路由器：为 atlas 配置 DHCP 保留 (192.168.50.227)
 - [ ] macOS：创建用户 `siyuan.arc`
 - [ ] macOS：配置 `/etc/ssh/sshd_config`
 - [ ] macOS：启用并测试 SSH 服务
@@ -242,9 +297,3 @@ sudo dscl . -read /Users/siyuan.arc > ~/siyuan.arc-user-backup.txt
 - [ ] atlas：运行 cloudflared-setup 脚本
 - [ ] atlas：添加 cloudflared 配置到 default.nix
 - [ ] atlas：使用 `sudo nixos-rebuild switch --flake .#atlas` 部署
-- [ ] charlie：使用 `sudo darwin-rebuild switch --flake .#charlie` 部署
-
-- [ ] Cloudflare：配置浏览器 SSH 应用
-- [ ] 外部设备：安装并配置 WARP 客户端
-- [ ] 测试：通过 WARP 从外部设备 SSH
-- [ ] 测试：浏览器 SSH 紧急访问

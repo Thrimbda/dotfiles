@@ -102,6 +102,29 @@ with lib;
       };
     };
 
+    launchd.user.agents.opencode-server = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/Users/c1/.opencode/bin/opencode"
+          "serve"
+          "--hostname"
+          "127.0.0.1"
+          "--port"
+          "4096"
+        ];
+        EnvironmentVariables = {
+          HOME = "/Users/c1";
+          OPENCODE_ENABLE_EXA = "1";
+          OPENCODE_EXPERIMENTAL = "true";
+        };
+        WorkingDirectory = "/Users/c1";
+        RunAtLoad = true;
+        KeepAlive = true;
+        StandardOutPath = "/Users/c1/Library/Logs/opencode-server.out.log";
+        StandardErrorPath = "/Users/c1/Library/Logs/opencode-server.err.log";
+      };
+    };
+
     user.packages = with pkgs; [
       htop
       coreutils
@@ -115,24 +138,22 @@ with lib;
       lazygit
     ];
 
-    # modules.services.cloudflared = {
-    #   enable = true;
-    #   # TODO: Replace with actual tunnel ID after running cloudflared-setup
-    #   tunnelId = "9f33127c-3a10-47dc-9383-e27115780db8";
-    #   # TODO: Create credentials file with agenix
-    #   credentialsFile = ./secrets/cloudflared-credentials.age;
-    #   warpRouting = {
-    #     enabled = false;
-    #     # cidrs = [ "192.168.50.0/24" ];
-    #   };
-    #   extraConfig = {
-    #     tunnelName = "home-charlie";
-    #     ingress = [
-    #       { hostname = "charlie-ssh.0xc1.space"; service = "ssh://localhost:22"; }
-    #       { service = "http_status:404"; }
-    #     ];
-    #   };
-    # };
+    modules.services.cloudflared = {
+      enable = true;
+      tunnelId = "9f33127c-3a10-47dc-9383-e27115780db8";
+      credentialsFile = ./secrets/cloudflared-credentials.age;
+      warpRouting.enabled = false;
+      extraConfig = {
+        tunnelName = "home-charlie";
+        ingress = [
+          {
+            hostname = "opencode-charlie.0xc1.space";
+            service = "http://127.0.0.1:4096";
+          }
+          { service = "http_status:404"; }
+        ];
+      };
+    };
 
     modules.agenix.sshKey = "/Users/c1/.ssh/id_ed25519";
 

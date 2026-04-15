@@ -6,7 +6,7 @@
 
 该方案提供：
 - **WARP 私有路由**：外部设备通过 WARP 客户端访问家庭网络（例如 `192.168.50.0/24`）
-- **浏览器 SSH 紧急访问**：当 WARP 未安装时通过浏览器进行 SSH
+- **浏览器 SSH / HTTP 回源**：通过 Cloudflare Tunnel 将 SSH 或本地 Web 服务暴露到 Zero Trust
 - **Nix 管理服务**：通过 agenix 进行秘密管理的声明式配置
 
 ## 架构
@@ -37,7 +37,7 @@
 - `credentialsFile`: Age 加密的凭证文件
 - `warpRouting.enabled`: 启用 WARP 私有路由
 - `warpRouting.cidrs`: 要路由的 CIDR 列表（例如 `["192.168.50.0/24"]`）
-- `config`: 额外的 YAML 配置属性
+- `extraConfig`: 额外的 YAML 配置属性
 
 ### 特性
 - **Age 秘密管理**：加密凭证存储在 `secrets/` 目录
@@ -52,7 +52,7 @@
 为 atlas 和 charlie 分别创建隧道：
 
 ```bash
-cd /Users/c1/Work/dotfiles
+cd <dotfiles-repo-root>
 ./bin/cloudflared-setup --host atlas --cidr 192.168.50.0/24
 ./bin/cloudflared-setup --host charlie --cidr 192.168.50.0/24
 ```
@@ -105,7 +105,7 @@ cd /Users/c1/Work/dotfiles
       enabled = true;
       cidrs = [ "192.168.50.0/24" ];
     };
-    config = {
+    extraConfig = {
       tunnelName = "home-atlas";
     };
   };
@@ -118,23 +118,50 @@ cd /Users/c1/Work/dotfiles
     enable = true;
     tunnelId = "charlie-tunnel-id";
     credentialsFile = ./secrets/cloudflared-credentials.age;
-    warpRouting = {
-      enabled = true;
-      cidrs = [ "192.168.50.0/24" ];
-    };
-    config = {
+    warpRouting.enabled = false;
+    extraConfig = {
       tunnelName = "home-charlie";
+      ingress = [
+        {
+          hostname = "opencode-charlie.0xc1.space";
+          service = "http://127.0.0.1:4096";
+        }
+        { service = "http_status:404"; }
+      ];
     };
   };
 }
 ```
 
+如果目的是发布 `opencode` 到 Cloudflare Access，`hosts/charlie/default.nix` 还需要新增：
+
+```nix
+launchd.user.agents.opencode-server = {
+  serviceConfig = {
+    ProgramArguments = [
+      "/Users/c1/.opencode/bin/opencode"
+      "serve"
+      "--hostname"
+      "127.0.0.1"
+      "--port"
+      "4096"
+    ];
+    EnvironmentVariables = {
+      HOME = "/Users/c1";
+      OPENCODE_ENABLE_EXA = "1";
+      OPENCODE_EXPERIMENTAL = "true";
+    };
+    RunAtLoad = true;
+    KeepAlive = true;
+  };
+};
+```
+
 ### 步骤 3: 部署
 
 ```bash
-# Build and switch
+# atlas (Linux)
 sudo nixos-rebuild switch --flake .#atlas
-sudo darwin-rebuild switch --flake .#charlie
 
 # Check service status
 sudo systemctl status cloudflared
@@ -144,6 +171,27 @@ journalctl -u cloudflared -f
 cloudflared tunnel list
 cloudflared tunnel route ip list
 ```
+
+```bash
+# charlie (Darwin)
+sudo darwin-rebuild switch --flake .#charlie
+
+# Verify local opencode service and cloudflared
+launchctl list | grep opencode-server
+curl -I http://127.0.0.1:4096
+launchctl list | grep cloudflared
+```
+
+### 步骤 4: Cloudflare Access 上线门禁（发布前必须完成）
+
+`cloudflared` ingress 只负责把 `opencode-charlie.0xc1.space` 转发到 `http://127.0.0.1:4096`，**不能替代 Access 鉴权**。对外可用前至少完成：
+
+1. Cloudflare Zero Trust → Access → Applications → Add an application → Self-hosted。
+2. Hostname 填 `opencode-charlie.0xc1.space`。
+3. Policy 选择 allow，并仅放行目标邮箱（例如 `siyuan.arc@gmail.com`），同时启用 MFA。
+4. 用授权邮箱验证可访问，再用未授权账号验证会被拒绝，并保留审计记录。
+
+未完成以上步骤前，不应将该 hostname 视为已上线。
 
 ## 外部设备配置
 
@@ -218,6 +266,14 @@ cloudflared tunnel info <tunnel-id>
 cloudflared tunnel route ip list
 ```
 
+在 charlie 上发布 opencode 时，额外建议验证：
+
+```bash
+launchctl list | grep opencode-server
+curl -I http://127.0.0.1:4096
+launchctl list | grep cloudflared
+```
+
 ### WARP 连接问题
 1. 确认设备已注册到 Zero Trust 组织
 2. 检查 WARP 客户端连接状态
@@ -231,15 +287,9 @@ cloudflared tunnel route ip list
 3. 检查 Cloudflare Access 策略配置
 4. 验证 DNS 记录已传播
 
-## 与现有脚本集成
+## 历史脚本（可选）
 
-`/Users/c1/Work/edge` 中的 TypeScript 部署脚本可用于初始设置，但 Nix 管理持续服务。使用脚本进行：
-
-1. **初始隧道创建**: `npm run deploy:setup`
-2. **WARP 路由**: `npm run deploy:configure`
-3. **浏览器 SSH 设置**: `npm run deploy:browser-ssh`
-
-然后切换到 Nix 进行持久管理。
+若你仍保留旧的外部部署脚本，可把它们视为一次性的历史辅助工具；**本任务交付不依赖任何外部仓库**，以当前 dotfiles 仓库中的 Nix 配置与 `./bin/cloudflared-setup` 为准。
 
 ## 维护
 

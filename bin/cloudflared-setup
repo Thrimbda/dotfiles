@@ -67,6 +67,9 @@ print_success() { echo -e "${GREEN}✓ $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+
 # Check prerequisites
 print_info "检查先决条件..."
 
@@ -165,15 +168,18 @@ if [[ ! -f "$CREDENTIALS_FILE" ]]; then
 fi
 
 # Determine host directory
-if [[ -n "$HOST" && -d "/Users/c1/Work/dotfiles/hosts/$HOST" ]]; then
-  HOST_DIR="/Users/c1/Work/dotfiles/hosts/$HOST"
-  SECRETS_DIR="$HOST_DIR/secrets"
-elif [[ -n "$HOST" && -d "$(pwd)/hosts/$HOST" ]]; then
-  HOST_DIR="$(pwd)/hosts/$HOST"
+if [[ -z "$HOST" ]]; then
+  print_error "必须通过 --host 指定主机名（例如 --host charlie）。"
+  exit 1
+fi
+
+if [[ -d "$REPO_ROOT/hosts/$HOST" ]]; then
+  HOST_DIR="$REPO_ROOT/hosts/$HOST"
   SECRETS_DIR="$HOST_DIR/secrets"
 else
-  print_warning "未找到或未指定主机目录，使用当前目录。"
-  SECRETS_DIR="$(pwd)/secrets"
+  print_error "未找到主机目录: $REPO_ROOT/hosts/$HOST"
+  print_info "请从仓库内运行脚本，并确认 hosts/$HOST 存在。"
+  exit 1
 fi
 
 mkdir -p "$SECRETS_DIR"
@@ -238,11 +244,8 @@ modules.services.cloudflared = {
   enable = true;
   tunnelId = "$TUNNEL_ID";
   credentialsFile = ./secrets/cloudflared-credentials.age;
-  warpRouting = {
-    enabled = true;
-    cidrs = [ "$CIDR" ];
-  };
-  config = {
+  warpRouting.enabled = false;
+  extraConfig = {
     # 额外的 YAML 配置（可选）
     # ingress = [ ... ];
   };
@@ -250,14 +253,14 @@ modules.services.cloudflared = {
 EOF
 )
 
-print_info "将以下内容添加到您的主机配置 ($HOST_DIR/default.nix)："
+print_info "将以下内容添加到主机文件 $HOST_DIR/default.nix 的 config = { ... }: { ... } 配置体内："
 echo ""
 echo "$CONFIG_SNIPPET"
 echo ""
 
 # Step 5: Deployment instructions
 print_info "步骤 5: 部署"
-print_info "1. 将上述配置添加到主机的 modules 部分"
+print_info "1. 将上述配置添加到主机文件的 config = { ... }: { ... } 配置体内"
 print_info "2. 提交并推送更改"
 print_info "3. 使用以下命令部署：hey sync $HOST"
 print_info ""

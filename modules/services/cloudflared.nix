@@ -73,7 +73,7 @@
 #       enabled = true;
 #       cidrs = [ "192.168.50.0/24" ];
 #     };
-#     config = {
+#     extraConfig = {
 #       # Optional: Set tunnel name for routing commands
 #       tunnelName = "home";
 #     };
@@ -116,7 +116,7 @@ in {
     extraConfig = mkOpt' attrs {} "Additional YAML config attributes";
 
     warpRouting = {
-      enabled = mkBoolOpt true;
+      enabled = mkBoolOpt false;
       cidrs = mkOpt' (listOf str) [] "Private CIDRs to route through WARP (e.g., [\"192.168.50.0/24\"])";
     };
 
@@ -228,8 +228,8 @@ in {
               XDG_CACHE_HOME = "${homeDir}/.cache";
               XDG_STATE_HOME = "${homeDir}/.local/state";
             };
-            StandardOutPath = "/tmp/cloudflared.out";
-            StandardErrorPath = "/tmp/cloudflared.err";
+            StandardOutPath = "${homeDir}/Library/Logs/cloudflared.out.log";
+            StandardErrorPath = "${homeDir}/Library/Logs/cloudflared.err.log";
           };
         };
 
