@@ -6,4 +6,4 @@
 - [x] Evaluate `axiom` NixOS config.
 - [x] Review change for scope and safety.
 - [x] Produce walkthrough and wiki writeback.
-- [ ] Complete PR lifecycle and cleanup.
+- [x] Complete PR lifecycle and cleanup.

@@ -14,3 +14,4 @@
 - Wrote `docs/review-change.md`: PASS; security lens applied for SSH/firewall, no blocking findings.
 - Wrote walkthrough, PR body, and Legion wiki writeback for axiom host.
 - PR created: https://github.com/Thrimbda/dotfiles/pull/2
+- PR lifecycle: auto-merge could not be enabled because repository setting `enablePullRequestAutoMerge` is off; required checks reported none; PR merge state is CLEAN. Proceeding with direct squash merge through GitHub PR because checks/review are non-blocking.
