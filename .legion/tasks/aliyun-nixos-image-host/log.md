@@ -12,3 +12,5 @@
 - Wrote `docs/review-change.md`: PASS with documented environment limitation; security lens applied for SSH/network/cloud-init.
 - Wrote `docs/report-walkthrough.md` and `docs/pr-body.md` for reviewer-facing handoff.
 - Completed Legion wiki writeback under `.legion/wiki/tasks/aliyun-nixos-image-host.md`.
+- PR created: https://github.com/Thrimbda/dotfiles/pull/1
+- PR lifecycle: auto-merge could not be enabled because repository setting `enablePullRequestAutoMerge` is off; required checks reported none; PR merge state is CLEAN.
