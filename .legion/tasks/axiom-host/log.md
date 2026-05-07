@@ -13,3 +13,4 @@
 - Verification passed: host metadata, system name, hardware profile, NVIDIA package, top-level derivation, and top-level dry-run all evaluate successfully.
 - Wrote `docs/review-change.md`: PASS; security lens applied for SSH/firewall, no blocking findings.
 - Wrote walkthrough, PR body, and Legion wiki writeback for axiom host.
+- PR created: https://github.com/Thrimbda/dotfiles/pull/2
