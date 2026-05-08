@@ -22,3 +22,5 @@
 - Follow-up review passed with no blocking findings; runtime confirmation remains pending after rebuild/switch.
 - Commit created: `5fe0c6cb feat(axiom): configure fcitx5 input and wallpaper`.
 - PR created: https://github.com/Thrimbda/dotfiles/pull/12
+- Auto-merge could not be enabled because repository setting `enablePullRequestAutoMerge` is off.
+- Required checks reported none; PR merge state is CLEAN with no review blocker. Proceeding with direct squash merge through GitHub PR because checks/review are non-blocking.
