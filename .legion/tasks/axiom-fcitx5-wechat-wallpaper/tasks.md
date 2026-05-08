@@ -9,4 +9,7 @@
 - [x] Fix wallpaper reload to replace stale `swaybg` and stretch the requested image.
 - [x] Run focused Nix evaluation.
 - [x] Review, walkthrough, and wiki writeback.
-- [ ] Complete commit/PR lifecycle.
+- [x] Create implementation commit.
+- [x] Push PR branch.
+- [x] Create PR.
+- [ ] Complete checks/review/merge/cleanup lifecycle.

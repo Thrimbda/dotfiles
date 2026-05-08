@@ -4,6 +4,7 @@ Status: local implementation verified with follow-up runtime fixes; PR lifecycle
 Task: `.legion/tasks/axiom-fcitx5-wechat-wallpaper/`
 Branch: `legion/axiom-fcitx5-wechat-wallpaper-input-wallpaper`
 Worktree: `.worktrees/axiom-fcitx5-wechat-wallpaper`
+PR: https://github.com/Thrimbda/dotfiles/pull/12
 
 ## Summary
 

@@ -20,3 +20,5 @@
 - Changed `axiom` wallpaper mode from `fill` to `stretch` to explicitly scale `/home/c1/the-great-sage.jpg` across the screen.
 - Focused evaluation passed for Quickshell target wiring, generated wallpaper hook, stretched wallpaper path, and `axiom` toplevel derivation after the follow-up fixes.
 - Follow-up review passed with no blocking findings; runtime confirmation remains pending after rebuild/switch.
+- Commit created: `5fe0c6cb feat(axiom): configure fcitx5 input and wallpaper`.
+- PR created: https://github.com/Thrimbda/dotfiles/pull/12
