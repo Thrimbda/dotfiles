@@ -12,10 +12,11 @@
 - Completed read-only review-change with PASS. No blocking findings; residual live-rendering risk is recorded in `docs/review-change.md`.
 - Generated implementation-mode walkthrough and PR body artifacts in `docs/report-walkthrough.md` and `docs/pr-body.md`.
 - Completed Legion wiki writeback for the task summary, Axiom `catppuccin-mocha-pink` current decision, Fcitx5 theme validation pattern, and post-deploy candidate-window visual smoke.
+- Committed branch `legion/axiom-fcitx5-shell-theme-alignment` and opened PR https://github.com/Thrimbda/dotfiles/pull/34.
 
 ### 🟡 In Progress
 
-- Continue PR lifecycle from the isolated worktree.
+- Continue PR checks/review/auto-merge lifecycle for https://github.com/Thrimbda/dotfiles/pull/34.
 
 ### ⚠️ Blocked / Pending
 
@@ -44,4 +45,4 @@ Continue from `hosts/axiom/default.nix`, set the Fcitx5 accent to `pink`, then v
 
 ---
 
-*Last updated: 2026-05-11 00:48 by OpenCode*
+*Last updated: 2026-05-11 00:55 by OpenCode*
