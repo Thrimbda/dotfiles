@@ -14,7 +14,7 @@ nix eval ".#nixosConfigurations.axiom.config.system.build.toplevel.drvPath"
 ## Evidence
 - `waylandFrontend` evaluates to `true` for `axiom`.
 - Managed environment checks evaluate to `{ session = false; variables = false; }`, so `GTK_IM_MODULE` is not exported through `environment.sessionVariables` or `environment.variables`.
-- Axiom system toplevel evaluation produced `/nix/store/2bibg2w46xxn2vp6wbdw8ky821p37z78-nixos-system-axiom-25.11.20260203.e576e3c.drv`.
+- Axiom system toplevel evaluation produced `/nix/store/r6jf57za6d7jslxibdxynr8km2li8vnd-nixos-system-axiom-25.11.20260203.e576e3c.drv` after rebasing onto the latest `origin/master`.
 
 ## Warnings
 - Nix emitted existing evaluation warnings about `specialArgs.pkgs`, deprecated `mesa.drivers`, renamed `hardware.pulseaudio`, and renamed `system`; these are unrelated to this input-method change.

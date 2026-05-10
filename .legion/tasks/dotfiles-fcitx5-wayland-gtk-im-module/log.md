@@ -11,3 +11,4 @@
 - Readiness review passed with no blocking findings; residual risk is limited to live GTK application smoke testing after rebuild.
 - Generated implementation walkthrough and PR body evidence from the existing verification and review artifacts.
 - Completed wiki writeback with task summary, current input-method decision, and validation pattern.
+- Rebasing onto latest `origin/master` required resolving wiki-only conflicts from parallel task writeback; post-rebase validation still passed.
