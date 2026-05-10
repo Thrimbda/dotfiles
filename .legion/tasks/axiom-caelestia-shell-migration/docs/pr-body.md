@@ -26,4 +26,4 @@
 
 - Post-deployment live Hyprland smoke for panel rendering, global shortcuts, launcher/sidebar/session UI, screenshot/record/clipboard flows, tray, and OSD behavior.
 - Optional live or assembled-config `Hyprland --verify-config`.
-- Legion wiki closeout so current truth points to Caelestia instead of end4.
+- Completed Legion wiki closeout; current truth now points to Caelestia instead of end4.
