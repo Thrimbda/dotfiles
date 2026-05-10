@@ -13,6 +13,7 @@
 - Generated implementation-mode walkthrough and PR body artifacts in `docs/report-walkthrough.md` and `docs/pr-body.md`.
 - Completed Legion wiki writeback for the task summary, Axiom `catppuccin-mocha-pink` current decision, Fcitx5 theme validation pattern, and post-deploy candidate-window visual smoke.
 - Committed branch `legion/axiom-fcitx5-shell-theme-alignment` and opened PR https://github.com/Thrimbda/dotfiles/pull/34.
+- PR lifecycle: auto-merge could not be enabled because the repository does not allow it; required checks reported none; PR is clean and open with no blocking review decision.
 
 ### 🟡 In Progress
 
@@ -45,4 +46,4 @@ Continue from `hosts/axiom/default.nix`, set the Fcitx5 accent to `pink`, then v
 
 ---
 
-*Last updated: 2026-05-11 00:55 by OpenCode*
+*Last updated: 2026-05-11 01:00 by OpenCode*
