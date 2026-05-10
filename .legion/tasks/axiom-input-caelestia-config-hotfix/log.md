@@ -13,6 +13,7 @@
 - Generated implementation-mode walkthrough and PR body artifacts in `docs/report-walkthrough.md` and `docs/pr-body.md`.
 - Completed Legion wiki writeback for the task summary, mutable seeded `shell.json` decision/pattern, canonical Hyprland modifier policy, and post-deploy Super-key/layout-toast maintenance smoke.
 - Committed branch `legion/axiom-input-caelestia-config-hotfix` and opened PR https://github.com/Thrimbda/dotfiles/pull/33.
+- PR lifecycle: auto-merge could not be enabled because the repository does not allow it; required checks reported none; PR is clean and open with no blocking review decision.
 
 ### 🟡 进行中
 
@@ -54,4 +55,4 @@
 
 ---
 
-*最后更新: 2026-05-10 23:42 by OpenCode*
+*最后更新: 2026-05-10 23:48 by OpenCode*
