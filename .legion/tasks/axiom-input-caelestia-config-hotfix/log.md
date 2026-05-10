@@ -12,10 +12,11 @@
 - Completed read-only review-change with PASS. The review found no blocking findings and recorded the mutable-config security lens plus live-session residual risks in `docs/review-change.md`.
 - Generated implementation-mode walkthrough and PR body artifacts in `docs/report-walkthrough.md` and `docs/pr-body.md`.
 - Completed Legion wiki writeback for the task summary, mutable seeded `shell.json` decision/pattern, canonical Hyprland modifier policy, and post-deploy Super-key/layout-toast maintenance smoke.
+- Committed branch `legion/axiom-input-caelestia-config-hotfix` and opened PR https://github.com/Thrimbda/dotfiles/pull/33.
 
 ### 🟡 进行中
 
-- Continue PR lifecycle from the isolated worktree.
+- Continue PR checks/review/auto-merge lifecycle for https://github.com/Thrimbda/dotfiles/pull/33.
 
 ### ⚠️ 阻塞/待定
 
@@ -53,4 +54,4 @@
 
 ---
 
-*最后更新: 2026-05-10 23:34 by OpenCode*
+*最后更新: 2026-05-10 23:42 by OpenCode*
