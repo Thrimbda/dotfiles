@@ -16,13 +16,15 @@ For the current Axiom Caelestia setup, use upstream README-aligned `QT_QPA_PLATF
 
 `caelestia-shell.service` must run with duplicate-instance protection and a PATH that can execute launcher/runtime helpers. Keep shell stop/restart paths inside `systemctl --user`; do not spawn `${caelestiaShell}` directly from Hyprland keybinds because unmanaged quickshell instances can duplicate layers and global shortcuts.
 
+For Axiom Caelestia/Quickshell controls that need NetworkManager or logind authorization, use an Axiom-local polkit allowlist requiring `subject.local == true`, the primary user, and literal action IDs. Do not add the primary user to the broad `networkmanager` group, do not grant `NetworkManager.*` or `login1.*` prefixes, and do not route these controls through sudo wrappers without a new security review.
+
 Axiom graphical sessions must export a deterministic command PATH from generated `uwsm/env` and import `PATH` into the systemd user manager before starting `hyprland-session.target`. Caelestia Shell remains a launcher/app2unit parent with explicit service PATH ownership, and that path must include Caelestia helpers, user packages, and generated system packages so GUI-launched terminals and apps can resolve system-profile commands such as `git`, `gawk`, `steam`, and `steam-run`.
 
 Axiom user-installed opencode is exposed through explicit zsh startup and generated UWSM/Hyprland session PATH entries for `$HOME/.opencode/bin`; do not rely on literal host-level `environment.variables.PATH = "$HOME/.opencode/bin:$PATH"` as evidence that interactive shells or GUI-launched commands can resolve opencode.
 
 Wayland desktop hosts using the reusable Fcitx5 module should use Fcitx5's native Wayland frontend by default. Do not force `GTK_IM_MODULE=fcitx` from managed session variables when `waylandFrontend` is enabled and working; GTK should use the Wayland text-input path while Fcitx5 GTK/Qt addons can remain installed.
 
-Axiom's Fcitx5 classic UI theme should track the active Autumnal/Graphite pink desktop accent as `catppuccin-mocha-pink`. Keep Rime/Pinyin engine selection separate from visual theme alignment.
+Current Axiom Caelestia visual theming should not force Catppuccin-specific visible assets in Thunar/file explorer or Fcitx5. Autumnal should use ordinary `Papirus-Dark` from `papirus-icon-theme`, `Bibata-Modern-Classic`, and Fcitx5 defaults unless a future scoped theme task reopens Catppuccin alignment. Keep Rime/Pinyin engine selection separate from visual theme alignment.
 
 Until Caelestia's logind lock crash is proven fixed, ordinary Axiom idle/keybind lock paths should call `hyprlock` directly rather than `loginctl lock-session` or `caelestia:lock`.
 
