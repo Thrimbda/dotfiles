@@ -70,7 +70,9 @@ Do not reuse an existing remote port while its host tunnel remains active, and d
 
 ## Opencode Cloudflare Exposure
 
-`axiom` opencode exposure uses a local-only systemd service running `/home/c1/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4096`, with cloudflared ingress on `opencode-axiom.0xc1.space`. Cloudflare Access policy is an上线前置条件 before treating the public hostname as safe for use.
+`axiom` opencode exposure uses a local-only systemd service running `/home/c1/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4096`, with cloudflared ingress on `opencode-axiom.0xc1.space`. `charlie` uses the same loopback opencode pattern through `opencode-charlie.0xc1.space`.
+
+Both opencode hostnames are protected by Cloudflare Access self-hosted applications restricted to the Google identity provider. Their allow policies only include `c1@ntnl.io` and `siyuan.arc@gmail.com`, and require the same Google login method. Do not broaden these apps to a domain, group, everyone rule, bypass rule, or non-identity policy without a new security review.
 
 The hostname `axiom-opencode.0xc1.space` was created by mistake during the axiom task and should not be used.
 

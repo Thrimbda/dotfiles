@@ -184,12 +184,18 @@ launchctl list | grep cloudflared
 
 ### 步骤 4: Cloudflare Access 上线门禁（发布前必须完成）
 
-`cloudflared` ingress 只负责把 `opencode-charlie.0xc1.space` 转发到 `http://127.0.0.1:4096`，**不能替代 Access 鉴权**。对外可用前至少完成：
+`cloudflared` ingress 只负责把 opencode hostname 转发到 `http://127.0.0.1:4096`，**不能替代 Access 鉴权**。当前 opencode hostname 包括：
+
+- `opencode-charlie.0xc1.space`
+- `opencode-axiom.0xc1.space`
+
+对外可用前至少完成：
 
 1. Cloudflare Zero Trust → Access → Applications → Add an application → Self-hosted。
-2. Hostname 填 `opencode-charlie.0xc1.space`。
-3. Policy 选择 allow，并仅放行目标邮箱（例如 `siyuan.arc@gmail.com`），同时启用 MFA。
-4. 用授权邮箱验证可访问，再用未授权账号验证会被拒绝，并保留审计记录。
+2. Hostname 填对应的 opencode hostname。
+3. 将应用的 identity provider 限制为 Google，并启用单 IdP 自动跳转。
+4. Policy 选择 allow，仅放行 `c1@ntnl.io` 与 `siyuan.arc@gmail.com`，并要求 Google login method。
+5. 用两个授权邮箱验证可访问，再用未授权账号验证会被拒绝，并保留审计记录。
 
 未完成以上步骤前，不应将该 hostname 视为已上线。
 

@@ -154,8 +154,9 @@ launchd.user.agents.opencode-server.serviceConfig = {
 即使 tunnel 已建立、`opencode server` 已在 `127.0.0.1:4096` 监听，也**不能**直接视为上线完成。发布前还必须在 Cloudflare Access 中：
 
 1. 为 `opencode-charlie.0xc1.space` 创建 self-hosted application。
-2. 配置 allow policy，仅允许目标邮箱访问，并启用 MFA。
-3. 分别验证授权邮箱可访问、未授权邮箱被拒绝，并保留审计记录。
+2. 将应用 identity provider 限制为 Google，并启用单 IdP 自动跳转。
+3. 配置 allow policy，仅允许 `c1@ntnl.io` 与 `siyuan.arc@gmail.com`，并要求 Google login method。
+4. 分别验证授权邮箱可访问、未授权邮箱被拒绝，并保留审计记录。
 
 推荐把 Access 完成情况作为变更上线检查项，而不是事后补做。
 
@@ -282,7 +283,8 @@ sudo dscl . -read /Users/siyuan.arc > ~/siyuan.arc-user-backup.txt
 - [ ] charlie：本机验证 `curl -I http://127.0.0.1:4096`
 - [ ] charlie：本机验证 `launchctl list | grep cloudflared`
 - [ ] Cloudflare：为 `opencode-charlie.0xc1.space` 配置 Access self-hosted 应用
-- [ ] Cloudflare：Access allow policy 仅放行目标邮箱并启用 MFA
+- [ ] Cloudflare：Access 应用仅允许 Google identity provider
+- [ ] Cloudflare：Access allow policy 仅放行 `c1@ntnl.io` 与 `siyuan.arc@gmail.com`，并要求 Google login method
 - [ ] 测试：授权邮箱可访问 opencode hostname
 - [ ] 测试：未授权邮箱被 Access 拒绝
 
