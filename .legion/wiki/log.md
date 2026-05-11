@@ -87,3 +87,5 @@
 - Added task summary for `axiom-install-todesk`.
 - Added task summary for `axiom-feishu-client`.
 - Added host-local GUI package pattern for one-off Axiom desktop client installs.
+- Updated opencode Cloudflare Exposure decisions and Axiom Remote Access maintenance after configuring Cloudflare Access Google IdP enforcement for `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space`.
+- Added task summary for `axiom-charlie-opencode-access-google-oidc`.

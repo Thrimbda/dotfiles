@@ -26,7 +26,7 @@
 ## Axiom Remote Access Follow-Up
 
 - Delete the mistakenly created `axiom-opencode.0xc1.space` CNAME in Cloudflare DNS/Zero Trust. The active axiom opencode hostname is `opencode-axiom.0xc1.space`.
-- Before using `opencode-axiom.0xc1.space`, create or verify the Cloudflare Access application, allow policy, and MFA requirement.
+- Cloudflare Access API verification has configured `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space` with Google-only Access apps and exact-email allow policies for `c1@ntnl.io` and `siyuan.arc@gmail.com`. Manual browser smoke checks with both allowed accounts and one denied account are still recommended after deployment.
 - After deploying the SSH/opencode/cloudflared fix, run `ssh azar`, `systemctl status autossh-reverse-ssh` on `azar`, and `systemctl status opencode-server cloudflared` on `axiom`.
 
 ## Cloudflare Credentials Follow-Up
