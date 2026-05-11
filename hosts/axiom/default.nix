@@ -112,6 +112,7 @@ with builtins;
       k9s
       kubectl
       nvtopPackages.nvidia
+      todesk
       uv
     ];
 
