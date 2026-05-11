@@ -31,4 +31,4 @@
 
 ## Cloudflare Credentials Follow-Up
 
-- Rotate the Cloudflare API token stored in `hosts/charlie/secrets/cloudflare-api-token.age`, because the pre-existing token appeared in earlier tool output before being moved into age management.
+- Rotate the Cloudflare API token stored in `hosts/charlie/secrets/cloudflare-api-token.age`, because the pre-existing token appeared in earlier tool output before being moved into age management. The user explicitly declined rotation during `axiom-charlie-opencode-access-google-oidc`; keep this as a separate accepted maintenance risk, not as a blocker for the already verified Access app/policy state.

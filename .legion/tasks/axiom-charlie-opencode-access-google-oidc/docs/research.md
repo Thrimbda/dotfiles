@@ -29,7 +29,7 @@ The task is limited to Cloudflare Access configuration and directly related evid
 - `.gitignore` ignores a root-level `cloudflare` file, but no such file exists inside the new PR worktree.
 - Environment presence checks found no `CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CF_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`, or `CF_ZONE_ID` in the current shell.
 - Because no token or account ID is currently visible in the worktree environment, live Cloudflare mutation is blocked until credentials are provided.
-- The user subsequently required the Cloudflare API credential to be written into age. Existing `modules/agenix.nix` imports both host-local secrets and `config/secrets` by default; adding a token to `config/secrets/secrets.nix` would make it part of the global host secret set. The safer design is an ops/config age file that is not registered into the globally deployed secret map unless explicitly re-approved.
+- The user subsequently required the Cloudflare API credential to be written into age. After rebasing onto the current base, the repository already contains the canonical API token secret `hosts/charlie/secrets/cloudflare-api-token.age` with recipient rules in `hosts/charlie/secrets/secrets.nix`. This task should reuse that canonical secret and avoid adding a duplicate token under `config/secrets`.
 
 ## Cloudflare API Notes
 
@@ -53,12 +53,12 @@ Relevant Cloudflare Access API surfaces from public docs:
   - allow policy `include` with the two exact emails and `require` with the same Google provider ID.
 - Creating a new Google/OIDC identity provider may require OAuth client secrets. If no suitable IdP already exists and secrets are unavailable, the correct result is a blocked handoff with manual setup steps, not a fake pass.
 - Persisted evidence must be sanitized. Do not store raw API responses if they include token, client secret, tunnel credential, or session material.
-- The Cloudflare API token may be persisted only as encrypted age material. Plaintext staging should stay in ignored files and be deleted after encryption and API use.
+- The Cloudflare API token may be persisted only as encrypted age material. Plaintext staging should stay in ignored files and be deleted after API use.
 
 ## Open Items for Implementation
 
 - Determine the Cloudflare account ID and API token source without printing secret values.
-- Encrypt the provided Cloudflare API environment file into the agreed repository config/ops age location without registering it for broad host deployment.
+- Confirm the canonical `hosts/charlie/secrets/cloudflare-api-token.age` exists and do not add a duplicate API token age file.
 - List Access identity providers and identify the intended Google OIDC provider ID.
 - List or create Access applications for both opencode hostnames.
 - Reconcile each app's allow policy to exactly `c1@ntnl.io` and `siyuan.arc@gmail.com`, requiring the selected Google provider.

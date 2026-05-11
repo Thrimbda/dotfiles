@@ -2,7 +2,7 @@
 
 ## Summary
 
-PASS with one manual runtime check remaining. Cloudflare API verification proves that both opencode hostnames have exactly one self-hosted Access application, both apps are restricted to the Google identity provider, and both allow policies include only `c1@ntnl.io` plus `siyuan.arc@gmail.com` while requiring the Google login method. The Cloudflare API credential was encrypted to age and plaintext staging was removed.
+PASS with one manual runtime check remaining. Cloudflare API verification proves that both opencode hostnames have exactly one self-hosted Access application, both apps are restricted to the Google identity provider, and both allow policies include only `c1@ntnl.io` plus `siyuan.arc@gmail.com` while requiring the Google login method. The repository already has the canonical Cloudflare API token age secret at `hosts/charlie/secrets/cloudflare-api-token.age`; this task did not add a duplicate token secret, and plaintext staging was removed.
 
 Manual browser verification with real Google logins remains recommended because this environment cannot prove the interactive Access login/deny UX without using user sessions.
 
@@ -22,9 +22,9 @@ Manual browser verification with real Google logins remains recommended because 
 
 ## Implementation Evidence
 
-- Command: encrypt the ignored Cloudflare staging env file to age.
+- Command: verify the canonical Cloudflare API token age secret exists after rebase.
   - Result: PASS.
-  - Evidence: `config/secrets/cloudflare-access.env.age` exists and was encrypted to the existing `hlissner@global` public age recipient.
+  - Evidence: `hosts/charlie/secrets/cloudflare-api-token.age` exists, with recipient rules in `hosts/charlie/secrets/secrets.nix`.
   - Safety note: the plaintext staging file was not committed and was removed after API verification.
 
 - Command: create axiom Access application with `POST /accounts/<account-id>/access/apps`.
@@ -55,14 +55,14 @@ bash -lc 'set -euo pipefail; source <cloudflare-staging>; for each opencode host
 - Command: check age credential handling.
 
 ```bash
-test -s config/secrets/cloudflare-access.env.age
+test -s hosts/charlie/secrets/cloudflare-api-token.age
+test ! -e config/secrets/cloudflare-access.env.age
 test ! -f /home/c1/dotfiles/cloudflare
 test ! -f cloudflare
-! grep -q 'cloudflare-access\.env\.age' config/secrets/secrets.nix
 ```
 
   - Result: PASS.
-  - Evidence: age file present; plaintext absent from the main workspace and PR worktree; the age file is not registered in the global agenix map.
+  - Evidence: canonical charlie API token age file present; duplicate config-level token absent; plaintext absent from the main workspace and PR worktree.
 
 - Command: `git diff --check`.
   - Result: PASS.
@@ -71,6 +71,7 @@ test ! -f cloudflare
 ## Skipped / Manual Validation
 
 - Interactive browser verification was not run here.
+- Cloudflare API token rotation was not performed. The existing token rotation item predates this task; the user explicitly declined rolling it during this task, so it remains tracked in `.legion/wiki/maintenance.md` as an accepted follow-up risk.
 - Recommended manual checks:
   - Authenticate to `https://opencode-axiom.0xc1.space` as `c1@ntnl.io` and confirm Access allows login.
   - Authenticate to `https://opencode-axiom.0xc1.space` as `siyuan.arc@gmail.com` and confirm Access allows login.

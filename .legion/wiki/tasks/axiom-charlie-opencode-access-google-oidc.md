@@ -16,13 +16,15 @@ Cloudflare Access now protects both opencode tunnel hostnames, `opencode-axiom.0
 
 API verification passed for app uniqueness, Google-only `allowed_idps`, required Google `login_method`, exact-email allow rules, and absence of broad/bypass/non-identity allow policies. Manual browser smoke checks with both allowed identities and one denied identity remain recommended.
 
-The Cloudflare API credential used for the operation is stored as `config/secrets/cloudflare-access.env.age`; plaintext staging was removed, and the encrypted file is intentionally not registered in `config/secrets/secrets.nix` to avoid global host deployment of the token.
+The Cloudflare API credential used for the operation is covered by the canonical `hosts/charlie/secrets/cloudflare-api-token.age` secret from the current base; plaintext staging was removed, and this task does not add a duplicate config-level API token secret.
+
+The canonical API token rotation risk remains tracked in maintenance. The user explicitly declined rotation in this task, so it is treated as an accepted follow-up risk rather than a blocker for the verified Access app/policy state.
 
 ## Reusable Decisions
 
 - cloudflared ingress is transport only; Cloudflare Access is the authentication boundary for opencode public hostnames.
 - Opencode Access apps should stay restricted to the Google identity provider and exact-email allow rules for `c1@ntnl.io` plus `siyuan.arc@gmail.com` unless a future task performs a new security review.
-- Account-level Cloudflare API credentials may be kept as age-encrypted ops/config material, but should not be registered into the global agenix host secret map by default.
+- Account-level Cloudflare API credentials should use a separate env-style age secret and stay separate from cloudflared tunnel runtime credentials. Avoid duplicate API token secrets; rotate the canonical token when exposure risk changes.
 
 ## Related Raw Sources
 

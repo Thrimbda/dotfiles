@@ -8,9 +8,9 @@
 - Created a new task because the prior axiom task explicitly treated Access policy as external follow-up / non-goal, while this task makes Access enforcement the primary deliverable.
 - Git worktree envelope opened at `.worktrees/axiom-charlie-opencode-access-google-oidc` on branch `legion/axiom-charlie-opencode-access-google-oidc-access` from `origin/master`.
 - RFC and research were written, and review-rfc initially passed.
-- User then required the Cloudflare API credential to be written into age. Contract and RFC were updated to treat this as a repository config/ops age secret while avoiding global host deployment of the token.
+- User then required the Cloudflare API credential to be written into age. Contract and RFC were updated for age-managed API credentials.
 - Updated review-rfc passed after the age secret requirement.
-- Encrypted Cloudflare API credentials to `config/secrets/cloudflare-access.env.age` using the existing `hlissner@global` public age recipient; did not register it in `config/secrets/secrets.nix`.
+- Initially encrypted a duplicate `config/secrets/cloudflare-access.env.age`, then rebased onto current `origin/master` and found the canonical `hosts/charlie/secrets/cloudflare-api-token.age`; removed the duplicate config-level secret and updated evidence to reference the canonical secret.
 - Cloudflare Access discovery found one Google IdP: `399adc69-d770-4685-8acf-cdea3acca230` (`Google`).
 - Created Access app `opencode-axiom` for `opencode-axiom.0xc1.space` with Google-only `allowed_idps` and `auto_redirect_to_identity=true`.
 - Created axiom allow policy `allow-c1-and-siyuan-google` for `c1@ntnl.io` and `siyuan.arc@gmail.com`, requiring Google `login_method`.
@@ -23,3 +23,4 @@
 - Final review-change passed with security lens applied.
 - Generated `docs/report-walkthrough.md` and `docs/pr-body.md`.
 - Completed wiki writeback by adding `.legion/wiki/tasks/axiom-charlie-opencode-access-google-oidc.md`, updating wiki index, and recording the writeback in wiki log.
+- After rebase, review-change flagged the pre-existing Cloudflare API token rotation maintenance item as blocking. User explicitly declined token roll and accepted keeping rotation as a separate maintenance risk; docs/wiki were updated to make that boundary explicit.

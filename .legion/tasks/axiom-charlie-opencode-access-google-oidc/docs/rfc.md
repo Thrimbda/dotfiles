@@ -12,7 +12,7 @@ The remaining security boundary is Cloudflare Access. Prior axiom evidence expli
 - `c1@ntnl.io`
 - `siyuan.arc@gmail.com`
 
-This task makes the Access layer the deliverable. A working tunnel hostname without Access is not acceptable. The user also requires the Cloudflare API credential used for this change to be stored as age-encrypted repository config/ops material, with no plaintext committed.
+This task makes the Access layer the deliverable. A working tunnel hostname without Access is not acceptable. The user also requires the Cloudflare API credential used for this change to be covered by age-encrypted repository secret management, with no plaintext committed.
 
 ## 2. Decision
 
@@ -29,7 +29,7 @@ Final intended state for each hostname:
 - Policy include rules: exact email rules for `c1@ntnl.io` and `siyuan.arc@gmail.com`.
 - Policy require rules: `login_method` matching the selected Google provider ID.
 - Broad domain, everyone, service-token-only, bypass, and non-identity policies are not part of the desired state for these hostnames.
-- The Cloudflare API credential is stored as an age-encrypted ops/config file and is not registered into the globally deployed agenix secret map by default.
+- The Cloudflare API credential is kept in the canonical age-encrypted API-token secret `hosts/charlie/secrets/cloudflare-api-token.age`; this task does not add a duplicate API token secret.
 
 ## 3. Alternatives Considered
 
@@ -49,13 +49,13 @@ Rejected as a standalone control because policy evidence would not directly prov
 
 Recommended. This gives an application-level UX/security restriction and a policy-level authorization requirement. It is slightly more explicit but remains minimal and auditable.
 
-### Option D: Register the Cloudflare API token in `config/secrets/secrets.nix`
+### Option D: Add a second Cloudflare API token under `config/secrets`
 
-Rejected for this task. The current agenix module imports `config/secrets` as a default secret directory, so registering an account-level Cloudflare token there would distribute the token as part of normal host secrets. This is unnecessary for a one-time Access reconciliation and would expand the blast radius.
+Rejected for this task. The current base already has `hosts/charlie/secrets/cloudflare-api-token.age` as the dedicated API automation token. Adding another encrypted copy under `config/secrets` would increase rotation burden and ambiguity.
 
-### Option E: Store an age-encrypted ops/config credential without host deployment
+### Option E: Reuse the canonical host-local Cloudflare API token secret
 
-Recommended for the user's age requirement. The encrypted file can live in repository config space for operator use, but it should not be added to `config/secrets/secrets.nix` unless a future task explicitly designs which host should receive it and why.
+Recommended for the user's age requirement. Reuse `hosts/charlie/secrets/cloudflare-api-token.age`, keep it separate from `cloudflared-credentials.age`, and avoid creating another API token secret in this task.
 
 ## 4. Scope
 
@@ -82,15 +82,14 @@ Recommended for the user's age requirement. The encrypted file can live in repos
 ### Step 1: Credential-safe discovery
 
 - Check only whether Cloudflare credential variables exist; never print token values.
-- If credentials are absent, request a plaintext staging file in the gitignored worktree root, encrypt it into the repository config/ops age file, and delete the plaintext staging file after use.
-- If credentials are present or decryptable from the age file, use Cloudflare API calls that output sanitized summaries only.
+- If credentials are absent, request a plaintext staging file in a gitignored location and delete it after API verification.
+- If credentials are present or decryptable from the canonical age file, use Cloudflare API calls that output sanitized summaries only.
 
 ### Step 1a: Age credential handling
 
-- Use the existing approved public age recipient from `config/secrets/secrets.nix` unless a more specific approved recipient is supplied.
-- Store the encrypted credential as `config/secrets/cloudflare-access.env.age`.
-- Do not add `cloudflare-access.env.age` to `config/secrets/secrets.nix` in this task, because that would make the token part of the global agenix secret set.
-- The plaintext format is an env file containing `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- Use the existing canonical secret `hosts/charlie/secrets/cloudflare-api-token.age` and recipient rules in `hosts/charlie/secrets/secrets.nix`.
+- Do not add `config/secrets/cloudflare-access.env.age` or any other duplicate API-token secret in this task.
+- The accepted plaintext staging shape may use `API_TOKEN` / `ACCOUNT_ID`; commands normalize those names only in process and do not commit plaintext.
 - Do not commit the plaintext staging file, command output containing token values, or decrypted env content.
 
 ### Step 2: Identify Google OIDC provider
@@ -124,7 +123,7 @@ For each app:
 ### Step 5: Documentation and evidence
 
 - Write a sanitized `docs/test-report.md` with commands, pass/fail status, app IDs, provider type/name, policy IDs, allowed emails, and blocker status.
-- Record the age file path and recipient fingerprint/comment, but not the decrypted token value.
+- Record the canonical age file path, but not the decrypted token value.
 - Update repository docs only where they currently describe the Access state or manual follow-up for these hostnames.
 - Do not commit raw API responses containing secrets or redacted secret fields unless sanitized.
 
@@ -138,8 +137,8 @@ Minimum API/CLI verification:
 - Both applications have an allow policy with exact email include rules for `c1@ntnl.io` and `siyuan.arc@gmail.com`.
 - Both policies require `login_method` for the selected Google provider.
 - No matching broad allow/bypass policy remains for either app.
-- `config/secrets/cloudflare-access.env.age` exists and plaintext staging is absent from git status.
-- `config/secrets/cloudflare-access.env.age` is not registered in `config/secrets/secrets.nix` unless the task is explicitly re-approved for host deployment.
+- `hosts/charlie/secrets/cloudflare-api-token.age` exists as the canonical API token secret and no duplicate `config/secrets/cloudflare-access.env.age` exists in this task.
+- Plaintext staging is absent from both the main workspace and PR worktree after API verification.
 
 Optional runtime verification if interactive login is available:
 
@@ -162,7 +161,7 @@ Rollback paths:
 - If an existing app was updated, restore its prior `allowed_idps`, `auto_redirect_to_identity`, and policy rule shape from the sanitized pre-change summary.
 - If a new policy was created on an existing app, delete that policy or set it to deny while preserving safer existing policies.
 - If credentials are unavailable for rollback, provide exact Cloudflare console steps and identify which app/policy IDs need reverting.
-- If the age credential should be removed after rollback, delete `config/secrets/cloudflare-access.env.age` and document token revocation.
+- If the age credential should be revoked after rollback, rotate the token tracked by `hosts/charlie/secrets/cloudflare-api-token.age` rather than adding another secret.
 
 Rollback does not require changing cloudflared tunnel routes or opencode services because this task does not modify them.
 
