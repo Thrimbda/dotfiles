@@ -84,3 +84,4 @@
 - Added task summary for `cloudflare-api-token-age-secret`.
 - Updated Cloudflare secret handling patterns with API token vs tunnel runtime credential separation and safe validation guidance.
 - Added Cloudflare API token rotation maintenance follow-up.
+- Added task summary for `axiom-install-todesk`.
