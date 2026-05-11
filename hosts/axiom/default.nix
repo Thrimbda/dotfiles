@@ -107,6 +107,7 @@ with builtins;
     user.packages = with pkgs; [
       aria2
       autossh
+      feishu
       git-lfs
       htop
       k9s
