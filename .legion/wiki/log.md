@@ -85,3 +85,5 @@
 - Updated Cloudflare secret handling patterns with API token vs tunnel runtime credential separation and safe validation guidance.
 - Added Cloudflare API token rotation maintenance follow-up.
 - Added task summary for `axiom-install-todesk`.
+- Added task summary for `axiom-feishu-client`.
+- Added host-local GUI package pattern for one-off Axiom desktop client installs.
