@@ -2,9 +2,10 @@
 
 ## Status
 
-- Current phase: wiki writeback complete.
+- Current phase: PR opened; awaiting merge/review terminal state.
 - Branch: `legion/axiom-caelestia-permissions-theme-cleanup-perms-theme`
 - Worktree: `.worktrees/axiom-caelestia-permissions-theme-cleanup`
+- PR: `https://github.com/Thrimbda/dotfiles/pull/42`
 
 ## Checklist
 
@@ -16,6 +17,9 @@
 - [x] Review implementation readiness after local-subject fix.
 - [x] Produce walkthrough and PR-ready summary.
 - [x] Update Legion wiki with current decisions/patterns.
+- [x] Commit and push PR branch.
+- [x] Open pull request.
+- [ ] Reach PR terminal state, then clean up worktree and refresh main workspace.
 
 ## Acceptance Tracking
 

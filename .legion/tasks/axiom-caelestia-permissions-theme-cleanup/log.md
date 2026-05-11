@@ -20,3 +20,5 @@
 - Review-change round 2 passed with no remaining blocking findings. Residual risk is live polkit subject classification for the Caelestia user service, which must be validated after deployment.
 - Produced reviewer-facing walkthrough and PR body from existing RFC, verification, and review evidence.
 - Completed Legion wiki writeback: added task summary and updated current decisions, patterns, maintenance, index, and wiki log.
+- Committed branch `legion/axiom-caelestia-permissions-theme-cleanup-perms-theme` at `18ced799` and pushed it to origin after rebasing on `origin/master`.
+- Opened PR: `https://github.com/Thrimbda/dotfiles/pull/42`. Current PR state is open/clean with no required checks reported. Worktree is retained until PR reaches a terminal state and main workspace can be refreshed.
