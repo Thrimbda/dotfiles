@@ -20,6 +20,16 @@ For one-off, host-specific GUI client requests on `axiom`, prefer the existing h
 
 Package-only GUI client installation should not imply account state, proxy setup, cache management, autostart, credentials, organization policy, or live `nixos-rebuild switch` unless the task contract explicitly includes those runtime concerns.
 
+## Behavior-Preserving Dotfiles Architecture Cleanup Pattern
+
+When cleaning this repository's architecture, preserve the current hlissner-style shape: a thin `flake.nix`, custom `lib.mkFlake`, host files shaped as `modules` / `config` / `hardware`, and public options under `modules.*`. Do not migrate frameworks or copy upstream Linux-only implementation details just to look closer to hlissner.
+
+Use internal helpers for repeated constants or render data only when they do not become recursive modules. Under `modules/`, use `_`-prefixed helper files or another discovery-safe location, and validate that the helper does not appear as config after evaluation.
+
+For behavior-preserving path cleanup, replace hardcoded user-home strings with `config.user.home` only when evaluated service commands, launchd/systemd fields, log paths, secret paths, hostnames, ports, bind hosts and tunnel IDs stay equivalent. Treat opencode/autossh/cloudflared service-module extraction as a separate public-contract RFC, not as incidental cleanup.
+
+Validation should combine `git diff --check`, `git add -N` for new helper files, flake host metadata eval, targeted generated-file/service evals, helper non-import checks, and a representative host dry-run build. Live graphical or Darwin runtime smoke remains a deployment-side checklist unless the task explicitly runs on those hosts.
+
 ## Runtime Entry Validation
 
 For display-manager runtime regressions, validate the effective NixOS session data rather than guessing desktop entry names. Check `services.displayManager.sessionData.sessionNames`, the generated `share/wayland-sessions/*.desktop` entries, and the consumer command that references them.

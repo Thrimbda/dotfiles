@@ -9,6 +9,7 @@
 with lib;
 with hey.lib;
 let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
+    desktopEnv = import ./_env.nix;
     cfg = config.modules.desktop.hyprland;
     caelestiaCfg = config.modules.desktop.caelestia;
     terminalCommand = config.modules.desktop.term.default;
@@ -26,8 +27,8 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
     caelestiaCli = "${caelestiaCfg.cliPackage}/bin/caelestia";
     caelestiaOwnsWallpaper = caelestiaCfg.enable && caelestiaCfg.wallpaper.enable;
     hasScaledMonitor = any (monitor: (monitor.scale or 1) != 1) cfg.monitors;
-    qtPlatform = "wayland;xcb";
-    qtPlatformTheme = "qtengine";
+    qtPlatform = desktopEnv.qtPlatform;
+    qtPlatformTheme = desktopEnv.qtPlatformTheme;
     desktopSessionPath = concatStringsSep ":" [
       config.home.binDir
       "${config.home.dir}/.opencode/bin"
@@ -153,16 +154,8 @@ in {
   config = mkIf cfg.enable {
     modules.desktop.type = "wayland";
 
-    environment.sessionVariables = {
-      ELECTRON_OZONE_PLATFORM_HINT = "auto";
-      NIXOS_OZONE_WL = "1";
-      MOZ_ENABLE_WAYLAND = "1";
-    } // optionalAttrs caelestiaCfg.enable {
-      QT_QPA_PLATFORM = qtPlatform;
-      QT_QPA_PLATFORMTHEME = qtPlatformTheme;
-      QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-      QT_AUTO_SCREEN_SCALE_FACTOR = "1";
-    };
+    environment.sessionVariables = desktopEnv.waylandSessionVariables
+      // optionalAttrs caelestiaCfg.enable desktopEnv.qtSessionVariables;
 
     # Hyprland's aquamarine requires newer MESA drivers.
     hardware.graphics = {

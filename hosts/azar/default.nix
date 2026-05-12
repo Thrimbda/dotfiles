@@ -154,15 +154,17 @@ with builtins;
   };
 
   ## Local config
-  config = { pkgs, ... }: {
+  config = { config, pkgs, ... }:
+    let userHome = config.user.home;
+    in {
 
-    user.packages = with pkgs; [
-      autossh
-      k9s
-      kubectl
-      clash-meta
-      htop
-    ];
+      user.packages = with pkgs; [
+        autossh
+        k9s
+        kubectl
+        clash-meta
+        htop
+      ];
 
     networking.proxy = {
       httpProxy = "http://127.0.0.1:7890";
@@ -182,12 +184,12 @@ with builtins;
       path = [ pkgs.openssh ];
       environment = {
         AUTOSSH_GATETIME = "0";
-        HOME = "/home/c1";
+        HOME = userHome;
       };
       serviceConfig = {
         Type = "simple";
         User = "c1";
-        WorkingDirectory = "/home/c1";
+        WorkingDirectory = userHome;
         ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes -R 127.0.0.1:2224:127.0.0.1:22 root@8.159.128.125";
         Restart = "always";
         RestartSec = "10s";

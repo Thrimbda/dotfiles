@@ -43,12 +43,17 @@ with lib;
   };
 
   ## Local configuration
-  config = { pkgs, ... }: {
-    users.users.c1 = {
-      name = "c1";
-      home = "/Users/c1";
-      shell = pkgs.zsh;
-    };
+  config = { config, pkgs, ... }:
+    let
+      userHome = config.user.home;
+      opencodeDir = "${userHome}/.opencode";
+      opencodeLogDir = "${userHome}/Library/Logs";
+    in {
+      users.users.c1 = {
+        name = "c1";
+        home = userHome;
+        shell = pkgs.zsh;
+      };
 
     networking.hostName = "charlie";
 
@@ -105,7 +110,7 @@ with lib;
     launchd.user.agents.opencode-server = {
       serviceConfig = {
         ProgramArguments = [
-          "/Users/c1/.opencode/bin/opencode"
+          "${opencodeDir}/bin/opencode"
           "serve"
           "--hostname"
           "127.0.0.1"
@@ -113,15 +118,15 @@ with lib;
           "4096"
         ];
         EnvironmentVariables = {
-          HOME = "/Users/c1";
+          HOME = userHome;
           OPENCODE_ENABLE_EXA = "1";
           OPENCODE_EXPERIMENTAL = "true";
         };
-        WorkingDirectory = "/Users/c1";
+        WorkingDirectory = userHome;
         RunAtLoad = true;
         KeepAlive = true;
-        StandardOutPath = "/Users/c1/Library/Logs/opencode-server.out.log";
-        StandardErrorPath = "/Users/c1/Library/Logs/opencode-server.err.log";
+        StandardOutPath = "${opencodeLogDir}/opencode-server.out.log";
+        StandardErrorPath = "${opencodeLogDir}/opencode-server.err.log";
       };
     };
 
@@ -155,7 +160,7 @@ with lib;
       };
     };
 
-    modules.agenix.sshKey = "/Users/c1/.ssh/id_ed25519";
+    modules.agenix.sshKey = "${userHome}/.ssh/id_ed25519";
 
     system.primaryUser = "c1";
     system.stateVersion = 6;

@@ -40,10 +40,12 @@ with lib;
   };
 
   ## Local configuration
-  config = { pkgs, ... }: {
+  config = { config, pkgs, ... }:
+    let userHome = config.user.home;
+    in {
     users.users.c1 = {
       name = "c1";
-      home = "/Users/c1";
+      home = userHome;
       shell = pkgs.zsh;
     };
 

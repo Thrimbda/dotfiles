@@ -62,11 +62,7 @@ in {
       environment.localBinInPath = true;
     })
 
-    (if pkgs.stdenv.isDarwin then {
-      environment.variables = mkOrder 10 baseSessionVars;
-    } else {
-      environment.sessionVariables = mkOrder 10 baseSessionVars;
-    })
+    (mkEnvVars pkgs (mkOrder 10 baseSessionVars))
 
     # On Darwin, automatically map user.packages to home.packages
     # since nix-darwin doesn't support users.users.*.packages

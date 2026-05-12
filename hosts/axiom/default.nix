@@ -100,19 +100,23 @@ with builtins;
   };
 
   ## Local config
-  config = { config, pkgs, ... }: {
-    user.packages = with pkgs; [
-      aria2
-      autossh
-      feishu
-      git-lfs
-      htop
-      k9s
-      kubectl
-      nvtopPackages.nvidia
-      todesk
-      uv
-    ];
+  config = { config, pkgs, ... }:
+    let
+      userHome = config.user.home;
+      opencodeDir = "${userHome}/.opencode";
+    in {
+      user.packages = with pkgs; [
+        aria2
+        autossh
+        feishu
+        git-lfs
+        htop
+        k9s
+        kubectl
+        nvtopPackages.nvidia
+        todesk
+        uv
+      ];
 
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
@@ -159,15 +163,15 @@ with builtins;
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       environment = {
-        HOME = "/home/c1";
+        HOME = userHome;
         OPENCODE_ENABLE_EXA = "1";
         OPENCODE_EXPERIMENTAL = "true";
       };
       serviceConfig = {
         Type = "simple";
         User = "c1";
-        WorkingDirectory = "/home/c1";
-        ExecStart = "/home/c1/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4096";
+        WorkingDirectory = userHome;
+        ExecStart = "${opencodeDir}/bin/opencode serve --hostname 127.0.0.1 --port 4096";
         Restart = "on-failure";
         RestartSec = "10s";
       };
@@ -181,12 +185,12 @@ with builtins;
       path = [ pkgs.openssh ];
       environment = {
         AUTOSSH_GATETIME = "0";
-        HOME = "/home/c1";
+        HOME = userHome;
       };
       serviceConfig = {
         Type = "simple";
         User = "c1";
-        WorkingDirectory = "/home/c1";
+        WorkingDirectory = userHome;
         ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes -R 127.0.0.1:2223:127.0.0.1:22 root@8.159.128.125";
         Restart = "always";
         RestartSec = "10s";

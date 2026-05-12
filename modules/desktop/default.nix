@@ -4,10 +4,6 @@ with lib;
 with hey.lib;
 let cfg = config.modules.desktop;
     isDarwin = pkgs.stdenv.isDarwin;
-    setEnv = name: value:
-      if isDarwin
-      then {}
-      else { environment.sessionVariables.${name} = value; };
 in {
   options.modules.desktop = {
     type = with types; mkOpt (nullOr str) null;

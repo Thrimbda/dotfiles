@@ -4,9 +4,6 @@
 
 with lib;
 with hey.lib;
-let
-  isDarwin = pkgs.stdenv.isDarwin;
-in
 {
   imports = mapModulesRec' ./modules import;
 
@@ -17,7 +14,10 @@ in
     user = mkOpt attrs { name = ""; };
   };
 
-  config = {
+  config = (mkEnvVars pkgs (mkOrder 10 {
+    DOTFILES_HOME = hey.dir;
+    NIXPKGS_ALLOW_UNFREE = "1";   # Forgive me Stallman-senpai.
+  })) // {
     # Allow unchecked freeform attributes (e.g., cross OS modules) to pass
     # through without failing evaluation.
     _module.check = false;
@@ -26,21 +26,6 @@ in
       assertion = config.user ? name;
       message = "config.user.name is not set!";
     }];
-
-    environment = mkMerge [
-      (mkIf isDarwin {
-        variables = mkOrder 10 {
-          DOTFILES_HOME = hey.dir;
-          NIXPKGS_ALLOW_UNFREE = "1";   # Forgive me Stallman-senpai.
-        };
-      })
-      (mkIf (!isDarwin) {
-        sessionVariables = mkOrder 10 {
-          DOTFILES_HOME = hey.dir;
-          NIXPKGS_ALLOW_UNFREE = "1";   # Forgive me Stallman-senpai.
-        };
-      })
-    ];
 
     # FIXME: Make this optional
     user = {

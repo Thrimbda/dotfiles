@@ -2,12 +2,13 @@
 
 with lib;
 with hey.lib;
-let cfg = config.modules.desktop.caelestia;
+let desktopEnv = import ./_env.nix;
+    cfg = config.modules.desktop.caelestia;
     system = pkgs.stdenv.hostPlatform.system;
     themeWallpaper = config.modules.theme.wallpapers."*" or {};
     defaultWallpaperPath = themeWallpaper.path or null;
-    qtPlatform = "wayland;xcb";
-    qtPlatformTheme = "qtengine";
+    qtPlatform = desktopEnv.qtPlatform;
+    qtPlatformTheme = desktopEnv.qtPlatformTheme;
     caelestiaFontFamilies = {
       clock = "Rubik";
       material = "Material Symbols Rounded";
@@ -201,12 +202,7 @@ in {
           TimeoutStopSec = 5;
           Slice = "session.slice";
         };
-        environment = {
-          QT_QPA_PLATFORM = qtPlatform;
-          QT_QPA_PLATFORMTHEME = qtPlatformTheme;
-          QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-          QT_AUTO_SCREEN_SCALE_FACTOR = "1";
-        };
+        environment = desktopEnv.qtSessionVariables;
       };
 
       home.configFile = optionalAttrs (cfg.cli.settings != {}) {

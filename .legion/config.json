@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "currentTask": "cloudflare-api-token-age-secret",
+  "currentTask": "hlissner-architecture-cleanup",
   "settings": {
     "autoRemind": true,
     "remindBeforeReset": true,
@@ -45,9 +45,16 @@
     {
       "id": "cloudflare-api-token-age-secret",
       "name": "Cloudflare API Token Age Secret",
-      "status": "active",
+      "status": "paused",
       "createdAt": "2026-05-11T11:40:00.000Z",
       "updatedAt": "2026-05-11T11:40:00.000Z"
+    },
+    {
+      "id": "hlissner-architecture-cleanup",
+      "name": "Hlissner-aligned Dotfiles Architecture Cleanup",
+      "status": "active",
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "updatedAt": "2026-05-12T00:00:00.000Z"
     }
   ],
   "pendingProposals": [
