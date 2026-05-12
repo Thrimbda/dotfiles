@@ -2,8 +2,8 @@
 
 ## 快速恢复
 **当前阶段**: Phase 5 - PR Delivery and Writeback
-**当前检查项**: 创建 PR 但不自动合并
-**进度**: 14/15 任务完成
+**当前检查项**: 跟进 checks/review 终态
+**进度**: 15/16 任务完成
 
 ---
 
@@ -29,6 +29,6 @@
 ## Phase 5: PR Delivery and Writeback 🟡 IN PROGRESS
 - [x] 生成 reviewer walkthrough | 验收: `docs/report-walkthrough.md` 可供 reviewer 快速审查
 - [x] 生成 PR body | 验收: `docs/pr-body.md` 可直接用于 PR
-- [ ] 创建 PR 但不自动合并 | 验收: PR URL 记录在 log/report 中 ← CURRENT
+- [x] 创建 PR 但不自动合并 | 验收: PR URL 记录在 log/report 中: https://github.com/Thrimbda/dotfiles/pull/43
 - [x] 完成 Legion wiki writeback | 验收: `.legion/wiki` 记录可复用架构清理模式和任务摘要
-- [ ] 跟进 checks/review 终态 | 验收: 按用户要求不合并；后续状态、worktree 清理和主工作区刷新另行记录
+- [ ] 跟进 checks/review 终态 | 验收: 按用户要求不合并；后续状态、worktree 清理和主工作区刷新另行记录 ← CURRENT

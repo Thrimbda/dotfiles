@@ -17,12 +17,13 @@
 - 完成 change readiness review，结论 PASS；初次 review 发现 `test-report.md` 未被 intent-to-add 和 trailing whitespace，已修复并复审通过。
 - 生成 `docs/report-walkthrough.md` 和 `docs/pr-body.md`。
 - 完成 Legion wiki writeback：新增任务摘要并添加行为保持型 dotfiles 架构清理模式。
+- 提交并推送分支 `legion/hlissner-architecture-cleanup-clean-boundaries`，创建 PR: https://github.com/Thrimbda/dotfiles/pull/43。
 
 ### 进行中
-- 准备提交、push 并创建 PR；按用户要求不启用 auto-merge。
+- 跟进 PR checks/review；按用户要求不启用 auto-merge。
 
 ### 阻塞/待定
-- 无当前阻塞。后续实现必须在 git worktree/PR envelope 中进行，且 PR 不自动合并。
+- 无当前阻塞。PR 不自动合并；merge/cleanup/main refresh 需等 review/checks 和用户决定。
 
 ---
 
@@ -39,9 +40,9 @@
 
 ## 快速交接
 **下次继续从这里开始：**
-1. 补写 `docs/research.md`，引用当前仓库和 hlissner 参考的关键证据。
-2. 回到 `legion-workflow`，按中高风险进入 `spec-rfc -> review-rfc`。
-3. RFC PASS 后加载 `git-worktree-pr`，在隔离 worktree 中实施。
+1. 检查 PR #43: https://github.com/Thrimbda/dotfiles/pull/43。
+2. 跟进 required checks 和 review comments；scope 内问题继续在同一 worktree/branch 修复。
+3. 按用户要求保持 auto-merge disabled；merge、worktree cleanup 和主工作区 refresh 等用户决定后继续。
 
 **注意事项：**
 - 不读取 `token.env` 或 secret 明文。

@@ -2,6 +2,7 @@
 
 > **Mode**: implementation
 > **Branch**: `legion/hlissner-architecture-cleanup-clean-boundaries`
+> **PR**: https://github.com/Thrimbda/dotfiles/pull/43
 > **Worktree**: `.worktrees/hlissner-architecture-cleanup`
 > **Design**: `docs/rfc.md`
 > **Verification**: `docs/test-report.md`
