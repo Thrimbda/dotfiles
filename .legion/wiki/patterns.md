@@ -52,7 +52,7 @@ For Steam HiDPI regressions on fractional-scale Hyprland, validate both composit
 
 For Fcitx5 Wayland frontend warnings about `GTK_IM_MODULE`, validate the evaluated input method frontend and the managed environment separately. Check `i18n.inputMethod.fcitx5.waylandFrontend`, then confirm `GTK_IM_MODULE` is absent from both `environment.sessionVariables` and `environment.variables`; do not patch host shell files before proving the Nix-owned environment source.
 
-For Fcitx5 theme alignment on Axiom, prefer the existing Catppuccin `theme.flavor` and `theme.accent` options. Validate both `i18n.inputMethod.fcitx5.settings.addons.classicui.globalSection.Theme` and the force-managed user `fcitx5/conf/classicui.conf`; do not touch Rime schemas, dictionaries, or private input data for a color-only task.
+For Fcitx5 theme alignment on Axiom, follow the current Caelestia visual direction before choosing a theme package. If Catppuccin conflicts with Caelestia/qtengine/Graphite surfaces, disable the host-level Fcitx5 theme override and validate that `catppuccin-fcitx5` and force-managed `fcitx5/conf/classicui.conf` are absent while Rime/Pinyin addons remain present. Do not touch Rime schemas, dictionaries, or private input data for a color-only task.
 
 For NixOS GUI apps that also ship service/TUN installers, prefer the upstream NixOS module over mutable GUI installer flows. Validate the actual exposed option names with `nix eval ...options.<module> --apply builtins.attrNames`, because this repository disables strict module option checking and inert settings can otherwise be silently ignored.
 
@@ -117,6 +117,8 @@ For Axiom shortcut reference features, keep both the visible entrypoint and the 
 Validate Caelestia migrations by evaluating the upstream `with-cli` package, generated service command, seeded `caelestia/shell.json` defaults or seed script, user package closure, active Hyprland keybinds, and absence of active end4 references outside historical `.legion/tasks/**`. Always run an assembled `Hyprland --verify-config` after changing generated keybinds or rules; Nix build alone does not catch parser restrictions such as top-level `catchall`. Pair static evidence with a live Hyprland session smoke when available; headless builds cannot prove layer-shell rendering, tray, launcher focus, icon rendering, OSD, screenshot, lock/session behavior, or physical Super-key recognition.
 
 When Caelestia global-shortcut dispatch is the reported failure, prefer reviewed CLI IPC keybinds for drawers, brightness, media, and picker actions over reworking DBus/global-shortcut plumbing in the same task. Validate command names against the current Caelestia package source or `caelestia shell -s`, and keep direct shell process starts out of Hyprland keybinds.
+
+When Caelestia/Quickshell service-owned controls fail on power or Wi-Fi actions, validate polkit subject classification and evaluated `security.polkit.extraConfig` before changing shell code. Prefer local-subject, primary-user, fixed-action allowlists for required NetworkManager/logind actions; avoid broad `networkmanager` group membership, prefix grants, sudo wrappers, and direct upstream QML mutation.
 
 For Caelestia lock/session regressions, treat `loginctl lock-session` as a separate integration path from direct `hyprlock`. If logind-triggered Caelestia lock handling crashes, route ordinary idle/keybind locks to `hyprlock` while keeping a live-session follow-up to confirm lock-before-sleep behavior.
 

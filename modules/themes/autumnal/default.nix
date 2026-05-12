@@ -47,14 +47,11 @@ in {
           };
           iconTheme = {
             name = "Papirus-Dark";
-            package = pkgs.catppuccin-papirus-folders.override {
-              flavor = "mocha";
-              accent = "maroon";
-            };
+            package = papirus-icon-theme;
           };
           cursorTheme = {
-            name = "catppuccin-mocha-dark-cursors";
-            package = catppuccin-cursors.mochaDark;
+            name = "Bibata-Modern-Classic";
+            package = bibata-cursors;
             size = 32;
           };
         };

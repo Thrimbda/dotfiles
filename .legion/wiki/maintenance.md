@@ -21,7 +21,9 @@
 
 ## Axiom Input Follow-Up
 
-- After deploying `axiom-fcitx5-shell-theme-alignment`, restart Fcitx5 or the graphical session and confirm the candidate UI visually uses the pink Catppuccin accent.
+- After deploying `axiom-caelestia-permissions-theme-cleanup`, restart Fcitx5 or the graphical session and confirm the candidate UI no longer uses Catppuccin while Rime/Pinyin still work.
+- After deploying `axiom-caelestia-permissions-theme-cleanup`, confirm the Caelestia service-owned Wi-Fi/network and power/session controls no longer report authorization failures. If they still fail, inspect the actual polkit subject classification before widening the allowlist.
+- After deploying `axiom-caelestia-permissions-theme-cleanup`, open Thunar and confirm file explorer icons follow ordinary Papirus/Breeze/Graphite rather than Catppuccin folder colors.
 
 ## Axiom Remote Access Follow-Up
 

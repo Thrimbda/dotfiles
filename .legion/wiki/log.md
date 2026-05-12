@@ -89,3 +89,5 @@
 - Added host-local GUI package pattern for one-off Axiom desktop client installs.
 - Updated opencode Cloudflare Exposure decisions and Axiom Remote Access maintenance after configuring Cloudflare Access Google IdP enforcement for `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space`.
 - Added task summary for `axiom-charlie-opencode-access-google-oidc`.
+- Added task summary for `axiom-caelestia-permissions-theme-cleanup`.
+- Updated current Axiom Caelestia decisions, Fcitx5/theme patterns, and maintenance with local-subject polkit allowlists for shell controls and Catppuccin visible-theme removal.

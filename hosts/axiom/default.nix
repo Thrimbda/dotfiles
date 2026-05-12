@@ -55,10 +55,7 @@ with builtins;
           enable = true;
           rime.enable = true;
           pinyin.enable = true;
-          theme = {
-            flavor = "mocha";
-            accent = "pink";
-          };
+          theme.enable = false;
         };
       };
       browsers = {
@@ -103,7 +100,7 @@ with builtins;
   };
 
   ## Local config
-  config = { pkgs, ... }: {
+  config = { config, pkgs, ... }: {
     user.packages = with pkgs; [
       aria2
       autossh
@@ -116,6 +113,34 @@ with builtins;
       todesk
       uv
     ];
+
+    security.polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        var login1PowerActions = {
+          "org.freedesktop.login1.hibernate": true,
+          "org.freedesktop.login1.hibernate-multiple-sessions": true,
+          "org.freedesktop.login1.power-off": true,
+          "org.freedesktop.login1.power-off-multiple-sessions": true,
+          "org.freedesktop.login1.reboot": true,
+          "org.freedesktop.login1.reboot-multiple-sessions": true,
+          "org.freedesktop.login1.suspend": true,
+          "org.freedesktop.login1.suspend-multiple-sessions": true
+        };
+        var networkManagerActions = {
+          "org.freedesktop.NetworkManager.enable-disable-network": true,
+          "org.freedesktop.NetworkManager.enable-disable-wifi": true,
+          "org.freedesktop.NetworkManager.network-control": true,
+          "org.freedesktop.NetworkManager.settings.modify.own": true,
+          "org.freedesktop.NetworkManager.settings.modify.system": true,
+          "org.freedesktop.NetworkManager.wifi.scan": true
+        };
+
+        if (subject.local == true && subject.user == "${config.user.name}"
+            && (login1PowerActions[action.id] || networkManagerActions[action.id])) {
+          return polkit.Result.YES;
+        }
+      });
+    '';
 
     programs.ssh.startAgent = true;
     services.openssh.startWhenNeeded = mkForce false;
