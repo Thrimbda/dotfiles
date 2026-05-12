@@ -18,12 +18,13 @@
 - 生成 `docs/report-walkthrough.md` 和 `docs/pr-body.md`。
 - 完成 Legion wiki writeback：新增任务摘要并添加行为保持型 dotfiles 架构清理模式。
 - 提交并推送分支 `legion/hlissner-architecture-cleanup-clean-boundaries`，创建 PR: https://github.com/Thrimbda/dotfiles/pull/43。
+- 检查 PR 状态：PR open，`gh pr checks 43 --required` 报告当前分支无 reported required checks，reviewDecision 为空；未启用 auto-merge。
 
 ### 进行中
-- 跟进 PR checks/review；按用户要求不启用 auto-merge。
+- 等待 PR review / 用户决定是否 merge；按用户要求不启用 auto-merge。
 
 ### 阻塞/待定
-- 无当前阻塞。PR 不自动合并；merge/cleanup/main refresh 需等 review/checks 和用户决定。
+- Blocked handoff: PR open 且未自动合并；review/merge 决策需要用户或 reviewer。worktree 保留在 `.worktrees/hlissner-architecture-cleanup`，merge 后再 cleanup 并刷新主工作区。
 
 ---
 
@@ -41,7 +42,7 @@
 ## 快速交接
 **下次继续从这里开始：**
 1. 检查 PR #43: https://github.com/Thrimbda/dotfiles/pull/43。
-2. 跟进 required checks 和 review comments；scope 内问题继续在同一 worktree/branch 修复。
+2. 若出现 required checks 或 review comments，scope 内问题继续在同一 worktree/branch 修复。
 3. 按用户要求保持 auto-merge disabled；merge、worktree cleanup 和主工作区 refresh 等用户决定后继续。
 
 **注意事项：**
