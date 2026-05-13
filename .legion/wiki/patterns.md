@@ -20,6 +20,8 @@ For one-off, host-specific GUI client requests on `axiom`, prefer the existing h
 
 Package-only GUI client installation should not imply account state, proxy setup, cache management, autostart, credentials, organization policy, or live `nixos-rebuild switch` unless the task contract explicitly includes those runtime concerns.
 
+For Axiom Playwright tooling, prefer enabling the existing `modules.dev.playwright` module over manually adding `pkgs.playwright-test` to host-local packages. Validate the evaluated host option, evaluated `users.users.c1.packages`, CLI version, wrapper `PLAYWRIGHT_BROWSERS_PATH`, and Axiom toplevel dry-run; live browser launch remains a post-switch graphical-session smoke check.
+
 ## Runtime Entry Validation
 
 For display-manager runtime regressions, validate the effective NixOS session data rather than guessing desktop entry names. Check `services.displayManager.sessionData.sessionNames`, the generated `share/wayland-sessions/*.desktop` entries, and the consumer command that references them.

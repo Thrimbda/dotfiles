@@ -91,3 +91,5 @@
 - Added task summary for `axiom-charlie-opencode-access-google-oidc`.
 - Added task summary for `axiom-caelestia-permissions-theme-cleanup`.
 - Updated current Axiom Caelestia decisions, Fcitx5/theme patterns, and maintenance with local-subject polkit allowlists for shell controls and Catppuccin visible-theme removal.
+- Added task summary for `axiom-playwright-cli-runtime`.
+- Updated host-local package patterns with Axiom Playwright module enablement and validation guidance.
