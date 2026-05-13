@@ -28,6 +28,7 @@
 - [Axiom Install ToDesk](tasks/axiom-install-todesk.md)
 - [Axiom Input And Caelestia Config Hotfix](tasks/axiom-input-caelestia-config-hotfix.md)
 - [Axiom Keybinding Help Modal](tasks/axiom-keybinding-help-modal.md)
+- [Axiom Playwright CLI Runtime](tasks/axiom-playwright-cli-runtime.md)
 - [Axiom and Charlie Opencode Cloudflare Access Google OIDC](tasks/axiom-charlie-opencode-access-google-oidc.md)
 - [Axiom Quickshell Notification Center](tasks/axiom-quickshell-notification-center.md)
 - [Axiom Quickshell Quick Controls and OSD](tasks/axiom-quickshell-quick-controls-osd.md)

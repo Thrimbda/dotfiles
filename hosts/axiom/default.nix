@@ -71,6 +71,7 @@ with builtins;
     dev = {
       node.enable = true;
       deno.enable = true;
+      playwright.enable = true;
       rust.enable = true;
       python.enable = true;
       java.enable = true;
