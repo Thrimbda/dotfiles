@@ -76,3 +76,19 @@ Post-deploy smoke should verify:
 - Idle still locks and turns DPMS off.
 - Idle does not suspend in no-sleep mode.
 - Allow-sleep mode permits the existing suspend behavior when deliberately selected.
+
+## Post-Rebase Validation
+
+After rebasing onto the latest `origin/master`, conflicts were resolved in `hosts/axiom/default.nix` and `.legion/wiki/log.md`. The resolution preserved upstream Axiom Fcitx theme changes and this task's no-sleep power-mode implementation.
+
+Commands rerun after the rebase:
+
+```sh
+nix eval --impure --json --expr '... fcitxThemeKept = cfg.modules.desktop.input.fcitx5.theme.name == "FluentDark"; ...'
+git diff --check
+nix build --impure .#nixosConfigurations.axiom.config.system.build.toplevel --no-link
+```
+
+Result: PASS.
+
+Targeted assertion result included all original booleans as `true` plus `fcitxThemeKept=true`. The post-rebase Axiom toplevel build also passed.

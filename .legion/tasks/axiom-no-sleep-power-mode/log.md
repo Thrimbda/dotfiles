@@ -16,6 +16,8 @@
 - Readiness review completed with PASS in `docs/review-change.md`; security lens found no blocking issue because no polkit or ignore-inhibit capability was added.
 - Generated reviewer-facing walkthrough and PR body in `docs/report-walkthrough.md` and `docs/pr-body.md`.
 - Completed Legion wiki writeback: added `wiki/tasks/axiom-no-sleep-power-mode.md` and updated index, decisions, patterns, maintenance, and wiki log.
+- Committed `feat(axiom): add no-sleep power mode`, then rebased onto latest `origin/master`. Resolved conflicts by preserving upstream Axiom FluentDark Fcitx theme changes plus this task's no-sleep power-mode implementation.
+- Post-rebase validation passed: targeted Nix assertions including `fcitxThemeKept=true`, `git diff --check`, and Axiom toplevel build.
 
 ### In Progress
 
