@@ -19,6 +19,10 @@
 - After deploying `axiom-desktop-polish-followup`, confirm Steam renders crisply on the 4K fractional-scale monitor and that games still choose expected render resolutions. If only individual games remain blurry, split a Steam game/runtime task with logs instead of broadening the desktop integration fix.
 - In a fresh Axiom interactive shell and desktop-launched terminal, confirm `command -v opencode` resolves to `$HOME/.opencode/bin/opencode`.
 
+## Axiom Power Follow-Up
+
+- After deploying `axiom-no-sleep-power-mode`, confirm `axiom-sleep-mode status`, desktop launcher mode switching, `systemd-inhibit --list`, idle lock, DPMS off, no-sleep idle skip, and deliberate allow-sleep suspend behavior in the real Axiom Hyprland session.
+
 ## Axiom Input Follow-Up
 
 - After deploying `axiom-caelestia-permissions-theme-cleanup`, confirm the Caelestia service-owned Wi-Fi/network and power/session controls no longer report authorization failures. If they still fail, inspect the actual polkit subject classification before widening the allowlist.

@@ -95,3 +95,5 @@
 - Updated host-local package patterns with Axiom Playwright module enablement and validation guidance.
 - Added task summary for `axiom-thunar-caelestia-theme-contrast`.
 - Updated current Axiom Caelestia theme decisions, Fcitx/GTK patterns, and maintenance with Breeze-Dark GTK and FluentDark Fcitx guidance.
+- Added task summary for `axiom-no-sleep-power-mode`.
+- Updated current Axiom desktop decisions, validation patterns, and maintenance with host-local no-sleep mode, Hypridle override, user sleep inhibitor, and post-deploy smoke checks.

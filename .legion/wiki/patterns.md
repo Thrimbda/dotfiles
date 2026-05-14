@@ -50,6 +50,8 @@ For GUI-launched terminal or app command lookup regressions that do not reproduc
 
 For out-of-band user tools such as opencode under `$HOME/.opencode/bin`, validate both interactive shell startup and generated desktop session PATH. Avoid literal `environment.variables.PATH` strings as the only integration surface; prefer explicit shell path initialization plus generated `uwsm/env` evidence.
 
+For Axiom idle/no-sleep changes, validate the Axiom-generated `hypr/hypridle.conf`, the unchanged global `config/hypr/hypridle.conf`, any user sleep-inhibitor service, the session apply service, and the mode command/launcher package presence. Avoid triggering live suspend or hibernate in tool sessions; record those as post-deploy Hyprland smoke checks.
+
 For Steam HiDPI regressions on fractional-scale Hyprland, validate both compositor and application surfaces: generated `xwayland.force_zero_scaling`, the actual wrapped `bin/steam` script exporting `STEAM_FORCE_DESKTOPUI_SCALING`, Steam package closure presence, assembled `Hyprland --verify-config`, and the host toplevel build. Live crispness remains a deployment smoke check.
 
 For Fcitx5 Wayland frontend warnings about `GTK_IM_MODULE`, validate the evaluated input method frontend and the managed environment separately. Check `i18n.inputMethod.fcitx5.waylandFrontend`, then confirm `GTK_IM_MODULE` is absent from both `environment.sessionVariables` and `environment.variables`; do not patch host shell files before proving the Nix-owned environment source.
