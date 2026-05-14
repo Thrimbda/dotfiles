@@ -24,7 +24,7 @@ Axiom user-installed opencode is exposed through explicit zsh startup and genera
 
 Wayland desktop hosts using the reusable Fcitx5 module should use Fcitx5's native Wayland frontend by default. Do not force `GTK_IM_MODULE=fcitx` from managed session variables when `waylandFrontend` is enabled and working; GTK should use the Wayland text-input path while Fcitx5 GTK/Qt addons can remain installed.
 
-Current Axiom Caelestia visual theming should not force Catppuccin-specific visible assets in Thunar/file explorer or Fcitx5. Autumnal should use ordinary `Papirus-Dark` from `papirus-icon-theme`, `Bibata-Modern-Classic`, and Fcitx5 defaults unless a future scoped theme task reopens Catppuccin alignment. Keep Rime/Pinyin engine selection separate from visual theme alignment.
+Current Axiom Caelestia visual theming aligns GTK with qtengine through KDE `Breeze-Dark`/`breeze-gtk` while qtengine uses `BreezeDark.colors`. Fcitx should use a declarative visible theme package/name; Axiom currently uses `fcitx5-fluent` with `Theme=FluentDark`. Do not treat Catppuccin as categorically forbidden, but only choose it through a scoped theme task that deliberately aligns GTK, Fcitx, and Qt/Caelestia together. Keep Rime/Pinyin engine selection separate from visual theme alignment.
 
 Until Caelestia's logind lock crash is proven fixed, ordinary Axiom idle/keybind lock paths should call `hyprlock` directly rather than `loginctl lock-session` or `caelestia:lock`.
 

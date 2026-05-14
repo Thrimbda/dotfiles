@@ -4,7 +4,8 @@ with lib;
 with hey.lib;
 let
   cfg = config.modules.desktop.input.fcitx5;
-  themeName = "catppuccin-${cfg.theme.flavor}-${cfg.theme.accent}";
+  catppuccinThemeName = "catppuccin-${cfg.theme.flavor}-${cfg.theme.accent}";
+  themeName = if cfg.theme.name == null then catppuccinThemeName else cfg.theme.name;
 in {
   options.modules.desktop.input.fcitx5 = with types; {
     enable = mkBoolOpt false;
@@ -19,6 +20,8 @@ in {
 
     theme = {
       enable = mkBoolOpt true;
+      name = mkOpt (nullOr str) null;
+      package = mkOpt package pkgs.catppuccin-fcitx5;
       flavor = mkOpt (enum [ "latte" "frappe" "macchiato" "mocha" ]) "mocha";
       accent = mkOpt (enum [
         "blue"
@@ -53,7 +56,7 @@ in {
             ++ optional cfg.qt.enable pkgs.qt6Packages.fcitx5-qt
             ++ optional cfg.rime.enable pkgs.fcitx5-rime
             ++ optional cfg.pinyin.enable pkgs.qt6Packages.fcitx5-chinese-addons
-            ++ optional cfg.theme.enable pkgs.catppuccin-fcitx5;
+            ++ optional cfg.theme.enable cfg.theme.package;
         };
       };
     }

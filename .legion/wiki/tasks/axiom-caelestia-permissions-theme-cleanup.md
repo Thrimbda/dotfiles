@@ -8,7 +8,7 @@
 - `schema-version`: `current`
 - `historical`: `false`
 - `supersedes`: `axiom-fcitx5-shell-theme-alignment` visual-theme decision for current Axiom Caelestia setup
-- `superseded-by`: `(none)`
+- `superseded-by`: `axiom-thunar-caelestia-theme-contrast` for the visual-theme conclusion only
 
 ## Outcome Summary
 
@@ -24,7 +24,7 @@ Static validation passed for targeted Axiom config assertions, `git diff --check
 
 - For service-owned Caelestia/Quickshell controls on Axiom, treat failures to reboot or control Wi-Fi as polkit subject/authorization issues first, not Unix file permission issues in Quickshell.
 - Prefer Axiom-local, local-subject, primary-user, fixed-action polkit allowlists over sudo wrappers, broad `networkmanager` group membership, or prefix grants.
-- Current Axiom Caelestia visual direction should avoid Catppuccin-specific visible assets in Thunar/file explorer and Fcitx5; use Papirus/Bibata and Fcitx5 defaults unless a future scoped theme task reopens this.
+- Historical visual-theme note: this task's categorical Catppuccin-avoidance conclusion is superseded by `axiom-thunar-caelestia-theme-contrast`; current Axiom theme direction is BreezeDark GTK/Qt alignment plus `FluentDark` Fcitx.
 
 ## Related Raw Sources
 
@@ -42,3 +42,4 @@ Static validation passed for targeted Axiom config assertions, `git diff --check
 
 - After deployment, confirm the Caelestia service process is classified as local by polkit. If not, do not widen policy blindly; first capture the exact subject classification.
 - After deployment, test Wi-Fi/network control, power/session UI, Thunar icons, and Fcitx5 candidate UI in the real Axiom graphical session.
+- For current Thunar/Fcitx visual guidance, use `axiom-thunar-caelestia-theme-contrast` instead of this task's older Catppuccin-avoidance note.

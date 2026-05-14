@@ -55,7 +55,6 @@ with builtins;
           enable = true;
           rime.enable = true;
           pinyin.enable = true;
-          theme.enable = false;
         };
       };
       browsers = {
@@ -102,6 +101,12 @@ with builtins;
 
   ## Local config
   config = { config, pkgs, ... }: {
+    modules.desktop.input.fcitx5.theme = {
+      enable = true;
+      name = "FluentDark";
+      package = pkgs.fcitx5-fluent;
+    };
+
     user.packages = with pkgs; [
       aria2
       autossh

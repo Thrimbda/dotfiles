@@ -33,17 +33,8 @@ in {
         };
         gtk = with pkgs; {
           theme = {
-            name = "Graphite-pink-Dark";
-            package = pkgs.graphite-gtk-theme.override {
-              themeVariants = [ "pink" ];
-              colorVariants = [ "dark" ];
-              # sizeVariants = [ "compact" ];
-              tweaks = [
-                "normal"
-                "rimless"
-                "darker"
-              ];
-            };
+            name = "Breeze-Dark";
+            package = pkgs.kdePackages.breeze-gtk;
           };
           iconTheme = {
             name = "Papirus-Dark";
