@@ -28,6 +28,7 @@
 - [Axiom Install ToDesk](tasks/axiom-install-todesk.md)
 - [Axiom Input And Caelestia Config Hotfix](tasks/axiom-input-caelestia-config-hotfix.md)
 - [Axiom Keybinding Help Modal](tasks/axiom-keybinding-help-modal.md)
+- [Axiom No-Sleep Power Mode](tasks/axiom-no-sleep-power-mode.md)
 - [Axiom Playwright CLI Runtime](tasks/axiom-playwright-cli-runtime.md)
 - [Axiom Thunar Caelestia Theme Contrast](tasks/axiom-thunar-caelestia-theme-contrast.md)
 - [Axiom and Charlie Opencode Cloudflare Access Google OIDC](tasks/axiom-charlie-opencode-access-google-oidc.md)
