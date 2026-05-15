@@ -126,3 +126,5 @@
 - Updated current Axiom power decisions, validation patterns, and maintenance with the session-runner cold-start IPC race and 60-second Keep Awake retry window.
 - Added task summary for `axiom-feishu-launcher-id-fix`.
 - Corrected current Caelestia launcher favourite guidance: use Quickshell desktop-entry ids such as `bytedance-feishu`, not literal `.desktop` filenames.
+- Added task summary for `foot-tmux-hotkey`.
+- Updated current Axiom desktop decisions with the `SUPER+SHIFT+Return` tmux `main` session entrypoint and preserved plain terminal defaults.
