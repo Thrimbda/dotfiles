@@ -36,6 +36,8 @@ The active Axiom shortcut reference entrypoint is the generated Hyprland `SUPER+
 
 When Caelestia global-shortcut dispatch does not work in the live Axiom session, repository-generated keybinds may route through reviewed `caelestia shell ...` IPC commands instead. Do not restore top-level Hyprland `catchall` bindings; if Super-key tap semantics are required again, split a scoped follow-up with parser validation.
 
+Current Axiom `Super+Space` opens the Caelestia launcher drawer. Default-visible app additions should use upstream desktop entry ids in Caelestia `launcher.favouriteApps`; if the user's mutable `caelestia/shell.json` already exists, repository migrations should append the missing value narrowly and preserve all other user settings.
+
 Axiom Steam on fractional-scale Hyprland should treat jagged or low-resolution Steam UI first as an XWayland/HiDPI integration issue: enable XWayland self-scaling for scaled monitor configs and pass Steam an explicit desktop UI scale. Do not expand this into per-game Proton or GPU runtime debugging without live evidence.
 
 Axiom notification center 的第一个实现切片采用 session-local Quickshell panel：使用 `NotificationServer.trackedNotifications` 管理当前会话通知，dock button 负责打开 panel，通知内容不持久化。后续不得在没有 retention、clear、disable 和 privacy policy 的情况下把 notification history 或 clipboard history 落盘。

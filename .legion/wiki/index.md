@@ -22,6 +22,7 @@
 - [Axiom End4 Polish Hotfix](tasks/axiom-end4-polish-hotfix.md)
 - [Axiom End4 Regression Fix](tasks/axiom-end4-regression-fix.md)
 - [Axiom Feishu Client](tasks/axiom-feishu-client.md)
+- [Axiom Feishu Launcher Entry](tasks/axiom-feishu-launcher-entry.md)
 - [Axiom Fcitx5 Shell Theme Alignment](tasks/axiom-fcitx5-shell-theme-alignment.md)
 - [Axiom Fcitx5 WeChat Input And Wallpaper](tasks/axiom-fcitx5-wechat-wallpaper.md)
 - [Axiom Foot Notify Config Fix](tasks/axiom-foot-notify-config-fix.md)
