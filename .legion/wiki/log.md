@@ -108,3 +108,5 @@
 - Added current status page / black-box monitoring decisions for NixOS-native Gatus on `acorn` and Prometheus boundary ownership.
 - Extended runtime validation patterns with Gatus loopback/nginx/Prometheus scrape validation and upstream `DynamicUser` state ownership.
 - Added status page follow-up for DNS/ACME/runtime Prometheus verification and the existing full-flake app schema blocker.
+- Added task summary for `axiom-thunar-contrast-regression`.
+- Updated current Axiom Caelestia theme decisions and Thunar/GTK patterns with the requirement to own stale GTK3 Thunar CSS when `Breeze-Dark` alone does not fix live contrast.

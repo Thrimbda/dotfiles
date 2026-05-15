@@ -34,6 +34,7 @@
 - [Axiom No-Sleep Power Mode](tasks/axiom-no-sleep-power-mode.md)
 - [Axiom Playwright CLI Runtime](tasks/axiom-playwright-cli-runtime.md)
 - [Axiom Thunar Caelestia Theme Contrast](tasks/axiom-thunar-caelestia-theme-contrast.md)
+- [Axiom Thunar Contrast Regression](tasks/axiom-thunar-contrast-regression.md)
 - [Axiom and Charlie Opencode Cloudflare Access Google OIDC](tasks/axiom-charlie-opencode-access-google-oidc.md)
 - [Axiom Quickshell Notification Center](tasks/axiom-quickshell-notification-center.md)
 - [Axiom Quickshell Quick Controls and OSD](tasks/axiom-quickshell-quick-controls-osd.md)
