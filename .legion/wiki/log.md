@@ -118,3 +118,5 @@
 - Extended host-local GUI package patterns with `pkgs.unstable` FHS/unfree package validation guidance from the Antigravity install.
 - Added task summary for `axiom-todesk-service-network`.
 - Updated current decisions, patterns, and maintenance with Axiom ToDesk service ownership, restricted state directory handling, and post-deploy smoke checks.
+- Added task summary for `ssh-foot-term-compat`.
+- Extended XDG SSH wrapper validation pattern with the Foot terminfo portability boundary and generated `ssh` wrapper TERM inspection.

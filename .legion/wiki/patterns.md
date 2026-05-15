@@ -40,7 +40,7 @@ For Hyprland/UWSM startup warnings, validate the actual command resolution inste
 
 For autossh reverse tunnel regressions, validate both sides of the generated shape: the remote-forward string must remain loopback-only and port-unique, and the local target service must exist as an active daemon if the tunnel forwards to `127.0.0.1:22`.
 
-For XDG SSH wrapper regressions, build and inspect the generated wrapped `ssh` script. The wrapper must expand `XDG_CONFIG_HOME` at runtime, fall back to `$HOME/.config`, and pass `-F "$cfg"` as argv elements rather than as a literal `$XDG_CONFIG_HOME/ssh/config` string.
+For XDG SSH wrapper regressions, build and inspect the generated wrapped `ssh` script. The wrapper must expand `XDG_CONFIG_HOME` at runtime, fall back to `$HOME/.config`, pass `-F "$cfg"` as argv elements rather than as a literal `$XDG_CONFIG_HOME/ssh/config` string, and set a portable `TERM` such as `xterm-256color` when local terminals like Foot would otherwise leak terminfo names many remote hosts lack.
 
 For opencode over cloudflared, keep the app server bound to `127.0.0.1`, route the public hostname through cloudflared ingress, and treat Cloudflare Access policy verification as a separate上线前置条件. DNS route creation proves the tunnel hostname exists; it does not prove Access policy or app authorization.
 

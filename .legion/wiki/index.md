@@ -57,3 +57,4 @@
 - [Dotfiles Wayland Runtime Fixes](tasks/dotfiles-wayland-runtime-fixes.md)
 - [Dotfiles Wayland Runtime Follow-up](tasks/dotfiles-wayland-runtime-followup.md)
 - [Dotfiles Wayland Visible Shell](tasks/dotfiles-wayland-visible-shell.md)
+- [SSH Foot Term Compatibility](tasks/ssh-foot-term-compat.md)
