@@ -103,6 +103,7 @@ with builtins;
   config = { config, pkgs, ... }:
     let
       inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
+      opencodeDir = "${config.user.home}/.opencode";
       axiomSleepMode = pkgs.writeShellScriptBin "axiom-sleep-mode" ''
         set -euo pipefail
 
@@ -259,8 +260,31 @@ with builtins;
     # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
     services.logrotate.checkConfig = false;
 
+    services.pipewire.wireplumber.extraConfig."51-axiom-audio-priority" = {
+      "monitor.alsa.rules" = [
+        {
+          matches = [{
+            "node.name" = "alsa_output.pci-0000_01_00.1.hdmi-stereo";
+          }];
+          actions.update-props = {
+            "priority.driver" = 1100;
+            "priority.session" = 1100;
+          };
+        }
+        {
+          matches = [{
+            "node.name" = "alsa_output.pci-0000_11_00.6.iec958-stereo";
+          }];
+          actions.update-props = {
+            "priority.driver" = 100;
+            "priority.session" = 100;
+          };
+        }
+      ];
+    };
+
     modules.shell.zsh.envInit = mkBefore ''
-      path=( "$HOME/.opencode/bin" "''${path[@]}" )
+      path=( "${opencodeDir}/bin" "''${path[@]}" )
       typeset -U path PATH
     '';
 
@@ -313,6 +337,8 @@ with builtins;
         ExecStart = "${axiomSleepMode}/bin/axiom-sleep-mode apply";
       };
     };
+
+    systemd.user.services.caelestia-shell.path = mkBefore [ opencodeDir ];
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
 

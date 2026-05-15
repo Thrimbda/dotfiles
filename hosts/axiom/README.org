@@ -1,0 +1,29 @@
+#+TITLE: Axiom
+#+DATE:  May 14, 2026
+
+* Overview
+Axiom is C1's Ryzen 9950X + RTX 5090 NixOS workstation.
+
+* Power Mode
+Axiom defaults to no-sleep mode so unattended desktop idle does not suspend the
+workstation by default.
+
+The shell entrypoint is:
+
+#+begin_src sh
+axiom-sleep-mode status
+axiom-sleep-mode no-sleep
+axiom-sleep-mode allow-sleep
+axiom-sleep-mode toggle
+#+end_src
+
+The desktop launcher entries are:
+
+- Power Mode: No Sleep
+- Power Mode: Allow Sleep
+- Power Mode: Toggle Sleep
+
+In no-sleep mode, Axiom's generated Hypridle config routes automatic suspend
+through ~axiom-sleep-mode maybe-suspend~, and a user ~systemd-inhibit~ service
+blocks direct sleep requests. Switching to allow-sleep stops that inhibitor and
+restores the existing sleep-capable idle behavior.

@@ -97,3 +97,4 @@
 - Updated current Axiom Caelestia theme decisions, Fcitx/GTK patterns, and maintenance with Breeze-Dark GTK and FluentDark Fcitx guidance.
 - Added task summary for `axiom-no-sleep-power-mode`.
 - Updated current Axiom desktop decisions, validation patterns, and maintenance with host-local no-sleep mode, Hypridle override, user sleep inhibitor, and post-deploy smoke checks.
+- Updated opencode Cloudflare Access current truth after adding `froggy2818@gmail.com` to the `opencode-axiom.0xc1.space` exact-email allow policy.
