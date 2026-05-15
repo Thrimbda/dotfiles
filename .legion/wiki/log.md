@@ -124,6 +124,8 @@
 - Extended XDG SSH wrapper validation pattern with the Foot terminfo portability boundary and generated `ssh` wrapper TERM inspection.
 - Added task summary for `axiom-caelestia-keep-awake-race-fix`.
 - Updated current Axiom power decisions, validation patterns, and maintenance with the session-runner cold-start IPC race and 60-second Keep Awake retry window.
+- Added task summary for `axiom-keep-awake-nonblocking`.
+- Updated current Axiom power decisions, validation patterns, and maintenance so Keep Awake cold-start retries do not block the startup hook chain.
 - Added task summary for `axiom-feishu-launcher-id-fix`.
 - Corrected current Caelestia launcher favourite guidance: use Quickshell desktop-entry ids such as `bytedance-feishu`, not literal `.desktop` filenames.
 - Added task summary for `foot-tmux-hotkey`.
