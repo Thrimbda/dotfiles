@@ -49,6 +49,7 @@
   config = { modulesPath, lib, pkgs, ... }: {
     imports = [
       "${modulesPath}/virtualisation/azure-common.nix"
+      ./modules/status.nix
       ./modules/vaultwarden.nix
     ];
 

@@ -91,3 +91,11 @@ For cloudflared age secrets, Linux hosts should use group `users`; Darwin hosts 
 Clash Verge Rev on NixOS should be integrated through the upstream `programs.clash-verge` NixOS module, not through the GUI's service-mode or TUN installers. Hosts enabling the dotfiles `modules.desktop.apps.clash-verge` module should get declarative service mode, TUN mode, autostart, and package pass-through from NixOS.
 
 For TUN connectivity, the current default trusted interface set is `Mihomo` and `Meta`, paired with a reverse-path filter exception for those names. Do not globally disable reverse-path filtering or migrate to `services.mihomo` unless a future scoped task explicitly chooses that route.
+
+## Status Page And Black-Box Monitoring
+
+Gatus is the current repo-managed status page and black-box monitoring entrypoint for `acorn`. It should stay NixOS-native through `modules.services.gatus` and host-local endpoint inventory, not Docker Compose, unless a future task explicitly changes deployment style.
+
+Gatus covers user-visible availability, TLS/route checks, status page display, and Prometheus-exported probe results. Prometheus remains the white-box metrics system for application and infrastructure metrics.
+
+The public Gatus page should only include public-safe endpoints. Do not add private database, Redis, message queue, or internal-only dependency hostnames to the public status page without a new security review.

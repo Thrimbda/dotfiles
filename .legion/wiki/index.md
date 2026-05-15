@@ -46,6 +46,7 @@
 - [Dotfiles Quickshell Product Desktop](tasks/dotfiles-quickshell-product-desktop.md)
 - [Dotfiles Fcitx5 Wayland GTK IM Module](tasks/dotfiles-fcitx5-wayland-gtk-im-module.md)
 - [Dots Hyprland Desktop Complete End4 Import](tasks/dots-hyprland-desktop-rfc.md)
+- [Gatus Status Page Blackbox Monitoring](tasks/gatus-status-page-blackbox-monitoring.md)
 - [Dotfiles Wayland Product Overhaul](tasks/dotfiles-wayland-product-overhaul.md)
 - [Dotfiles Wayland Portal User Units Fix](tasks/dotfiles-wayland-portal-user-units-fix.md)
 - [Dotfiles Wayland Runtime Fixes](tasks/dotfiles-wayland-runtime-fixes.md)

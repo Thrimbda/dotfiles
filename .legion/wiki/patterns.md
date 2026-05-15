@@ -40,6 +40,10 @@ For XDG SSH wrapper regressions, build and inspect the generated wrapped `ssh` s
 
 For opencode over cloudflared, keep the app server bound to `127.0.0.1`, route the public hostname through cloudflared ingress, and treat Cloudflare Access policy verification as a separate上线前置条件. DNS route creation proves the tunnel hostname exists; it does not prove Access policy or app authorization.
 
+For NixOS-native Gatus status pages, keep the wrapper minimal around upstream `services.gatus`: enable metrics, set sqlite storage, bind `web.address` to `127.0.0.1`, proxy public access through nginx, and append Prometheus scrape configs only when Prometheus is enabled. Let upstream `DynamicUser=true` and `StateDirectory=gatus` own state; do not add custom tmpfiles rules for `/var/lib/gatus` unless upstream state handling changes.
+
+Validate status-page changes with the target host toplevel build plus focused evals for Gatus settings, nginx vhost, endpoint inventory, and Prometheus scrape configs. Full flake checks are useful but should be classified separately if they fail on unchanged baseline app/schema wiring.
+
 For Cloudflare secrets, keep cloudflared tunnel runtime credentials separate from Cloudflare API management tokens. `cloudflared-credentials.age` should remain the tunnel credentials JSON (`AccountTag`, `TunnelSecret`, `TunnelID`, `Endpoint`); API automation tokens should use a separate env-style age secret and validation should pattern-match decrypted output without printing secret values.
 
 For Linux cloudflared services backed by agenix credentials, keep connector config system-owned, for example `/etc/cloudflared/config.yml`. Do not require Home Manager to write `~/.cloudflared/config.yml` if the age secret path also lives under `~/.cloudflared`, because agenix can create the parent directory as root before Home Manager activation.

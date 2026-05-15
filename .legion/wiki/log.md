@@ -104,3 +104,7 @@
 - Updated current Axiom/Caelestia launcher decisions and patterns with desktop-id favourites plus narrow mutable `shell.json` migration guidance.
 - Added task summary for `axiom-hyprland-dpms-safe-mode-fix`.
 - Updated current Axiom Hyprland decisions, patterns, and maintenance with the DPMS/resume safe-mode root-cause chain, temporary `render.cm_enabled = false` mitigation, hypridle service PATH ownership, and post-deploy live smoke requirement.
+- Added task summary for `gatus-status-page-blackbox-monitoring`.
+- Added current status page / black-box monitoring decisions for NixOS-native Gatus on `acorn` and Prometheus boundary ownership.
+- Extended runtime validation patterns with Gatus loopback/nginx/Prometheus scrape validation and upstream `DynamicUser` state ownership.
+- Added status page follow-up for DNS/ACME/runtime Prometheus verification and the existing full-flake app schema blocker.
