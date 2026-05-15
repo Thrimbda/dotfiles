@@ -9,6 +9,7 @@
 ## Tasks
 
 - [Aliyun NixOS Image Host](tasks/aliyun-nixos-image-host.md)
+- [Axiom Antigravity Install](tasks/axiom-antigravity-install.md)
 - [Axiom Autossh Reverse SSH Tunnel](tasks/axiom-autossh-reverse-ssh-tunnel.md)
 - [Axiom Caelestia Keybind Fix](tasks/axiom-caelestia-keybind-fix.md)
 - [Axiom Caelestia Keep Awake Default](tasks/axiom-caelestia-keep-awake-default.md)
