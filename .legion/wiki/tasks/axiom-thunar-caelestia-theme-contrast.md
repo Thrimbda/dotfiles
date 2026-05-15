@@ -8,7 +8,7 @@
 - `schema-version`: `current`
 - `historical`: `false`
 - `supersedes`: `axiom-caelestia-permissions-theme-cleanup` visual-theme conclusion that categorically avoided Catppuccin visible assets
-- `superseded-by`: `(none)`
+- `superseded-by`: `axiom-thunar-contrast-regression`
 
 ## Outcome Summary
 
@@ -16,7 +16,7 @@ This task fixes the reported Axiom Thunar contrast regression by moving GTK them
 
 Fcitx visible theming is now declaratively themeable by package/name instead of being hard-coded to Catppuccin. Axiom selects `fcitx5-fluent` with `Theme=FluentDark`, while existing Catppuccin defaults remain available for other users or future scoped theme work.
 
-The current effective conclusion is no longer “avoid Catppuccin assets categorically.” The current Axiom Caelestia visual direction is BreezeDark GTK/Qt alignment plus a neutral dark Fcitx theme; Catppuccin remains an allowed future direction only if a scoped task deliberately aligns GTK, Fcitx, and Qt/Caelestia together.
+The current effective conclusion is no longer “avoid Catppuccin assets categorically.” The current Axiom Caelestia visual direction is BreezeDark GTK/Qt alignment plus a neutral dark Fcitx theme; Catppuccin remains an allowed future direction only if a scoped task deliberately aligns GTK, Fcitx, and Qt/Caelestia together. This task's package-level GTK conclusion was later refined by `axiom-thunar-contrast-regression`, which found that live GTK3 Thunar CSS also needed repository ownership.
 
 Static verification passed for generated GTK metadata, Home Manager GTK settings, qtengine color scheme, Fcitx settings/config/addons, `git diff --check`, and the Axiom toplevel dry-run. Final perceived contrast remains a post-switch live Thunar/Fcitx smoke check.
 
