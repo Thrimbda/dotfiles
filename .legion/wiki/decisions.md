@@ -36,7 +36,7 @@ The active Axiom shortcut reference entrypoint is the generated Hyprland `SUPER+
 
 When Caelestia global-shortcut dispatch does not work in the live Axiom session, repository-generated keybinds may route through reviewed `caelestia shell ...` IPC commands instead. Do not restore top-level Hyprland `catchall` bindings; if Super-key tap semantics are required again, split a scoped follow-up with parser validation.
 
-Current Axiom `Super+Space` opens the Caelestia launcher drawer. Default-visible app additions should use upstream desktop entry ids in Caelestia `launcher.favouriteApps`; if the user's mutable `caelestia/shell.json` already exists, repository migrations should append the missing value narrowly and preserve all other user settings.
+Current Axiom `Super+Space` opens the Caelestia launcher drawer. Default-visible app additions should use upstream desktop entry ids in Caelestia `launcher.favouriteApps`; if the user's mutable `caelestia/shell.json` already exists, repository migrations should append the missing value narrowly and preserve all other user settings. The Caelestia shell service must also expose Nix package desktop-entry data through `XDG_DATA_DIRS`; favourites do not make an app discoverable when Quickshell `DesktopEntries` cannot scan the package's `share/applications` path.
 
 Axiom Steam on fractional-scale Hyprland should treat jagged or low-resolution Steam UI first as an XWayland/HiDPI integration issue: enable XWayland self-scaling for scaled monitor configs and pass Steam an explicit desktop UI scale. Do not expand this into per-game Proton or GPU runtime debugging without live evidence.
 
