@@ -163,6 +163,7 @@ with builtins;
     modules.desktop.caelestia.settings.launcher.favouriteApps = [ feishuDesktopId ];
 
     user.packages = with pkgs; [
+      unstable.antigravity-fhs
       aria2
       autossh
       feishu
