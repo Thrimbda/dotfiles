@@ -122,3 +122,5 @@
 - Updated current decisions, patterns, and maintenance with Axiom ToDesk service ownership, restricted state directory handling, and post-deploy smoke checks.
 - Added task summary for `ssh-foot-term-compat`.
 - Extended XDG SSH wrapper validation pattern with the Foot terminfo portability boundary and generated `ssh` wrapper TERM inspection.
+- Added task summary for `axiom-caelestia-keep-awake-race-fix`.
+- Updated current Axiom power decisions, validation patterns, and maintenance with the session-runner cold-start IPC race and 60-second Keep Awake retry window.
