@@ -37,6 +37,12 @@ with builtins;
       caelestia.wallpaper.enable = true;
       hyprland = {
         enable = true;
+        extraConfig = ''
+          render {
+            # Work around Hyprland 0.53.x color-management crashes on DPMS/resume.
+            cm_enabled = false
+          }
+        '';
         monitors = [{
           mode = "3840x2160@60";
           position = "0x0";
