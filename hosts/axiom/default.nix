@@ -103,6 +103,35 @@ with builtins;
   config = { config, pkgs, ... }:
     let
       opencodeDir = "${config.user.home}/.opencode";
+      feishuDesktopId = "bytedance-feishu.desktop";
+      ensureFeishuLauncherFavorite = pkgs.writeShellScript "axiom-ensure-feishu-launcher-favorite" ''
+        set -eu
+
+        config_dir=${escapeShellArg "${config.home.configDir}/caelestia"}
+        config_path="$config_dir/shell.json"
+        desktop_id=${escapeShellArg feishuDesktopId}
+
+        ${pkgs.coreutils}/bin/install -d -m 0755 "$config_dir"
+        if [ ! -s "$config_path" ]; then
+          exit 0
+        fi
+
+        tmp="$(${pkgs.coreutils}/bin/mktemp "$config_path.XXXXXX")"
+        trap '${pkgs.coreutils}/bin/rm -f "$tmp"' EXIT
+
+        if ! ${pkgs.jq}/bin/jq --arg app "$desktop_id" '
+          .launcher = (.launcher // {})
+          | .launcher.favouriteApps = ((.launcher.favouriteApps // []) as $apps
+              | if ($apps | index($app)) then $apps else $apps + [$app] end)
+        ' "$config_path" > "$tmp"; then
+          printf 'axiom-ensure-feishu-launcher-favorite: unable to update %s\n' "$config_path" >&2
+          exit 0
+        fi
+
+        if ! ${pkgs.diffutils}/bin/cmp -s "$tmp" "$config_path"; then
+          ${pkgs.coreutils}/bin/install -m 0644 "$tmp" "$config_path"
+        fi
+      '';
       caelestiaKeepAwake = pkgs.writeShellScript "axiom-caelestia-keep-awake" ''
         set -euo pipefail
 
@@ -121,6 +150,7 @@ with builtins;
       name = "FluentDark";
       package = pkgs.fcitx5-fluent;
     };
+    modules.desktop.caelestia.settings.launcher.favouriteApps = [ feishuDesktopId ];
 
     user.packages = with pkgs; [
       aria2
@@ -208,7 +238,10 @@ with builtins;
       };
     };
 
-    systemd.user.services.caelestia-shell.path = mkBefore [ opencodeDir ];
+    systemd.user.services.caelestia-shell = {
+      path = mkBefore [ opencodeDir ];
+      serviceConfig.ExecStartPre = mkAfter [ "${ensureFeishuLauncherFavorite}" ];
+    };
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
 

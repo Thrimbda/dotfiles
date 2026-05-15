@@ -100,3 +100,5 @@
 - Updated opencode Cloudflare Access current truth after adding `froggy2818@gmail.com` to the `opencode-axiom.0xc1.space` exact-email allow policy.
 - Added task summary for `axiom-caelestia-keep-awake-default`.
 - Superseded the custom Axiom no-sleep wrapper decision with Caelestia Keep Awake / `idleInhibitor` default enablement and updated patterns/maintenance accordingly.
+- Added task summary for `axiom-feishu-launcher-entry`.
+- Updated current Axiom/Caelestia launcher decisions and patterns with desktop-id favourites plus narrow mutable `shell.json` migration guidance.
