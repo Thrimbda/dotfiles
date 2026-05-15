@@ -18,3 +18,4 @@
 - Change review passed with a session-environment security lens. No blocking findings; production scope is limited to `modules/desktop/caelestia.nix`.
 - Walkthrough and PR body generated from existing implementation, verification, and review evidence.
 - Wiki writeback completed: added task summary and updated current Axiom Caelestia decisions/patterns for display-session hydration of launcher-owned apps.
+- Committed and pushed branch `legion/axiom-caelestia-steam-display-fix-display-env`; opened PR https://github.com/Thrimbda/dotfiles/pull/62 against `master`.
