@@ -257,6 +257,12 @@ in {
       wantedBy = [ "hyprland-session.target" ];
       after = [ "hyprland-session.target" ];
       partOf = [ "hyprland-session.target" ];
+      path = [
+        config.programs.hyprland.package
+        pkgs.unstable.hyprlock
+        pkgs.procps
+        pkgs.systemd
+      ];
       serviceConfig = {
         ExecStart = "${pkgs.unstable.hypridle}/bin/hypridle";
         Restart = "on-failure";

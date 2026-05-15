@@ -27,6 +27,7 @@
 - [Axiom Fcitx5 WeChat Input And Wallpaper](tasks/axiom-fcitx5-wechat-wallpaper.md)
 - [Axiom Foot Notify Config Fix](tasks/axiom-foot-notify-config-fix.md)
 - [Axiom Host](tasks/axiom-host.md)
+- [Axiom Hyprland DPMS Safe Mode Fix](tasks/axiom-hyprland-dpms-safe-mode-fix.md)
 - [Axiom Install ToDesk](tasks/axiom-install-todesk.md)
 - [Axiom Input And Caelestia Config Hotfix](tasks/axiom-input-caelestia-config-hotfix.md)
 - [Axiom Keybinding Help Modal](tasks/axiom-keybinding-help-modal.md)

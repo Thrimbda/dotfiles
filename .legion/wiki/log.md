@@ -102,3 +102,5 @@
 - Superseded the custom Axiom no-sleep wrapper decision with Caelestia Keep Awake / `idleInhibitor` default enablement and updated patterns/maintenance accordingly.
 - Added task summary for `axiom-feishu-launcher-entry`.
 - Updated current Axiom/Caelestia launcher decisions and patterns with desktop-id favourites plus narrow mutable `shell.json` migration guidance.
+- Added task summary for `axiom-hyprland-dpms-safe-mode-fix`.
+- Updated current Axiom Hyprland decisions, patterns, and maintenance with the DPMS/resume safe-mode root-cause chain, temporary `render.cm_enabled = false` mitigation, hypridle service PATH ownership, and post-deploy live smoke requirement.
