@@ -14,6 +14,7 @@
 - [Axiom Caelestia Keybind Fix](tasks/axiom-caelestia-keybind-fix.md)
 - [Axiom Caelestia Keep Awake Default](tasks/axiom-caelestia-keep-awake-default.md)
 - [Axiom Caelestia Keep Awake Path Fix](tasks/axiom-caelestia-keep-awake-path-fix.md)
+- [Axiom Caelestia Keep Awake Race Fix](tasks/axiom-caelestia-keep-awake-race-fix.md)
 - [Axiom Caelestia Permissions And Theme Cleanup](tasks/axiom-caelestia-permissions-theme-cleanup.md)
 - [Axiom Caelestia README Alignment](tasks/axiom-caelestia-readme-alignment.md)
 - [Axiom Caelestia Session Runner](tasks/axiom-caelestia-session-runner.md)

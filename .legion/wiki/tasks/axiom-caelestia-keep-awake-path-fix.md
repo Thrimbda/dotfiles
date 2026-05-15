@@ -1,6 +1,6 @@
 # Axiom Caelestia Keep Awake Path Fix
 
-Status: PR-backed implementation pending
+Status: implemented; followed by `axiom-caelestia-keep-awake-race-fix` for session-runner cold-start timing
 Task: `.legion/tasks/axiom-caelestia-keep-awake-path-fix/`
 Branch: `legion/axiom-caelestia-keep-awake-path-fix`
 
@@ -29,4 +29,4 @@ The helper called the Caelestia Python CLI by absolute path, but that CLI runs `
 
 ## Follow-Up
 
-After deploying the fixed generation, reset/restart `axiom-caelestia-keep-awake.service` or start a new Hyprland session, then confirm `caelestia shell idleInhibitor isEnabled` reports enabled and the Keep Awake UI reflects the same state.
+After the later session-runner migration, use `axiom-caelestia-keep-awake-race-fix` for the current default-enable timing behavior.

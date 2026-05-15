@@ -145,7 +145,7 @@ with builtins;
       caelestiaKeepAwake = pkgs.writeShellScript "axiom-caelestia-keep-awake" ''
         set -euo pipefail
 
-        for _ in $(${pkgs.coreutils}/bin/seq 1 20); do
+        for _ in $(${pkgs.coreutils}/bin/seq 1 120); do
           if ${config.modules.desktop.caelestia.package}/bin/caelestia-shell ipc call idleInhibitor enable; then
             exit 0
           fi
