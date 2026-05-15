@@ -112,8 +112,10 @@ in {
           '';
 
           environment.systemPackages = with pkgs; with hey.lib.pkgs; [
+            # Remote hosts often lack Foot's terminfo; keep SSH ptys portable.
             (mkWrapper openssh ''
               wrapProgram "$out/bin/ssh" \
+                --set TERM xterm-256color \
                 --run 'dir="$XDG_CONFIG_HOME/ssh"' \
                 --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
                 --run 'cfg="$dir/config"' \
