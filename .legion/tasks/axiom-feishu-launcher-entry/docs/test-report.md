@@ -20,7 +20,7 @@ PASS. Focused Nix checks confirm Axiom now declares `bytedance-feishu.desktop` a
 
 4. `nix eval --raw ".#nixosConfigurations.axiom.config.system.build.toplevel.drvPath"`
    - Result: PASS
-   - Evidence: produced `/nix/store/vb386g1bnjxvj7sxx1flaaa7h8pp1l43-nixos-system-axiom-25.11.20260203.e576e3c.drv`.
+   - Evidence: produced `/nix/store/p0dhaf1l8y0jy2g5zvz2x82ja8rl17lw-nixos-system-axiom-25.11.20260203.e576e3c.drv` after rebasing onto the latest `origin/master`.
 
 5. `nix build --no-link --impure --expr 'let flake = builtins.getFlake ("path:" + toString ./.); in builtins.elemAt flake.nixosConfigurations.axiom.config.systemd.user.services.caelestia-shell.serviceConfig.ExecStartPre 2' && script="$(nix eval --raw --impure --expr 'let flake = builtins.getFlake ("path:" + toString ./.); in builtins.elemAt flake.nixosConfigurations.axiom.config.systemd.user.services.caelestia-shell.serviceConfig.ExecStartPre 2')" && bash -n "$script"`
    - Result: PASS
@@ -29,6 +29,10 @@ PASS. Focused Nix checks confirm Axiom now declares `bytedance-feishu.desktop` a
 6. `git diff --check`
    - Result: PASS
    - Evidence: no whitespace errors reported.
+
+7. `git diff --check HEAD~1 HEAD`
+   - Result: PASS
+   - Evidence: no whitespace errors reported after the rebase conflict resolution.
 
 ## Why These Checks
 
