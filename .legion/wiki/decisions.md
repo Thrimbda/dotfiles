@@ -28,7 +28,7 @@ Current Axiom Caelestia visual theming aligns GTK with qtengine through KDE `Bre
 
 Until Caelestia's logind lock crash is proven fixed, ordinary Axiom idle/keybind lock paths should call `hyprlock` directly rather than `loginctl lock-session` or `caelestia:lock`.
 
-Axiom desktop power policy now defaults to no-sleep through host-local `axiom-sleep-mode`, an Axiom-generated Hypridle override, and a user `systemd-inhibit --what=sleep --mode=block` service. Keep this scoped to Axiom; do not change global `config/hypr/hypridle.conf`, grant logind `ignore-inhibit`, or widen polkit power actions without a new review. Users can explicitly switch to allow-sleep through the desktop mode command/launcher entries.
+Axiom desktop power policy now defaults to Caelestia Keep Awake by enabling Caelestia `idleInhibitor` at Hyprland/Caelestia session startup. Keep Caelestia's own Keep Awake UI as the visible source of truth; do not restore the custom `axiom-sleep-mode` wrapper, Power Mode launcher entries, Axiom-only Hypridle override, or user `systemd-inhibit` service unless a future task explicitly requires system-wide/headless no-sleep behavior. This policy is graphical-session scoped and does not grant logind `ignore-inhibit` or widen polkit power actions.
 
 Axiom-specific input facts, monitors, workspaces, app rules, environment, and fallback keybinds remain Nix-generated Hyprland config. Generated keybinds should use canonical uppercase Hyprland modifier tokens such as `SUPER`, `CTRL`, `ALT`, and `SHIFT`. Primary shell bindings should target Caelestia global shortcuts or reviewed Caelestia CLI commands, not legacy `quickshell --config ii`, end4 IPC names, `IllogicalImpulse`, matugen, or fuzzel shell assumptions.
 

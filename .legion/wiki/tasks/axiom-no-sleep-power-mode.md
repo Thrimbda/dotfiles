@@ -1,12 +1,16 @@
 # Axiom No-Sleep Power Mode
 
-Status: PR-backed implementation pending
+Status: historical; superseded by `axiom-caelestia-keep-awake-default`
 Task: `.legion/tasks/axiom-no-sleep-power-mode/`
 Branch: `legion/axiom-no-sleep-power-mode-default-toggle`
 
 ## Summary
 
 Added an Axiom-local desktop power mode so the workstation defaults to no-sleep while still allowing the user to switch back to sleep-allowed behavior from the desktop.
+
+## Superseded
+
+The custom `axiom-sleep-mode` command, Power Mode launcher entries, Axiom Hypridle override, and user sleep-inhibitor service were superseded by `axiom-caelestia-keep-awake-default`, which reuses Caelestia's built-in Keep Awake / `idleInhibitor` capability and keeps the shell UI as the source of truth.
 
 ## Effective Outcome
 
