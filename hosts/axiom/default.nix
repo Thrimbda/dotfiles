@@ -176,6 +176,25 @@ with builtins;
       uv
     ];
 
+    systemd.tmpfiles.rules = [
+      "d /var/lib/todesk 0700 c1 users - -"
+    ];
+
+    systemd.services.todesk = {
+      description = "ToDesk background service";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "simple";
+        User = "c1";
+        WorkingDirectory = "/home/c1";
+        ExecStart = "${pkgs.todesk}/bin/todesk service";
+        Restart = "on-failure";
+        RestartSec = "5s";
+      };
+    };
+
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
         var login1PowerActions = {

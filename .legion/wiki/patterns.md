@@ -20,6 +20,8 @@ For one-off, host-specific GUI client requests on `axiom`, prefer the existing h
 
 Package-only GUI client installation should not imply account state, proxy setup, cache management, autostart, credentials, organization policy, or live `nixos-rebuild switch` unless the task contract explicitly includes those runtime concerns.
 
+If a GUI package later proves to require runtime service ownership, split a follow-up task rather than silently expanding the original package-install scope. For remote-access clients, prefer a host-local systemd service only after live diagnostics identify the required background process, run it as the desktop user when that is sufficient, restrict any shared state directory that may contain auth/private data, and avoid firewall changes unless they are explicitly scoped and security-reviewed.
+
 For unfree or FHS-wrapped GUI clients from `pkgs.unstable`, validate the evaluated host user package list, the package build itself, and the host toplevel dry-run. This proves declarative installation and rebuild planning without claiming GUI login, extension marketplace, or runtime state behavior.
 
 For Axiom Playwright tooling, prefer enabling the existing `modules.dev.playwright` module over manually adding `pkgs.playwright-test` to host-local packages. Validate the evaluated host option, evaluated `users.users.c1.packages`, CLI version, wrapper `PLAYWRIGHT_BROWSERS_PATH`, and Axiom toplevel dry-run; live browser launch remains a post-switch graphical-session smoke check.
