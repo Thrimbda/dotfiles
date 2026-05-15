@@ -39,3 +39,8 @@
 ## Cloudflare Credentials Follow-Up
 
 - Rotate the Cloudflare API token stored in `hosts/charlie/secrets/cloudflare-api-token.age`, because the pre-existing token appeared in earlier tool output before being moved into age management. The user explicitly declined rotation during `axiom-charlie-opencode-access-google-oidc`; keep this as a separate accepted maintenance risk, not as a blocker for the already verified Access app/policy state.
+
+## Status Page Follow-Up
+
+- After deploying `gatus-status-page-blackbox-monitoring`, confirm DNS for `status.0xc1.space` points to `acorn`, ACME issuance succeeds, `https://status.0xc1.space` loads, and Prometheus can scrape `http://127.0.0.1:8080/metrics` with Gatus metrics visible.
+- Fix the baseline `nix flake check --no-build` app schema failure in unchanged `apps.install = mkApp ./install.zsh` / `lib/nixos.nix` if full-flake checking is required as a merge gate for future tasks.
