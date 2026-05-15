@@ -28,7 +28,7 @@ PASS. Focused checks confirm Axiom now declares `bytedance-feishu` as the Caeles
 
 6. `nix eval --raw ".#nixosConfigurations.axiom.config.system.build.toplevel.drvPath"`
    - Result: PASS
-   - Evidence: produced `/nix/store/q559nx095hjgv1n23vpzgk22gr22yqkh-nixos-system-axiom-25.11.20260203.e576e3c.drv`.
+   - Evidence: produced `/nix/store/b5h37s58dipsyz41nfn5m5r67wajb9r2-nixos-system-axiom-25.11.20260203.e576e3c.drv` after rebasing onto latest `origin/master`.
 
 7. `git diff --check`
    - Result: PASS
