@@ -12,6 +12,7 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
     cfg = config.modules.desktop.hyprland;
     caelestiaCfg = config.modules.desktop.caelestia;
     terminalCommand = config.modules.desktop.term.default;
+    tmuxTerminalCommand = "${terminalCommand} -e tmux new-session -A -s main";
     browserCommand =
       if config.modules.desktop.browsers.default != null
       then config.modules.desktop.browsers.default
@@ -77,7 +78,7 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
         CTRL+SUPER+ALT+R        Restart session shell
 
       Apps and windows
-        SUPER+SHIFT+Return      Open terminal
+        SUPER+SHIFT+Return      Open tmux terminal
         SUPER+B                 Open browser
         SUPER+E                 Open file manager
         SUPER+Q                 Close active window
@@ -435,7 +436,7 @@ in {
         bindr = CTRL+SUPER+SHIFT, R, exec, ${caelestiaSession} stop
         bindr = CTRL+SUPER+ALT, R, exec, ${caelestiaSession} restart
 
-        bind = SUPER+SHIFT, Return, exec, ${terminalCommand}
+        bind = SUPER+SHIFT, Return, exec, ${tmuxTerminalCommand}
         bind = SUPER, B, exec, app2unit -- ${browserCommand}
         bind = SUPER, E, exec, app2unit -- $fileExplorer
         bind = SUPER, Q, killactive

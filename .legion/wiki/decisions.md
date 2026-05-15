@@ -34,6 +34,8 @@ Axiom-specific input facts, monitors, workspaces, app rules, environment, and fa
 
 The active Axiom shortcut reference entrypoint is the generated Hyprland `SUPER+/` binding. It opens the repository-generated `axiom-keybinding-help` modal and should be kept in sync with generated keybind changes.
 
+Current Axiom `SUPER+SHIFT+Return` is a tmux workspace terminal entrypoint, not a plain terminal launcher. It opens the default terminal as `foot -e tmux new-session -A -s main` on the foot-backed Axiom host, while `TERMINAL`, `$terminal`, and task-manager terminal commands remain plain terminal defaults.
+
 When Caelestia global-shortcut dispatch does not work in the live Axiom session, repository-generated keybinds may route through reviewed `caelestia shell ...` IPC commands instead. Do not restore top-level Hyprland `catchall` bindings; if Super-key tap semantics are required again, split a scoped follow-up with parser validation.
 
 Current Axiom `Super+Space` opens the Caelestia launcher drawer. Default-visible app additions should use Quickshell `DesktopEntry.id` values in Caelestia `launcher.favouriteApps`; for top-level files like `share/applications/bytedance-feishu.desktop`, the id is `bytedance-feishu` without the `.desktop` suffix. If the user's mutable `caelestia/shell.json` already exists, repository migrations should append or correct the missing value narrowly and preserve all other user settings. The Caelestia session runner must also expose Nix package desktop-entry data through `XDG_DATA_DIRS`; favourites do not make an app discoverable when Quickshell `DesktopEntries` cannot scan the package's `share/applications` path.
