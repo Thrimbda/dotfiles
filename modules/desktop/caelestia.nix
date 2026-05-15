@@ -108,6 +108,161 @@ let cfg = config.modules.desktop.caelestia;
         trap - EXIT
       fi
     '';
+    caelestiaSessionPath = makeBinPath ([
+      cfg.cliPackage
+      pkgs.unstable.app2unit
+      pkgs.util-linux
+    ] ++ cfg.session.extraPath
+      ++ config.users.users.${config.user.name}.packages
+      ++ config.environment.systemPackages);
+    caelestiaPreStartCommands = concatStringsSep "\n" ([
+      "${seedShellConfigScript}"
+    ] ++ optional (cfg.wallpaper.enable && cfg.wallpaper.path != null) "${seedWallpaperScript}"
+      ++ cfg.session.preStart);
+    caelestiaSessionControl = pkgs.writeShellScriptBin "caelestia-session" ''
+      set -euo pipefail
+
+      runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
+      runner_pid_file="$runtime_dir/caelestia-session-runner.pid"
+      stop_file="$runtime_dir/caelestia-session.stop"
+      shell_config=${escapeShellArg "${cfg.package}/share/caelestia-shell/shell.qml"}
+
+      require_session() {
+        if [ -z "''${WAYLAND_DISPLAY:-}" ] || [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+          printf 'caelestia-session: refusing to start outside the Hyprland session\n' >&2
+          exit 1
+        fi
+      }
+
+      session_env() {
+        if [ -n "''${PATH:-}" ]; then
+          export PATH=${escapeShellArg caelestiaSessionPath}:$PATH
+        else
+          export PATH=${escapeShellArg caelestiaSessionPath}
+        fi
+
+        ${optionalString (cfg.session.xdgDataDirs != "") ''
+          if [ -n "''${XDG_DATA_DIRS:-}" ]; then
+            export XDG_DATA_DIRS=${escapeShellArg cfg.session.xdgDataDirs}:$XDG_DATA_DIRS
+          else
+            export XDG_DATA_DIRS=${escapeShellArg cfg.session.xdgDataDirs}
+          fi
+        ''}
+
+        export QT_QPA_PLATFORM=${escapeShellArg qtPlatform}
+        export QT_QPA_PLATFORMTHEME=${escapeShellArg qtPlatformTheme}
+        export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+        export QT_AUTO_SCREEN_SCALE_FACTOR=1
+      }
+
+      instance_pid() {
+        (${cfg.package}/bin/caelestia-shell list --all 2>/dev/null || true) \
+          | ${pkgs.gawk}/bin/awk -v config="$shell_config" '
+              /^Instance / { pid = "" }
+              /Process ID:/ { pid = $3 }
+              $0 == "  Config path: " config { print pid; exit }
+            '
+      }
+
+      pid_alive() {
+        [ -n "''${1:-}" ] && ${pkgs.procps}/bin/kill -0 "$1" 2>/dev/null
+      }
+
+      runner_pid() {
+        if [ -s "$runner_pid_file" ]; then
+          ${pkgs.coreutils}/bin/cat "$runner_pid_file"
+        fi
+        return 0
+      }
+
+      runner_alive() {
+        pid_alive "$(runner_pid)"
+      }
+
+      session_owned() {
+        pid="$1"
+        [ -r "/proc/$pid/cgroup" ] || return 1
+        case "$(${pkgs.coreutils}/bin/cat "/proc/$pid/cgroup")" in
+          *'/session-'*'.scope'*) return 0 ;;
+          *) return 1 ;;
+        esac
+      }
+
+      run_prestart() {
+        ${caelestiaPreStartCommands}
+      }
+
+      run() {
+        require_session
+        session_env
+        ${pkgs.coreutils}/bin/install -d -m 0700 "$runtime_dir"
+        printf '%s\n' "$$" > "$runner_pid_file"
+        trap '${pkgs.coreutils}/bin/rm -f "$runner_pid_file" "$stop_file"' EXIT
+
+        while [ ! -e "$stop_file" ]; do
+          set +e
+          ${cfg.package}/bin/caelestia-shell --no-duplicate
+          status=$?
+          set -e
+          [ -e "$stop_file" ] && break
+          [ "$status" -eq 0 ] && break
+          ${pkgs.coreutils}/bin/sleep 5
+        done
+      }
+
+      start() {
+        require_session
+        session_env
+        ${pkgs.coreutils}/bin/install -d -m 0700 "$runtime_dir"
+        ${pkgs.coreutils}/bin/rm -f "$stop_file"
+
+        if runner_alive; then
+          exit 0
+        fi
+
+        pid="$(instance_pid)"
+        if [ -n "$pid" ]; then
+          if session_owned "$pid"; then
+            printf 'caelestia-session: restarting unmanaged session shell pid %s\n' "$pid" >&2
+          else
+            printf 'caelestia-session: migrating non-session-owned shell pid %s\n' "$pid" >&2
+          fi
+          stop
+        fi
+
+        run_prestart
+        ${pkgs.coreutils}/bin/nohup "$0" run >/dev/null 2>&1 &
+      }
+
+      stop() {
+        ${pkgs.coreutils}/bin/install -d -m 0700 "$runtime_dir"
+        : > "$stop_file"
+        ${cfg.package}/bin/caelestia-shell kill --any-display >/dev/null 2>&1 || true
+
+        pid="$(runner_pid)"
+        if pid_alive "$pid"; then
+          for _ in $(${pkgs.coreutils}/bin/seq 1 50); do
+            pid_alive "$pid" || break
+            ${pkgs.coreutils}/bin/sleep 0.1
+          done
+          pid_alive "$pid" && ${pkgs.procps}/bin/kill "$pid" 2>/dev/null || true
+        fi
+
+        ${pkgs.coreutils}/bin/rm -f "$runner_pid_file" "$stop_file"
+      }
+
+      case "''${1:-start}" in
+        start) start ;;
+        stop) stop ;;
+        restart) stop; start ;;
+        status) ${cfg.package}/bin/caelestia-shell list --all ;;
+        run) run ;;
+        *)
+          printf 'usage: caelestia-session {start|stop|restart|status}\n' >&2
+          exit 64
+          ;;
+      esac
+    '';
 in {
   imports = optional pkgs.stdenv.isLinux hey.inputs.qtengine.nixosModules.default;
 
@@ -117,6 +272,12 @@ in {
     cliPackage = mkOpt package defaultCliPackage;
     settings = mkOpt attrs {};
     cli.settings = mkOpt attrs {};
+    session = {
+      extraPath = mkOpt (listOf (oneOf [ package str ])) [];
+      preStart = mkOpt (listOf str) [];
+      xdgDataDirs = mkOpt str "";
+      controlCommand = mkOpt str "";
+    };
     wallpaper = {
       enable = mkBoolOpt false;
       path = mkOpt (nullOr str) defaultWallpaperPath;
@@ -181,40 +342,18 @@ in {
         nerd-fonts.caskaydia-cove
       ];
 
-      systemd.user.services.caelestia-shell = {
-        description = "Caelestia desktop shell";
-        wantedBy = [ "hyprland-session.target" ];
-        after = [ "hyprland-session.target" ];
-        partOf = [ "hyprland-session.target" ];
-        path = [
-          cfg.cliPackage
-          pkgs.unstable.app2unit
-          pkgs.util-linux
-        ] ++ config.users.users.${config.user.name}.packages
-          ++ config.environment.systemPackages;
-        serviceConfig = {
-          ExecStartPre = [ "${seedShellConfigScript}" ]
-            ++ optional (cfg.wallpaper.enable && cfg.wallpaper.path != null) "${seedWallpaperScript}";
-          ExecStart = "${cfg.package}/bin/caelestia-shell --no-duplicate";
-          Restart = "on-failure";
-          RestartSec = 5;
-          TimeoutStopSec = 5;
-          Slice = "session.slice";
-        };
-        environment = {
-          QT_QPA_PLATFORM = qtPlatform;
-          QT_QPA_PLATFORMTHEME = qtPlatformTheme;
-          QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-          QT_AUTO_SCREEN_SCALE_FACTOR = "1";
-        };
-      };
+      modules.desktop.caelestia.session.controlCommand = "${caelestiaSessionControl}/bin/caelestia-session";
+
+      hey.hooks.startup."06-caelestia-shell" = ''
+        hey.do ${caelestiaSessionControl}/bin/caelestia-session start
+      '';
 
       home.configFile = optionalAttrs (cfg.cli.settings != {}) {
         "caelestia/cli.json".text = builtins.toJSON cfg.cli.settings;
       };
 
       hey.hooks.reload."94-caelestia-shell" = ''
-        hey.do systemctl --user restart caelestia-shell.service
+        hey.do ${caelestiaSessionControl}/bin/caelestia-session restart
       '';
     })
   ]);

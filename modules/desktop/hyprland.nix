@@ -24,6 +24,10 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
     xkbVariant = config.services.xserver.xkb.variant;
     xkbOptions = config.services.xserver.xkb.options;
     caelestiaCli = "${caelestiaCfg.cliPackage}/bin/caelestia";
+    caelestiaSession =
+      if caelestiaCfg.enable && caelestiaCfg.session.controlCommand != ""
+      then caelestiaCfg.session.controlCommand
+      else "${pkgs.coreutils}/bin/true";
     caelestiaOwnsWallpaper = caelestiaCfg.enable && caelestiaCfg.wallpaper.enable;
     hasScaledMonitor = any (monitor: (monitor.scale or 1) != 1) cfg.monitors;
     qtPlatform = "wayland;xcb";
@@ -68,9 +72,9 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
         CTRL+ALT+Delete         Toggle session drawer
         SUPER+SHIFT+L           Lock with hyprlock
 
-      Caelestia service
-        CTRL+SUPER+SHIFT+R      Stop caelestia-shell.service
-        CTRL+SUPER+ALT+R        Restart caelestia-shell.service
+      Caelestia shell
+        CTRL+SUPER+SHIFT+R      Stop session shell
+        CTRL+SUPER+ALT+R        Restart session shell
 
       Apps and windows
         SUPER+SHIFT+Return      Open terminal
@@ -428,8 +432,8 @@ in {
         bindl = , XF86AudioPrev, exec, $caelestia shell mpris previous
         bindl = , XF86AudioStop, exec, $caelestia shell mpris stop
 
-        bindr = CTRL+SUPER+SHIFT, R, exec, systemctl --user stop caelestia-shell.service
-        bindr = CTRL+SUPER+ALT, R, exec, systemctl --user restart caelestia-shell.service
+        bindr = CTRL+SUPER+SHIFT, R, exec, ${caelestiaSession} stop
+        bindr = CTRL+SUPER+ALT, R, exec, ${caelestiaSession} restart
 
         bind = SUPER+SHIFT, Return, exec, ${terminalCommand}
         bind = SUPER, B, exec, app2unit -- ${browserCommand}
