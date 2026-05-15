@@ -112,3 +112,5 @@
 - Updated current Axiom Caelestia theme decisions and Thunar/GTK patterns with the requirement to own stale GTK3 Thunar CSS when `Breeze-Dark` alone does not fix live contrast.
 - Added task summary for `axiom-feishu-launcher-discovery-fix`.
 - Updated current Axiom/Caelestia launcher decisions and patterns with service-local `XDG_DATA_DIRS` ownership for Quickshell desktop-entry discovery.
+- Added task summary for `axiom-caelestia-keep-awake-path-fix`.
+- Updated current Axiom power decisions, validation patterns, and maintenance with the Caelestia Keep Awake helper PATH regression and direct `caelestia-shell` IPC fix.
