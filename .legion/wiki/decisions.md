@@ -86,6 +86,12 @@ The hostname `axiom-opencode.0xc1.space` was created by mistake during the axiom
 
 For cloudflared age secrets, Linux hosts should use group `users`; Darwin hosts should keep group `staff`.
 
+## Axiom ToDesk Runtime
+
+On `axiom`, ToDesk is a host-local desktop remote-access integration. The package remains installed through `user.packages`, while runtime connectivity is owned by a systemd service running `${pkgs.todesk}/bin/todesk service` as `c1` after `network-online.target`.
+
+ToDesk state lives in `/var/lib/todesk` and should be created declaratively with `0700 c1 users`, because the vendor binaries write auth/private state there and both GUI and service run as `c1`. Do not add inbound firewall allowances for ToDesk without a separate scoped security review.
+
 ## Clash Verge On NixOS
 
 Clash Verge Rev on NixOS should be integrated through the upstream `programs.clash-verge` NixOS module, not through the GUI's service-mode or TUN installers. Hosts enabling the dotfiles `modules.desktop.apps.clash-verge` module should get declarative service mode, TUN mode, autostart, and package pass-through from NixOS.

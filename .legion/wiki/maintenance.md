@@ -35,6 +35,7 @@
 - Delete the mistakenly created `axiom-opencode.0xc1.space` CNAME in Cloudflare DNS/Zero Trust. The active axiom opencode hostname is `opencode-axiom.0xc1.space`.
 - Cloudflare Access API verification has configured `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space` with Google-only Access apps and exact-email allow policies. `opencode-axiom.0xc1.space` allows `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`; `opencode-charlie.0xc1.space` allows `c1@ntnl.io` and `siyuan.arc@gmail.com`. Manual browser smoke checks with allowed accounts and one denied account are still recommended after deployment.
 - After deploying the SSH/opencode/cloudflared fix, run `ssh azar`, `systemctl status autossh-reverse-ssh` on `azar`, and `systemctl status opencode-server cloudflared` on `axiom`.
+- After deploying the ToDesk service-network fix, run `systemctl status todesk`, launch ToDesk in the graphical session, and confirm the GUI no longer reports no network. Confirm `/var/lib/todesk` is not world-traversable after tmpfiles applies.
 
 ## Cloudflare Credentials Follow-Up
 

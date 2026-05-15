@@ -16,7 +16,7 @@ This task makes ToDesk available on the `axiom` NixOS host through the declarati
 
 The current effective conclusion is package-only installation: no ToDesk daemon/service, firewall rule, desktop module, or live `nixos-rebuild switch` is part of this task. Verification confirms pinned `pkgs.todesk` is available for `x86_64-linux` and that the axiom configuration evaluates with `hasTodesk = true`.
 
-Runtime ToDesk behavior remains a post-switch/manual check because this task intentionally avoids live-system changes.
+Runtime ToDesk behavior was left as a post-switch/manual check because this task intentionally avoided live-system changes. Follow-up task `axiom-todesk-service-network` later added the runtime state directory and background service needed for GUI network connectivity.
 
 ## Reusable Decisions
 
@@ -36,3 +36,4 @@ Runtime ToDesk behavior remains a post-switch/manual check because this task int
 ## Notes
 
 - After this branch is applied to axiom, switch the host configuration and launch `todesk` manually to confirm runtime UI/login behavior.
+- For current ToDesk runtime integration, see `axiom-todesk-service-network`.

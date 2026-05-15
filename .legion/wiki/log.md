@@ -116,3 +116,5 @@
 - Updated current Axiom power decisions, validation patterns, and maintenance with the Caelestia Keep Awake helper PATH regression and direct `caelestia-shell` IPC fix.
 - Added task summary for `axiom-antigravity-install`.
 - Extended host-local GUI package patterns with `pkgs.unstable` FHS/unfree package validation guidance from the Antigravity install.
+- Added task summary for `axiom-todesk-service-network`.
+- Updated current decisions, patterns, and maintenance with Axiom ToDesk service ownership, restricted state directory handling, and post-deploy smoke checks.
