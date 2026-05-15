@@ -128,3 +128,5 @@
 - Corrected current Caelestia launcher favourite guidance: use Quickshell desktop-entry ids such as `bytedance-feishu`, not literal `.desktop` filenames.
 - Added task summary for `foot-tmux-hotkey`.
 - Updated current Axiom desktop decisions with the `SUPER+SHIFT+Return` tmux `main` session entrypoint and preserved plain terminal defaults.
+- Added task summary for `axiom-caelestia-steam-display-fix`.
+- Updated current Axiom Caelestia decisions and patterns with display/session environment hydration for launcher-owned X11/XWayland apps such as Steam.

@@ -20,6 +20,8 @@ For Axiom Caelestia/Quickshell controls that need NetworkManager or logind autho
 
 Axiom graphical sessions must export a deterministic command PATH from generated `uwsm/env` and import `PATH` into the systemd user manager before starting `hyprland-session.target`. Caelestia Shell remains a launcher/app2unit parent with explicit session runner PATH ownership, and that path must include Caelestia helpers, user packages, and generated system packages so GUI-launched terminals and apps can resolve system-profile commands such as `git`, `gawk`, `steam`, and `steam-run`.
 
+Caelestia Shell launcher children must also inherit the active display/session variables needed by both Wayland and X11/XWayland clients. The generated `caelestia-session` runner should use the systemd user manager as the post-Hyprland-import source of truth and hydrate only missing allowlisted variables such as `DISPLAY`, `WAYLAND_DISPLAY`, `XAUTHORITY`, desktop/session identifiers, and `HYPRLAND_INSTANCE_SIGNATURE` before starting Quickshell.
+
 Axiom user-installed opencode is exposed through explicit zsh startup and generated UWSM/Hyprland session PATH entries for `$HOME/.opencode/bin`; do not rely on literal host-level `environment.variables.PATH = "$HOME/.opencode/bin:$PATH"` as evidence that interactive shells or GUI-launched commands can resolve opencode.
 
 Wayland desktop hosts using the reusable Fcitx5 module should use Fcitx5's native Wayland frontend by default. Do not force `GTK_IM_MODULE=fcitx` from managed session variables when `waylandFrontend` is enabled and working; GTK should use the Wayland text-input path while Fcitx5 GTK/Qt addons can remain installed.

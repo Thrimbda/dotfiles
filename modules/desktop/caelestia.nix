@@ -135,6 +135,17 @@ let cfg = config.modules.desktop.caelestia;
       }
 
       session_env() {
+        while IFS= read -r entry; do
+          case "$entry" in
+            DISPLAY=*|WAYLAND_DISPLAY=*|XAUTHORITY=*|XDG_CURRENT_DESKTOP=*|XDG_SESSION_DESKTOP=*|XDG_SESSION_TYPE=*|HYPRLAND_INSTANCE_SIGNATURE=*)
+              name="''${entry%%=*}"
+              if [ -z "''${!name:-}" ]; then
+                export "$entry"
+              fi
+              ;;
+          esac
+        done < <(${pkgs.systemd}/bin/systemctl --user show-environment 2>/dev/null || true)
+
         if [ -n "''${PATH:-}" ]; then
           export PATH=${escapeShellArg caelestiaSessionPath}:$PATH
         else
