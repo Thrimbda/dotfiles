@@ -18,6 +18,7 @@
 - [Axiom Caelestia Permissions And Theme Cleanup](tasks/axiom-caelestia-permissions-theme-cleanup.md)
 - [Axiom Caelestia README Alignment](tasks/axiom-caelestia-readme-alignment.md)
 - [Axiom Caelestia Session Runner](tasks/axiom-caelestia-session-runner.md)
+- [Axiom Caelestia Steam Display Fix](tasks/axiom-caelestia-steam-display-fix.md)
 - [Axiom Caelestia Shell Migration](tasks/axiom-caelestia-shell-migration.md)
 - [Axiom Caelestia Wallpaper And Launcher Fix](tasks/axiom-caelestia-wallpaper-launcher-fix.md)
 - [Axiom Caelestia Wallpaper Qt Theme Fix](tasks/axiom-caelestia-wallpaper-qt-theme-fix.md)
