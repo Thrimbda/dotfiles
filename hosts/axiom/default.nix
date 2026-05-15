@@ -110,6 +110,10 @@ with builtins;
     let
       opencodeDir = "${config.user.home}/.opencode";
       feishuDesktopId = "bytedance-feishu.desktop";
+      caelestiaLauncherDataDirs = makeSearchPath "share" (
+        unique (config.users.users.${config.user.name}.packages
+          ++ config.environment.systemPackages)
+      );
       ensureFeishuLauncherFavorite = pkgs.writeShellScript "axiom-ensure-feishu-launcher-favorite" ''
         set -eu
 
@@ -246,6 +250,7 @@ with builtins;
 
     systemd.user.services.caelestia-shell = {
       path = mkBefore [ opencodeDir ];
+      environment.XDG_DATA_DIRS = caelestiaLauncherDataDirs;
       serviceConfig.ExecStartPre = mkAfter [ "${ensureFeishuLauncherFavorite}" ];
     };
 
