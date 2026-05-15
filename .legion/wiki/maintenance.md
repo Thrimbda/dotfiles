@@ -21,7 +21,7 @@
 
 ## Axiom Power Follow-Up
 
-- After deploying `axiom-no-sleep-power-mode`, confirm `axiom-sleep-mode status`, desktop launcher mode switching, `systemd-inhibit --list`, idle lock, DPMS off, no-sleep idle skip, and deliberate allow-sleep suspend behavior in the real Axiom Hyprland session.
+- After deploying `axiom-caelestia-keep-awake-default`, confirm `caelestia shell idleInhibitor isEnabled` reports enabled after login, Caelestia's Keep Awake UI shows enabled by default, and toggling the UI changes the same state. If no graphical session starts, this policy is not expected to provide headless/system-wide no-sleep behavior.
 
 ## Axiom Input Follow-Up
 

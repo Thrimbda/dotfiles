@@ -98,3 +98,5 @@
 - Added task summary for `axiom-no-sleep-power-mode`.
 - Updated current Axiom desktop decisions, validation patterns, and maintenance with host-local no-sleep mode, Hypridle override, user sleep inhibitor, and post-deploy smoke checks.
 - Updated opencode Cloudflare Access current truth after adding `froggy2818@gmail.com` to the `opencode-axiom.0xc1.space` exact-email allow policy.
+- Added task summary for `axiom-caelestia-keep-awake-default`.
+- Superseded the custom Axiom no-sleep wrapper decision with Caelestia Keep Awake / `idleInhibitor` default enablement and updated patterns/maintenance accordingly.
