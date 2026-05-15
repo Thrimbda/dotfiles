@@ -28,6 +28,7 @@
 - [Axiom Feishu Client](tasks/axiom-feishu-client.md)
 - [Axiom Feishu Launcher Discovery Fix](tasks/axiom-feishu-launcher-discovery-fix.md)
 - [Axiom Feishu Launcher Entry](tasks/axiom-feishu-launcher-entry.md)
+- [Axiom Feishu Launcher ID Fix](tasks/axiom-feishu-launcher-id-fix.md)
 - [Axiom Fcitx5 Shell Theme Alignment](tasks/axiom-fcitx5-shell-theme-alignment.md)
 - [Axiom Fcitx5 WeChat Input And Wallpaper](tasks/axiom-fcitx5-wechat-wallpaper.md)
 - [Axiom Foot Notify Config Fix](tasks/axiom-foot-notify-config-fix.md)

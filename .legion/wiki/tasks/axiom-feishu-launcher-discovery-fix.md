@@ -8,13 +8,13 @@
 - `schema-version`: `current`
 - `historical`: `false`
 - `supersedes`: `axiom-feishu-launcher-entry`
-- `superseded-by`: `(none)`
+- `superseded-by`: `axiom-feishu-launcher-id-fix`
 
 ## Outcome Summary
 
-This task fixes the remaining Axiom Feishu launcher visibility issue by exposing Nix package desktop-entry data to the Caelestia shell process. The implementation sets Axiom's `caelestia-shell.service` `XDG_DATA_DIRS` to the evaluated package `share` paths, which lets Quickshell `DesktopEntries` scan Feishu's upstream `share/applications/bytedance-feishu.desktop` entry.
+This task fixed the package desktop-entry data exposure path for Axiom Caelestia, but it was superseded for Feishu favourites by `axiom-feishu-launcher-id-fix`: Quickshell discovers `share/applications/bytedance-feishu.desktop` as desktop-entry id `bytedance-feishu`, not `bytedance-feishu.desktop`.
 
-The previous launcher favourite work remains valid and is preserved: `bytedance-feishu.desktop` stays in `modules.desktop.caelestia.settings.launcher.favouriteApps`, and the narrow mutable `shell.json` pre-start updater remains in place. This task changes discovery inputs, not Feishu runtime state.
+The XDG data exposure conclusion remains useful for app discovery, but the favourite id from this task is no longer current. Use `bytedance-feishu` for Caelestia favourites.
 
 ## Reusable Decisions
 
