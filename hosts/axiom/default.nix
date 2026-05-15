@@ -160,7 +160,14 @@ with builtins;
       name = "FluentDark";
       package = pkgs.fcitx5-fluent;
     };
-    modules.desktop.caelestia.settings.launcher.favouriteApps = [ feishuDesktopId ];
+    modules.desktop.caelestia = {
+      settings.launcher.favouriteApps = [ feishuDesktopId ];
+      session = {
+        extraPath = [ opencodeDir ];
+        preStart = [ "${ensureFeishuLauncherFavorite}" ];
+        xdgDataDirs = caelestiaLauncherDataDirs;
+      };
+    };
 
     user.packages = with pkgs; [
       unstable.antigravity-fhs
@@ -256,23 +263,9 @@ with builtins;
       typeset -U path PATH
     '';
 
-    systemd.user.services.axiom-caelestia-keep-awake = {
-      description = "Enable Caelestia Keep Awake by default";
-      wantedBy = [ "hyprland-session.target" ];
-      after = [ "hyprland-session.target" "caelestia-shell.service" ];
-      wants = [ "caelestia-shell.service" ];
-      partOf = [ "hyprland-session.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${caelestiaKeepAwake}";
-      };
-    };
-
-    systemd.user.services.caelestia-shell = {
-      path = mkBefore [ opencodeDir ];
-      environment.XDG_DATA_DIRS = caelestiaLauncherDataDirs;
-      serviceConfig.ExecStartPre = mkAfter [ "${ensureFeishuLauncherFavorite}" ];
-    };
+    hey.hooks.startup."07-caelestia-keep-awake" = ''
+      hey.do ${caelestiaKeepAwake} || true
+    '';
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
 

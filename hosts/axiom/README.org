@@ -18,6 +18,11 @@ caelestia shell idleInhibitor disable
 caelestia shell idleInhibitor toggle
 #+end_src
 
+The shell process itself is started by the Hyprland startup hook through the
+generated ~caelestia-session~ runner, not as a ~systemd --user~ service. This
+keeps Caelestia inside the graphical login session so local polkit rules apply
+to shell-owned controls such as NetworkManager Wi-Fi actions.
+
 The visible toggle is Caelestia's ~Keep Awake~ control. No separate Axiom power
 mode launcher is used.
 

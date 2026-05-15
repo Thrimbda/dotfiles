@@ -114,6 +114,8 @@
 - Updated current Axiom/Caelestia launcher decisions and patterns with service-local `XDG_DATA_DIRS` ownership for Quickshell desktop-entry discovery.
 - Added task summary for `axiom-caelestia-keep-awake-path-fix`.
 - Updated current Axiom power decisions, validation patterns, and maintenance with the Caelestia Keep Awake helper PATH regression and direct `caelestia-shell` IPC fix.
+- Added task summary for `axiom-caelestia-session-runner`.
+- Updated current Axiom Caelestia decisions, patterns, and maintenance for the session-owned `caelestia-session` runner replacing `caelestia-shell.service` as the shell lifecycle owner.
 - Added task summary for `axiom-antigravity-install`.
 - Extended host-local GUI package patterns with `pkgs.unstable` FHS/unfree package validation guidance from the Antigravity install.
 - Added task summary for `axiom-todesk-service-network`.

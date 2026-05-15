@@ -6,12 +6,12 @@
 
 ## Caelestia Shell Follow-Up
 
-- Live Axiom validation remains required inside the actual Hyprland session: start or restart `caelestia-shell.service`, confirm the shell renders, and exercise launcher, sidebar/session/lock, notification/tray, OSD/media/brightness, screenshot/recording, wallpaper, default apps, polkit prompts, NetworkManager, Bluetooth, and power-profile paths.
+- Live Axiom validation remains required inside the actual Hyprland session: start or restart the generated `caelestia-session` runner, confirm the shell process cgroup is under `session-*.scope`, confirm the shell renders, and exercise launcher, sidebar/session/lock, notification/tray, OSD/media/brightness, screenshot/recording, wallpaper, default apps, polkit prompts, NetworkManager, Bluetooth, and power-profile paths.
 - If Caelestia global shortcuts or CLI commands differ from the initial static mapping, update the Nix-generated Hyprland keybinds rather than restoring legacy end4 IPC or fuzzel assumptions.
 - Revisit local `caelestia/shell.json` only for host policy that must be repository-owned. Avoid copying exhaustive upstream defaults unless a future task proves a stable need.
 - After deploying the Caelestia wallpaper Qt theme fix and README alignment, restart Hyprland, confirm `path.txt` points at `/home/c1/.local/state/caelestia/wallpaper/generated.jpg` unless another wallpaper was manually selected, confirm Caelestia logs no longer show the Qt allocation rejection, and verify `qtengine` does not reintroduce launcher color-block icon rendering.
 - After deploying `axiom-desktop-polish-followup`, confirm the live Axiom session exercises `Super+Space`, sidebar/session, media, brightness, and screenshot keybinds through the CLI IPC route. If Super-key tap-to-launch is still desired, open a scoped follow-up for safe press/release behavior instead of restoring top-level `catchall`.
-- After deploying `axiom-input-caelestia-config-hotfix`, restart `caelestia-shell.service`, confirm `~/.config/caelestia/shell.json` is a writable regular file, exercise `SUPER+Space`, `SUPER+Return`, and workspace bindings, and confirm the keyboard layout `Unknown` toast no longer appears by default. If `hyprctl -j devices` still reports an unknown active keymap, open a separate runtime/upstream input task instead of expanding the config hotfix.
+- After deploying `axiom-input-caelestia-config-hotfix`, restart `caelestia-session`, confirm `~/.config/caelestia/shell.json` is a writable regular file, exercise `SUPER+Space`, `SUPER+Return`, and workspace bindings, and confirm the keyboard layout `Unknown` toast no longer appears by default. If `hyprctl -j devices` still reports an unknown active keymap, open a separate runtime/upstream input task instead of expanding the config hotfix.
 - After deploying `axiom-keybinding-help-modal`, press `SUPER+/` in the real Axiom Hyprland session and confirm the themed shortcut reference modal opens. When generated keybinds change, update the repository-generated help text in the same task.
 
 ## Axiom Steam / opencode Follow-Up
@@ -21,12 +21,12 @@
 
 ## Axiom Power Follow-Up
 
-- After deploying `axiom-caelestia-keep-awake-path-fix`, reset/restart `axiom-caelestia-keep-awake.service` or start a new Hyprland session, confirm the service exits successfully, confirm `caelestia shell idleInhibitor isEnabled` reports enabled after login, confirm Caelestia's Keep Awake UI shows enabled by default, and confirm toggling the UI changes the same state. If no graphical session starts, this policy is not expected to provide headless/system-wide no-sleep behavior.
+- After deploying the session-owned Caelestia runner, restart `caelestia-session` from the live Hyprland session or start a new Hyprland session, confirm `caelestia shell idleInhibitor isEnabled` reports enabled after login, confirm Caelestia's Keep Awake UI shows enabled by default, and confirm toggling the UI changes the same state. If no graphical session starts, this policy is not expected to provide headless/system-wide no-sleep behavior.
 - After deploying `axiom-hyprland-dpms-safe-mode-fix`, restart the Axiom graphical session, trigger DPMS off/on or suspend/resume, and confirm no new Hyprland coredump, no `Hyprland --safe-mode` restart, and no Caelestia broken-Wayland exit. After a future Hyprland update contains the upstream color-management hotplug fix, remove the Axiom `render.cm_enabled = false` override and repeat the same live smoke.
 
 ## Axiom Input Follow-Up
 
-- After deploying `axiom-caelestia-permissions-theme-cleanup`, confirm the Caelestia service-owned Wi-Fi/network and power/session controls no longer report authorization failures. If they still fail, inspect the actual polkit subject classification before widening the allowlist.
+- After deploying the session-owned Caelestia runner, confirm Caelestia Wi-Fi/network and power/session controls no longer report authorization failures. If they still fail, inspect the actual polkit subject classification and `/proc/<caelestia-pid>/cgroup` before widening the allowlist.
 - After deploying `axiom-thunar-caelestia-theme-contrast`, open Thunar and confirm file and sidebar labels are readable under `Breeze-Dark` GTK.
 - After deploying `axiom-thunar-caelestia-theme-contrast`, restart Fcitx5 or the graphical session, trigger a candidate window, and confirm `FluentDark` has readable contrast while Rime/Pinyin still work.
 
