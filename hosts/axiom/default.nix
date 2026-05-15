@@ -267,7 +267,7 @@ with builtins;
     '';
 
     hey.hooks.startup."07-caelestia-keep-awake" = ''
-      hey.do ${caelestiaKeepAwake} || true
+      hey.do ${pkgs.coreutils}/bin/nohup ${caelestiaKeepAwake} >/dev/null 2>&1 &
     '';
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";

@@ -1,6 +1,6 @@
 # Axiom Caelestia Keep Awake Race Fix
 
-Status: PR-backed implementation pending
+Status: implemented; followed by `axiom-keep-awake-nonblocking` for startup blocking behavior
 Task: `.legion/tasks/axiom-caelestia-keep-awake-race-fix/`
 Branch: `legion/axiom-caelestia-keep-awake-race-fix`
 
@@ -30,4 +30,4 @@ Fixed the remaining Axiom Keep Awake default-enable race after Caelestia moved f
 
 ## Follow-Up
 
-After deploying the fixed generation, restart `caelestia-session` or start a new Hyprland session, then confirm `caelestia shell idleInhibitor isEnabled` reports enabled once Caelestia finishes cold startup.
+After the nonblocking follow-up, use `axiom-keep-awake-nonblocking` for the current startup hook behavior.
