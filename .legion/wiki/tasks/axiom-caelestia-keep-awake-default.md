@@ -1,6 +1,6 @@
 # Axiom Caelestia Keep Awake Default
 
-Status: PR-backed implementation pending
+Status: implemented; startup helper path corrected by `axiom-caelestia-keep-awake-path-fix`
 Task: `.legion/tasks/axiom-caelestia-keep-awake-default/`
 Branch: `legion/axiom-caelestia-keep-awake-default-reuse`
 
@@ -11,7 +11,7 @@ Replaced the custom Axiom no-sleep mode with Caelestia's built-in Keep Awake / `
 ## Effective Outcome
 
 - `axiom-sleep-mode`, `Power Mode:*` launchers, `axiom-no-sleep-inhibit.service`, `axiom-sleep-mode-apply.service`, and the Axiom-only direct Hypridle override are removed.
-- Axiom now has `axiom-caelestia-keep-awake.service`, a user oneshot under `hyprland-session.target` that retries `caelestia shell idleInhibitor enable` after `caelestia-shell.service` starts.
+- Axiom now has `axiom-caelestia-keep-awake.service`, a user oneshot under `hyprland-session.target` that retries Caelestia `idleInhibitor` enablement after `caelestia-shell.service` starts. The follow-up `axiom-caelestia-keep-awake-path-fix` corrected the helper to call the evaluated `caelestia-shell` binary directly instead of relying on the Caelestia Python CLI subprocess `PATH`.
 - Caelestia's own Keep Awake UI is the source of truth for the visible toggle.
 - `hosts/axiom/README.org` documents `caelestia shell idleInhibitor isEnabled|enable|disable|toggle` and the graphical-session boundary.
 

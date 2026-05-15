@@ -146,13 +146,13 @@ with builtins;
         set -euo pipefail
 
         for _ in $(${pkgs.coreutils}/bin/seq 1 20); do
-          if ${config.modules.desktop.caelestia.cliPackage}/bin/caelestia shell idleInhibitor enable; then
+          if ${config.modules.desktop.caelestia.package}/bin/caelestia-shell ipc call idleInhibitor enable; then
             exit 0
           fi
           ${pkgs.coreutils}/bin/sleep 0.5
         done
 
-        ${config.modules.desktop.caelestia.cliPackage}/bin/caelestia shell idleInhibitor enable
+        ${config.modules.desktop.caelestia.package}/bin/caelestia-shell ipc call idleInhibitor enable
       '';
     in {
     modules.desktop.input.fcitx5.theme = {
