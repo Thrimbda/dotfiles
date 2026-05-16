@@ -132,3 +132,5 @@
 - Updated current Axiom desktop decisions with the `SUPER+SHIFT+Return` tmux `main` session entrypoint and preserved plain terminal defaults.
 - Added task summary for `axiom-caelestia-steam-display-fix`.
 - Updated current Axiom Caelestia decisions and patterns with display/session environment hydration for launcher-owned X11/XWayland apps such as Steam.
+- Added task summary for `axiom-sidra-apple-music`.
+- Extended host-local GUI package patterns with package-only flake-sourced GUI client guidance from the Sidra install.

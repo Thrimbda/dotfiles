@@ -52,6 +52,7 @@ with builtins;
       apps = {
         clash-verge.enable = true;
         discord.enable = true;
+        sidra.enable = true;
         steam.enable = true;
         thunar.enable = true;
       };
