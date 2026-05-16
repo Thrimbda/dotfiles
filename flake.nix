@@ -55,6 +55,9 @@
       # browser source narrow rather than promoting another browser baseline.
       zen-browser.url = "github:0xc000022070/zen-browser-flake";
       zen-browser.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+      sidra.url = "github:wimpysworld/sidra";
+      sidra.inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
   outputs = inputs @ { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }:

@@ -24,6 +24,8 @@ If a GUI package later proves to require runtime service ownership, split a foll
 
 For unfree or FHS-wrapped GUI clients from `pkgs.unstable`, validate the evaluated host user package list, the package build itself, and the host toplevel dry-run. This proves declarative installation and rebuild planning without claiming GUI login, extension marketplace, or runtime state behavior.
 
+For flake-sourced GUI clients such as Sidra, a small reusable app module is acceptable when the upstream package is best consumed as a flake and may be enabled on more than one desktop host later. Keep the first integration package-only unless runtime service/config ownership is explicitly scoped, pin the upstream flake in `flake.lock`, make it follow the repository's existing nixpkgs baseline when possible, and validate the target host toplevel build before claiming installation readiness.
+
 For Axiom Playwright tooling, prefer enabling the existing `modules.dev.playwright` module over manually adding `pkgs.playwright-test` to host-local packages. Validate the evaluated host option, evaluated `users.users.c1.packages`, CLI version, wrapper `PLAYWRIGHT_BROWSERS_PATH`, and Axiom toplevel dry-run; live browser launch remains a post-switch graphical-session smoke check.
 
 ## Runtime Entry Validation
