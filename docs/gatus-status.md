@@ -4,18 +4,20 @@ Gatus is the repo-managed status page and black-box monitoring entrypoint. It ch
 
 ## Deployment Shape
 
-- Host: `acorn`
-- Public URL: `https://status.0xc1.space`
+- Host: `axiom`
+- Public URL: `https://status-axiom.0xc1.space`
 - Local Gatus URL: `http://127.0.0.1:8080`
 - SQLite state: `/var/lib/gatus/gatus.db`
 - Prometheus metrics: `http://127.0.0.1:8080/metrics`
-- Nix config: `hosts/acorn/modules/status.nix`
+- Nix config: `hosts/axiom/default.nix`
+- Public transport: `home-axiom` cloudflared tunnel
+- Public auth: Cloudflare Access, matching `opencode-axiom.0xc1.space`
 
-DNS and ACME for `status.0xc1.space` must be confirmed during deployment. This repo configures the nginx vhost and certificate request, but it does not manage external DNS records.
+Cloudflare DNS/tunnel routing and Access policy for `status-axiom.0xc1.space` are configured through the Cloudflare control plane. Cloudflared is only the transport; Access is the authentication boundary.
 
 ## Adding an Endpoint
 
-Add entries to `modules.services.gatus.endpoints` in `hosts/acorn/modules/status.nix`.
+Add entries to `modules.services.gatus.endpoints` in `hosts/axiom/default.nix`.
 
 Required fields:
 
@@ -33,9 +35,10 @@ Keep public status entries limited to public-safe services. Do not add private d
 Run targeted checks before deploying:
 
 ```sh
-nix build .#nixosConfigurations.acorn.config.system.build.toplevel
-nix eval .#nixosConfigurations.acorn.config.services.gatus.settings.metrics
-nix eval .#nixosConfigurations.acorn.config.services.prometheus.scrapeConfigs
+nix build .#nixosConfigurations.axiom.config.system.build.toplevel
+nix eval .#nixosConfigurations.axiom.config.services.gatus.settings.metrics
+nix eval .#nixosConfigurations.axiom.config.services.prometheus.scrapeConfigs
+nix eval .#nixosConfigurations.axiom.config.modules.services.cloudflared.extraConfig.ingress --json
 ```
 
 If time and cache availability permit, also run:
@@ -61,10 +64,12 @@ The generated scrape job targets `127.0.0.1:8080` with `metrics_path = /metrics`
 
 - Gatus service state: `systemctl status gatus.service`
 - Gatus logs: `journalctl -u gatus.service -n 200 --no-pager`
+- Cloudflared service state: `systemctl status cloudflared.service`
+- Cloudflared logs: `journalctl -u cloudflared.service -n 200 --no-pager`
 - Local status page: `curl -I http://127.0.0.1:8080`
 - Local metrics: `curl http://127.0.0.1:8080/metrics`
-- nginx vhost: check `services.nginx.virtualHosts."status.0xc1.space"` in evaluated config.
-- ACME failures: check DNS for `status.0xc1.space` and `journalctl -u acme-status.0xc1.space.service`.
+- Tunnel ingress: check `modules.services.cloudflared.extraConfig.ingress` includes `status-axiom.0xc1.space`.
+- Access policy: confirm the `status-axiom.0xc1.space` app uses Google IdP and the same exact-email allowlist as `opencode-axiom.0xc1.space`.
 - Prometheus scrape: query `up{job="gatus"}` and inspect `services.prometheus.scrapeConfigs`.
 
 ## Boundary
