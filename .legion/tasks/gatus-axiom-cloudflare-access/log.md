@@ -15,10 +15,13 @@
 - 已在 worktree 中实现 repo 变更：`axiom` 启用 Gatus/Prometheus，`home-axiom` tunnel 添加 `status-axiom.0xc1.space -> http://127.0.0.1:8080`，`acorn` 移除旧 status module import 并删除旧 `status.0xc1.space` module，runbook 更新为 axiom/cloudflared/Access 模式。
 - 本地验证通过：`nix build .#nixosConfigurations.axiom.config.system.build.toplevel --no-link`、Gatus loopback bind eval、metrics eval、cloudflared ingress eval、Prometheus scrape eval、`acorn` old vhost absence eval 和 `git diff --check`。
 - Cloudflare DNS 读取验证通过：`status-axiom.0xc1.space` 当前无 DNS record，`opencode-axiom.0xc1.space` CNAME 指向 `bc8b3291-de93-4f7f-807a-23f802ef021f.cfargotunnel.com` 且 proxied，`status.0xc1.space` 当前无 DNS record。
+- 完成 `docs/test-report.md`、`docs/review-change.md`、`docs/report-walkthrough.md`、`docs/pr-body.md` 和 wiki writeback。
+- 已创建 draft PR: https://github.com/Thrimbda/dotfiles/pull/65。
+- auto-merge 尝试结果：GitHub 拒绝，原因是 PR 仍是 draft。`gh pr checks 65 --required` 当前报告 no checks。
 
 ### 进行中
 
-- 进入 delivery 阶段，准备做 blocked change review、walkthrough、wiki writeback 和 PR lifecycle。
+- 等待 Access-capable Cloudflare credential 后恢复 Cloudflare Access/DNS reconcile，并将 draft PR 转为可评审/可合并状态。
 
 ### 阻塞/待定
 
@@ -35,8 +38,8 @@
 - **base ref**: `origin/master` at `bca89ddd5e6f48d4dafad663388c69d1854c8e2f`
 - **branch**: `legion/gatus-axiom-cloudflare-access-route`
 - **worktree path**: `.worktrees/gatus-axiom-cloudflare-access`
-- **PR URL/state**: not created yet
-- **checks/review state**: not started
+- **PR URL/state**: https://github.com/Thrimbda/dotfiles/pull/65 / OPEN draft
+- **checks/review state**: no required checks reported; review not started; auto-merge blocked by draft state
 - **cleanup state**: pending
 - **main refresh state**: pending
 

@@ -2,8 +2,8 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 5 - Delivery
-**当前检查项**: 完成 blocked review / walkthrough / wiki / PR lifecycle
+**当前阶段**: Blocked Handoff
+**当前检查项**: 等待 Access-capable Cloudflare credential 后恢复 PR
 **进度**: 4/5 任务完成
 
 ---
@@ -33,9 +33,9 @@
 
 ---
 
-## 阶段 5: Delivery ⏳ NOT STARTED
+## 阶段 5: Delivery 🚧 BLOCKED
 
-- [ ] 完成 review、walkthrough、wiki writeback、PR lifecycle 和 Linear 更新 | 验收: 交付证据齐全或 blocker 明确
+- [ ] 完成 review、walkthrough、wiki writeback、PR lifecycle 和 Linear 更新 | 验收: 交付证据齐全或 blocker 明确 ← BLOCKED on Cloudflare Access credential
 
 ---
 
