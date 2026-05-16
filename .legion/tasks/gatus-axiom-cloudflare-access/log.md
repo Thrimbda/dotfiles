@@ -18,6 +18,7 @@
 - 完成 `docs/test-report.md`、`docs/review-change.md`、`docs/report-walkthrough.md`、`docs/pr-body.md` 和 wiki writeback。
 - 已创建 draft PR: https://github.com/Thrimbda/dotfiles/pull/65。
 - auto-merge 尝试结果：GitHub 拒绝，原因是 PR 仍是 draft。`gh pr checks 65 --required` 当前报告 no checks。
+- 已在 Linear `0XC-7` 添加 blocked handoff 评论，comment id `cef48775-f4c8-47f2-94df-eb60c3b9b88f`。
 
 ### 进行中
 
@@ -39,7 +40,7 @@
 - **branch**: `legion/gatus-axiom-cloudflare-access-route`
 - **worktree path**: `.worktrees/gatus-axiom-cloudflare-access`
 - **PR URL/state**: https://github.com/Thrimbda/dotfiles/pull/65 / OPEN draft
-- **checks/review state**: no required checks reported; review not started; auto-merge blocked by draft state
+- **checks/review state**: no required checks reported; review not started; auto-merge blocked by draft state; Linear updated
 - **cleanup state**: pending
 - **main refresh state**: pending
 
