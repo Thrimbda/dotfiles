@@ -138,3 +138,5 @@
 - Added task summary for `axiom-caelestia-never-sleep-default`.
 - Updated current Axiom power decisions with Caelestia Keep Awake plus `axiom-caelestia-never-sleep.service` as the default never-sleep policy.
 - Extended Axiom Keep Awake validation patterns and maintenance with session-scoped `systemd-inhibit --what=sleep --mode=block` checks.
+- Added task summary for `axiom-remove-idle-suspend`.
+- Updated current Axiom power decisions, validation patterns, and maintenance so checked-in Hypridle idle policy owns lock and DPMS only, with no 15 minute automatic suspend listener.
