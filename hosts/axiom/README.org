@@ -7,7 +7,12 @@ Axiom is C1's Ryzen 9950X + RTX 5090 NixOS workstation.
 * Keep Awake
 Axiom defaults to Caelestia's built-in Keep Awake mode when the Hyprland /
 Caelestia desktop session starts. This reuses Caelestia's own ~idleInhibitor~
-service, so the shell UI is the source of truth.
+service, so the shell UI stays aligned with the requested keep-awake state.
+
+Axiom also starts ~axiom-caelestia-never-sleep.service~ with the graphical
+session. That service runs a session-scoped ~systemd-inhibit --what=sleep
+--mode=block~ process, so idle-triggered and direct session sleep requests are
+blocked by default while the Hyprland/Caelestia session is active.
 
 The shell entrypoint is:
 
@@ -26,5 +31,16 @@ to shell-owned controls such as NetworkManager Wi-Fi actions.
 The visible toggle is Caelestia's ~Keep Awake~ control. No separate Axiom power
 mode launcher is used.
 
+Live checks:
+
+#+begin_src sh
+caelestia shell idleInhibitor isEnabled
+systemctl --user status axiom-caelestia-never-sleep.service
+systemd-inhibit --list | grep -i 'Axiom Caelestia'
+#+end_src
+
 This depends on the graphical Hyprland/Caelestia session. If Axiom is running
-headless, or the shell fails to start, Caelestia's Keep Awake inhibitor is not a system-wide sleep policy.
+headless or no Hyprland session starts, this is not a pre-login system-wide
+sleep policy. To temporarily allow sleep in the active session, stop the
+inhibitor service with ~systemctl --user stop
+axiom-caelestia-never-sleep.service~.

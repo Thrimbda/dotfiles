@@ -135,3 +135,6 @@
 - Added task summary for `axiom-sidra-apple-music`.
 - Extended host-local GUI package patterns with package-only flake-sourced GUI client guidance from the Sidra install.
 - Added task summary for `opencode-global-auto-accept`.
+- Added task summary for `axiom-caelestia-never-sleep-default`.
+- Updated current Axiom power decisions with Caelestia Keep Awake plus `axiom-caelestia-never-sleep.service` as the default never-sleep policy.
+- Extended Axiom Keep Awake validation patterns and maintenance with session-scoped `systemd-inhibit --what=sleep --mode=block` checks.

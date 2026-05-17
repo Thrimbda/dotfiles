@@ -22,6 +22,7 @@
 ## Axiom Power Follow-Up
 
 - After deploying `axiom-keep-awake-nonblocking`, start a new Hyprland session, confirm shell startup is not delayed by Keep Awake waiting, confirm `caelestia shell idleInhibitor isEnabled` reports enabled after Caelestia finishes cold startup, confirm Caelestia's Keep Awake UI shows enabled by default, and confirm toggling the UI changes the same state. If no graphical session starts, this policy is not expected to provide headless/system-wide no-sleep behavior.
+- After deploying `axiom-caelestia-never-sleep-default`, start a new Hyprland/Caelestia session, confirm `caelestia shell idleInhibitor isEnabled` reports enabled, confirm `systemctl --user status axiom-caelestia-never-sleep.service` is active, and confirm `systemd-inhibit --list | grep -i 'Axiom Caelestia'` shows the sleep blocker. Do not run destructive suspend tests from automation; if manual sleep must be allowed temporarily, stop the user service for the active session.
 - After deploying `axiom-hyprland-dpms-safe-mode-fix`, restart the Axiom graphical session, trigger DPMS off/on or suspend/resume, and confirm no new Hyprland coredump, no `Hyprland --safe-mode` restart, and no Caelestia broken-Wayland exit. After a future Hyprland update contains the upstream color-management hotplug fix, remove the Axiom `render.cm_enabled = false` override and repeat the same live smoke.
 
 ## Axiom Input Follow-Up
