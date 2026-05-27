@@ -1,24 +1,24 @@
 # Axiom Caelestia Never Sleep Default
 
-Status: PR-backed implementation pending
+Status: Superseded by `axiom-remove-never-sleep`
 Task: `.legion/tasks/axiom-caelestia-never-sleep-default/`
 Branch: `legion/axiom-caelestia-never-sleep-default-sleep-inhibitor`
 
 ## Summary
 
-Axiom's Caelestia desktop now keeps the visible Caelestia Keep Awake state enabled and adds a session-scoped login1 sleep blocker so the workstation defaults to never sleeping while the graphical session is active.
+This historical task kept the visible Caelestia Keep Awake state enabled and added a session-scoped login1 sleep blocker so the workstation defaulted to never sleeping while the graphical session was active. It is no longer current behavior after `axiom-remove-never-sleep`.
 
 ## Root Cause
 
 The earlier Caelestia Keep Awake default only enabled Caelestia `idleInhibitor`. Runtime feedback showed Axiom could still sleep, so the idle-inhibitor-only design did not satisfy the stronger default never-sleep requirement.
 
-## Effective Outcome
+## Historical Outcome
 
 - `07-caelestia-keep-awake` remains backgrounded and continues to enable Caelestia `idleInhibitor` through direct `caelestia-shell` IPC with the cold-start retry window.
-- Axiom now declares `axiom-caelestia-never-sleep.service`, a user service wanted by and `PartOf=` `hyprland-session.target`.
+- Axiom declared `axiom-caelestia-never-sleep.service`, a user service wanted by and `PartOf=` `hyprland-session.target`.
 - The service runs the generated `axiom-caelestia-never-sleep` script, which executes `systemd-inhibit --what=sleep --who="Axiom Caelestia" --why="Axiom Caelestia session defaults to never sleep" --mode=block` with a long-running `tail -f /dev/null` child.
 - The old custom `axiom-sleep-mode` wrapper, Power Mode launchers, and Axiom-only Hypridle override remain absent.
-- `hosts/axiom/README.org` now documents the live checks and the current-session escape hatch: `systemctl --user stop axiom-caelestia-never-sleep.service`.
+- `hosts/axiom/README.org` documented the live checks and the current-session escape hatch: `systemctl --user stop axiom-caelestia-never-sleep.service`.
 
 ## Validation
 
@@ -29,11 +29,11 @@ The earlier Caelestia Keep Awake default only enabled Caelestia `idleInhibitor`.
 
 ## Boundary
 
-This is a graphical-session policy. It does not enforce pre-login/headless no-sleep behavior and does not grant logind `ignore-inhibit` or widen polkit power actions. Manual suspend from the active graphical session is intentionally blocked by default until the service or session is stopped.
+This was a graphical-session policy. It did not enforce pre-login/headless no-sleep behavior and did not grant logind `ignore-inhibit` or widen polkit power actions. The active Axiom policy no longer includes this service.
 
 ## Follow-Up
 
-After deployment on Axiom, run a live graphical-session smoke:
+Historical live graphical-session smoke was:
 
 ```sh
 caelestia shell idleInhibitor isEnabled

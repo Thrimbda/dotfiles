@@ -158,16 +158,6 @@ with builtins;
 
         ${config.modules.desktop.caelestia.package}/bin/caelestia-shell ipc call idleInhibitor enable
       '';
-      caelestiaNeverSleep = pkgs.writeShellScript "axiom-caelestia-never-sleep" ''
-        set -euo pipefail
-
-        exec ${pkgs.systemd}/bin/systemd-inhibit \
-          --what=sleep \
-          --who="Axiom Caelestia" \
-          --why="Axiom Caelestia session defaults to never sleep" \
-          --mode=block \
-          ${pkgs.coreutils}/bin/tail -f /dev/null
-      '';
     in {
     modules.desktop.input.fcitx5.theme = {
       enable = true;
@@ -212,19 +202,6 @@ with builtins;
         WorkingDirectory = "/home/c1";
         ExecStart = "${pkgs.todesk}/bin/todesk service";
         Restart = "on-failure";
-        RestartSec = "5s";
-      };
-    };
-
-    systemd.user.services.axiom-caelestia-never-sleep = {
-      description = "Axiom Caelestia session sleep inhibitor";
-      wantedBy = [ "hyprland-session.target" ];
-      after = [ "hyprland-session.target" ];
-      partOf = [ "hyprland-session.target" ];
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${caelestiaNeverSleep}";
-        Restart = "always";
         RestartSec = "5s";
       };
     };

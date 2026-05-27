@@ -9,10 +9,9 @@ Axiom defaults to Caelestia's built-in Keep Awake mode when the Hyprland /
 Caelestia desktop session starts. This reuses Caelestia's own ~idleInhibitor~
 service, so the shell UI stays aligned with the requested keep-awake state.
 
-Axiom also starts ~axiom-caelestia-never-sleep.service~ with the graphical
-session. That service runs a session-scoped ~systemd-inhibit --what=sleep
---mode=block~ process, so idle-triggered and direct session sleep requests are
-blocked by default while the Hyprland/Caelestia session is active.
+Hypridle owns the idle lock and display power policy: it locks after 15 minutes
+and turns DPMS off after 30 minutes. Axiom no longer starts a separate
+session-scoped sleep inhibitor by default.
 
 The shell entrypoint is:
 
@@ -35,12 +34,9 @@ Live checks:
 
 #+begin_src sh
 caelestia shell idleInhibitor isEnabled
-systemctl --user status axiom-caelestia-never-sleep.service
-systemd-inhibit --list | grep -i 'Axiom Caelestia'
 #+end_src
 
 This depends on the graphical Hyprland/Caelestia session. If Axiom is running
 headless or no Hyprland session starts, this is not a pre-login system-wide
-sleep policy. To temporarily allow sleep in the active session, stop the
-inhibitor service with ~systemctl --user stop
-axiom-caelestia-never-sleep.service~.
+sleep policy. Direct sleep requests are not blocked by a repository-owned
+sleep-inhibitor service.
