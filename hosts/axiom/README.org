@@ -9,9 +9,12 @@ Axiom defaults to Caelestia's built-in Keep Awake mode when the Hyprland /
 Caelestia desktop session starts. This reuses Caelestia's own ~idleInhibitor~
 service, so the shell UI stays aligned with the requested keep-awake state.
 
-Hypridle owns the idle timing and display power policy: it asks Caelestia's
-~WlSessionLock~ to lock after 15 minutes and turns DPMS off after 30 minutes.
-Axiom no longer starts a separate session-scoped sleep inhibitor by default.
+Hypridle owns the repository idle timing and display power policy: it asks
+Caelestia's ~WlSessionLock~ to lock after 15 minutes and turns DPMS off after
+30 minutes. Caelestia's own shell idle monitors are aligned to the same 15 / 30
+minute policy so the upstream 3 minute lock, 5 minute DPMS, and 10 minute sleep
+defaults do not win first. Axiom no longer starts a separate session-scoped
+sleep inhibitor or automatic idle sleep action by default.
 
 The shell entrypoint is:
 
@@ -31,6 +34,10 @@ to shell-owned controls such as NetworkManager Wi-Fi actions.
 
 The visible toggle is Caelestia's ~Keep Awake~ control. No separate Axiom power
 mode launcher is used.
+
+The session pre-start hook also narrows the mutable
+~/.config/caelestia/shell.json~ migration to Axiom-owned fields: launcher
+favorites and ~general.idle~. Other user shell settings are preserved.
 
 Live checks:
 

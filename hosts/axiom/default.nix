@@ -117,33 +117,51 @@ with builtins;
       opencodeDir = "${config.user.home}/.opencode";
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
+      caelestiaIdleSettings = {
+        lockBeforeSleep = true;
+        inhibitWhenAudio = true;
+        timeouts = [
+          {
+            timeout = 900;
+            idleAction = "lock";
+          }
+          {
+            timeout = 1800;
+            idleAction = "dpms off";
+            returnAction = "dpms on";
+          }
+        ];
+      };
       caelestiaLauncherDataDirs = makeSearchPath "share" (
         unique (config.users.users.${config.user.name}.packages
           ++ config.environment.systemPackages)
       );
-      ensureFeishuLauncherFavorite = pkgs.writeShellScript "axiom-ensure-feishu-launcher-favorite" ''
+      ensureCaelestiaSettings = pkgs.writeShellScript "axiom-ensure-caelestia-settings" ''
         set -eu
 
         config_dir=${escapeShellArg "${config.home.configDir}/caelestia"}
         config_path="$config_dir/shell.json"
         launcher_id=${escapeShellArg feishuLauncherId}
         legacy_desktop_id=${escapeShellArg legacyFeishuDesktopId}
+        idle_json=${escapeShellArg (toJSON caelestiaIdleSettings)}
 
         ${pkgs.coreutils}/bin/install -d -m 0755 "$config_dir"
         if [ ! -s "$config_path" ]; then
-          exit 0
+          printf '{}\n' > "$config_path"
         fi
 
         tmp="$(${pkgs.coreutils}/bin/mktemp "$config_path.XXXXXX")"
         trap '${pkgs.coreutils}/bin/rm -f "$tmp"' EXIT
 
-        if ! ${pkgs.jq}/bin/jq --arg app "$launcher_id" --arg legacy "$legacy_desktop_id" '
-          .launcher = (.launcher // {})
+        if ! ${pkgs.jq}/bin/jq --arg app "$launcher_id" --arg legacy "$legacy_desktop_id" --argjson idle "$idle_json" '
+          .general = (.general // {})
+          | .general.idle = $idle
+          | .launcher = (.launcher // {})
           | .launcher.favouriteApps = ((.launcher.favouriteApps // []) as $apps
               | ($apps | map(select(. != $legacy))) as $normalized
               | if ($normalized | index($app)) then $normalized else $normalized + [$app] end)
         ' "$config_path" > "$tmp"; then
-          printf 'axiom-ensure-feishu-launcher-favorite: unable to update %s\n' "$config_path" >&2
+          printf 'axiom-ensure-caelestia-settings: unable to update %s\n' "$config_path" >&2
           exit 0
         fi
 
@@ -170,10 +188,13 @@ with builtins;
       package = pkgs.fcitx5-fluent;
     };
     modules.desktop.caelestia = {
-      settings.launcher.favouriteApps = [ feishuLauncherId ];
+      settings = {
+        general.idle = caelestiaIdleSettings;
+        launcher.favouriteApps = [ feishuLauncherId ];
+      };
       session = {
         extraPath = [ opencodeDir ];
-        preStart = [ "${ensureFeishuLauncherFavorite}" ];
+        preStart = [ "${ensureCaelestiaSettings}" ];
         xdgDataDirs = caelestiaLauncherDataDirs;
       };
     };

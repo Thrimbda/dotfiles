@@ -15,6 +15,7 @@
 - [Axiom Caelestia Keep Awake Default](tasks/axiom-caelestia-keep-awake-default.md)
 - [Axiom Caelestia Keep Awake Path Fix](tasks/axiom-caelestia-keep-awake-path-fix.md)
 - [Axiom Caelestia Keep Awake Race Fix](tasks/axiom-caelestia-keep-awake-race-fix.md)
+- [Axiom Caelestia Idle Timeouts](tasks/axiom-caelestia-idle-timeouts.md)
 - [Axiom Caelestia Never Sleep Default](tasks/axiom-caelestia-never-sleep-default.md)
 - [Axiom Caelestia WlSessionLock](tasks/axiom-caelestia-wlsessionlock.md)
 - [Axiom Keep Awake Nonblocking Startup](tasks/axiom-keep-awake-nonblocking.md)
