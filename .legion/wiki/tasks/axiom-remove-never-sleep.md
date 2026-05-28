@@ -8,12 +8,12 @@
 - `schema-version`: `current`
 - `historical`: `false`
 - `supersedes`: `axiom-caelestia-never-sleep-default`
-- `superseded-by`: `(none)`
+- `superseded-by`: `axiom-remove-default-keep-awake`
 
 ## Outcome Summary
 
 - Axiom no longer declares the generated `axiom-caelestia-never-sleep` script or `axiom-caelestia-never-sleep.service` user service.
-- Axiom still enables Caelestia `idleInhibitor` after the session-owned runner starts so the shell Keep Awake UI remains aligned.
+- This historical summary previously preserved default Caelestia `idleInhibitor` enablement; current behavior after `axiom-remove-default-keep-awake` leaves Keep Awake as a manual toggle instead.
 - The checked-in Hypridle policy now locks after 15 minutes and turns DPMS off after 30 minutes, with no automatic suspend listener.
 - Active README and wiki guidance no longer instruct users to check or stop the removed service.
 

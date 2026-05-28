@@ -54,6 +54,7 @@
 - [Axiom Quickshell Search and Actions](tasks/axiom-quickshell-search-actions.md)
 - [Axiom Quickshell Side Dock Regression](tasks/axiom-quickshell-side-dock-regression.md)
 - [Axiom Remove Idle Suspend](tasks/axiom-remove-idle-suspend.md)
+- [Axiom Remove Default Keep Awake](tasks/axiom-remove-default-keep-awake.md)
 - [Axiom Remove Never Sleep](tasks/axiom-remove-never-sleep.md)
 - [Axiom Runtime Access And Session Fixes](tasks/axiom-runtime-access-session-fixes.md)
 - [Axiom Cloudflared HTTP2 Transport Fix](tasks/axiom-cloudflared-http2-transport.md)

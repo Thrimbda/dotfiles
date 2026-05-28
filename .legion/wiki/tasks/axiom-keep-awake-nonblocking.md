@@ -1,24 +1,24 @@
 # Axiom Keep Awake Nonblocking Startup
 
-Status: PR-backed implementation pending
+Status: historical; superseded by `axiom-remove-default-keep-awake`
 Task: `.legion/tasks/axiom-keep-awake-nonblocking/`
 Branch: `legion/axiom-keep-awake-nonblocking`
 
 ## Summary
 
-Kept Axiom's 60-second Caelestia Keep Awake cold-start retry window but moved the wait out of the foreground startup hook path.
+This historical task kept Axiom's 60-second Caelestia Keep Awake cold-start retry window but moved the wait out of the foreground startup hook path. It is no longer current behavior after `axiom-remove-default-keep-awake`, which removed default Keep Awake startup enablement entirely.
 
 ## Root Cause
 
 The race fix made `axiom-caelestia-keep-awake` wait up to about 60 seconds for Caelestia IPC, but `07-caelestia-keep-awake` still ran it in the foreground. If startup hooks execute sequentially, that wait can block later startup work and make shell startup feel slower.
 
-## Effective Outcome
+## Historical Outcome
 
-- `07-caelestia-keep-awake` now launches the existing helper with `nohup ... &` and redirects output to `/dev/null`.
-- The helper still calls `${caelestia-shell}/bin/caelestia-shell ipc call idleInhibitor enable` directly.
-- The helper still retries 120 times with 0.5 second sleeps for cold-start IPC registration.
+- `07-caelestia-keep-awake` launched the existing helper with `nohup ... &` and redirected output to `/dev/null`.
+- The helper called `${caelestia-shell}/bin/caelestia-shell ipc call idleInhibitor enable` directly.
+- The helper retried 120 times with 0.5 second sleeps for cold-start IPC registration.
 - The old custom `axiom-sleep-mode` wrapper remains absent.
-- The behavior remains graphical-session scoped and uses Caelestia's Keep Awake UI as source of truth.
+- This behavior was graphical-session scoped and used Caelestia's Keep Awake UI as source of truth until `axiom-remove-default-keep-awake` removed default startup enablement.
 
 ## Validation
 
@@ -28,4 +28,4 @@ The race fix made `axiom-caelestia-keep-awake` wait up to about 60 seconds for C
 
 ## Follow-Up
 
-After deploying the fixed generation, start a new Hyprland session, confirm startup is no longer delayed by Keep Awake waiting, and confirm `caelestia shell idleInhibitor isEnabled` reports enabled once Caelestia IPC is ready.
+For current behavior, use `axiom-remove-default-keep-awake`: start a new Hyprland session and confirm Axiom does not force `caelestia shell idleInhibitor isEnabled` back to enabled.
