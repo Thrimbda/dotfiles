@@ -37,6 +37,7 @@
 - [Axiom Fcitx5 Shell Theme Alignment](tasks/axiom-fcitx5-shell-theme-alignment.md)
 - [Axiom Fcitx5 WeChat Input And Wallpaper](tasks/axiom-fcitx5-wechat-wallpaper.md)
 - [Axiom Foot Notify Config Fix](tasks/axiom-foot-notify-config-fix.md)
+- [Axiom HDMI Audio Startup Fix](tasks/axiom-hdmi-audio-startup-fix.md)
 - [Axiom Host](tasks/axiom-host.md)
 - [Axiom Hyprland DPMS Safe Mode Fix](tasks/axiom-hyprland-dpms-safe-mode-fix.md)
 - [Axiom Install ToDesk](tasks/axiom-install-todesk.md)

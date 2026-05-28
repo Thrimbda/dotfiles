@@ -115,6 +115,8 @@ with builtins;
   config = { config, pkgs, ... }:
     let
       opencodeDir = "${config.user.home}/.opencode";
+      axiomHdmiAudioCard = "alsa_card.pci-0000_01_00.1";
+      axiomHdmiAudioSink = "alsa_output.pci-0000_01_00.1.hdmi-stereo";
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
       caelestiaIdleSettings = {
@@ -168,6 +170,21 @@ with builtins;
         if ! ${pkgs.diffutils}/bin/cmp -s "$tmp" "$config_path"; then
           ${pkgs.coreutils}/bin/install -m 0644 "$tmp" "$config_path"
         fi
+      '';
+      ensureAxiomHdmiAudio = pkgs.writeShellScript "axiom-ensure-hdmi-audio" ''
+        set -eu
+
+        for _ in $(${pkgs.coreutils}/bin/seq 1 20); do
+          if ${pkgs.pulseaudio}/bin/pactl list short cards \
+              | ${pkgs.gnugrep}/bin/grep -F -q ${escapeShellArg axiomHdmiAudioCard}; then
+            break
+          fi
+          ${pkgs.coreutils}/bin/sleep 0.25
+        done
+
+        ${pkgs.pulseaudio}/bin/pactl set-card-profile ${escapeShellArg axiomHdmiAudioCard} off || true
+        ${pkgs.pulseaudio}/bin/pactl set-card-profile ${escapeShellArg axiomHdmiAudioCard} output:hdmi-stereo
+        ${pkgs.pulseaudio}/bin/pactl set-default-sink ${escapeShellArg axiomHdmiAudioSink}
       '';
     in {
     modules.desktop.input.fcitx5.theme = {
@@ -274,6 +291,26 @@ with builtins;
           };
         }
       ];
+    };
+
+    systemd.user.services.axiom-hdmi-audio = {
+      wantedBy = [ "graphical-session.target" ];
+      unitConfig = {
+        Description = "Ensure axiom HDMI audio output exists";
+        After = [ "pipewire.service" "pipewire-pulse.service" "wireplumber.service" ];
+        Wants = [ "pipewire.service" "pipewire-pulse.service" "wireplumber.service" ];
+        Before = [ "easyeffects.service" ];
+        PartOf = [ "graphical-session.target" ];
+      };
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${ensureAxiomHdmiAudio}";
+      };
+    };
+
+    systemd.user.services.easyeffects.unitConfig = {
+      After = mkAfter [ "axiom-hdmi-audio.service" ];
+      Wants = mkAfter [ "axiom-hdmi-audio.service" ];
     };
 
     modules.shell.zsh.envInit = mkBefore ''

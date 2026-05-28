@@ -52,6 +52,8 @@ Axiom clipboard history is now allowed for the Stage 2 search surface because th
 
 Axiom Stage 3 quick controls and OSD use a Quickshell-owned panel plus fixed-verb local helper, not deep DBus/control-center parity. The panel may expose shallow status and common actions for audio, network, Bluetooth, media, brightness, power profiles, session/power, resource status, and basic desktop actions, but external tools (`nm-connection-editor`, `blueman-manager`, `pavucontrol`, `wlogout`, `playerctl`, Fuzzel/direct commands) remain the fallback and full-management path until end4 `ii` replaces the transitional shell.
 
+Axiom monitor-headphone audio should treat the NVIDIA DP/HDMI sink `alsa_output.pci-0000_01_00.1.hdmi-stereo` as the real output source of truth. EasyEffects may remain as optional processing, but graphical-session startup must first create/prefer the real HDMI sink and then let EasyEffects bind to it; do not let the EasyEffects virtual sink become the only available sink for Zen/Sidra browser streams.
+
 Axiom OSD feedback should prefer Quickshell IPC for volume/brightness/media display while preserving existing state-changing commands. Volume and brightness continue through `hey .osd` wrappers, and media keys may route through `axiom-control-helper media ...`; if Quickshell IPC is unavailable, notify/direct command fallback must keep the key behavior operational.
 
 Old X11/bspwm/sxhkd/Polybar/Dunst/Waybar/legacy-idle/browser/media/Spotify compatibility is not preserved unless a future task explicitly reopens that scope.
