@@ -142,3 +142,5 @@
 - Updated current Axiom power decisions, validation patterns, and maintenance so checked-in Hypridle idle policy owns lock and DPMS only, with no 15 minute automatic suspend listener.
 - Added task summary for `axiom-remove-never-sleep`.
 - Updated current Axiom power decisions, validation patterns, and maintenance so checked-in Hypridle owns the 15 minute lock and 30 minute DPMS policy without a repository-owned sleep-inhibitor service.
+- Added task summary for `axiom-cloudflared-http2-transport`.
+- Updated current opencode Cloudflare exposure decisions and maintenance with the axiom HTTP/2 connector transport override and post-deploy temporary connector cleanup.

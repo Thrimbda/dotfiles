@@ -319,6 +319,7 @@ with builtins;
       credentialsFile = ./secrets/cloudflared-credentials.age;
       warpRouting.enabled = false;
       extraConfig = {
+        protocol = "http2";
         tunnelName = "home-axiom";
         ingress = [
           {
