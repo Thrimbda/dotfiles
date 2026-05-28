@@ -5,9 +5,9 @@
 Axiom is C1's Ryzen 9950X + RTX 5090 NixOS workstation.
 
 * Keep Awake
-Axiom defaults to Caelestia's built-in Keep Awake mode when the Hyprland /
-Caelestia desktop session starts. This reuses Caelestia's own ~idleInhibitor~
-service, so the shell UI stays aligned with the requested keep-awake state.
+Axiom does not enable Caelestia's built-in Keep Awake mode by default when the
+Hyprland / Caelestia desktop session starts. Keep Awake remains available as
+Caelestia's manual ~idleInhibitor~ toggle for temporary no-idle behavior.
 
 Hypridle owns the repository idle timing and display power policy: it asks
 Caelestia's ~WlSessionLock~ to lock after 15 minutes and turns DPMS off after
@@ -32,12 +32,12 @@ generated ~caelestia-session~ runner, not as a ~systemd --user~ service. This
 keeps Caelestia inside the graphical login session so local polkit rules apply
 to shell-owned controls such as NetworkManager Wi-Fi actions.
 
-The visible toggle is Caelestia's ~Keep Awake~ control. No separate Axiom power
-mode launcher is used.
+The visible manual toggle is Caelestia's ~Keep Awake~ control. No separate
+Axiom power mode launcher is used.
 
-The session pre-start hook also narrows the mutable
-~/.config/caelestia/shell.json~ migration to Axiom-owned fields: launcher
-favorites and ~general.idle~. Other user shell settings are preserved.
+The session pre-start hook also narrows migration of the mutable shell config at
+=~/.config/caelestia/shell.json= to Axiom-owned fields: launcher favorites and
+~general.idle~. Other user shell settings are preserved.
 
 Live checks:
 

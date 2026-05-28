@@ -169,18 +169,6 @@ with builtins;
           ${pkgs.coreutils}/bin/install -m 0644 "$tmp" "$config_path"
         fi
       '';
-      caelestiaKeepAwake = pkgs.writeShellScript "axiom-caelestia-keep-awake" ''
-        set -euo pipefail
-
-        for _ in $(${pkgs.coreutils}/bin/seq 1 120); do
-          if ${config.modules.desktop.caelestia.package}/bin/caelestia-shell ipc call idleInhibitor enable; then
-            exit 0
-          fi
-          ${pkgs.coreutils}/bin/sleep 0.5
-        done
-
-        ${config.modules.desktop.caelestia.package}/bin/caelestia-shell ipc call idleInhibitor enable
-      '';
     in {
     modules.desktop.input.fcitx5.theme = {
       enable = true;
@@ -291,10 +279,6 @@ with builtins;
     modules.shell.zsh.envInit = mkBefore ''
       path=( "${opencodeDir}/bin" "''${path[@]}" )
       typeset -U path PATH
-    '';
-
-    hey.hooks.startup."07-caelestia-keep-awake" = ''
-      hey.do ${pkgs.coreutils}/bin/nohup ${caelestiaKeepAwake} >/dev/null 2>&1 &
     '';
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
