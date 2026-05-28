@@ -144,3 +144,4 @@
 - Updated current Axiom power decisions, validation patterns, and maintenance so checked-in Hypridle owns the 15 minute lock and 30 minute DPMS policy without a repository-owned sleep-inhibitor service.
 - Added task summary for `axiom-cloudflared-http2-transport`.
 - Updated current opencode Cloudflare exposure decisions and maintenance with the axiom HTTP/2 connector transport override and post-deploy temporary connector cleanup.
+- Updated current Axiom lock decisions, patterns, and maintenance so ordinary idle/keybind locks use Caelestia WlSessionLock through `caelestia shell lock lock` instead of `hyprlock`.

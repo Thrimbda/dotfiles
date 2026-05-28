@@ -25,6 +25,7 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
     xkbVariant = config.services.xserver.xkb.variant;
     xkbOptions = config.services.xserver.xkb.options;
     caelestiaCli = "${caelestiaCfg.cliPackage}/bin/caelestia";
+    caelestiaLockCommand = "${caelestiaCli} shell lock lock";
     caelestiaSession =
       if caelestiaCfg.enable && caelestiaCfg.session.controlCommand != ""
       then caelestiaCfg.session.controlCommand
@@ -71,7 +72,7 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
         SUPER+Space             Toggle launcher
         SUPER+A                 Toggle sidebar
         CTRL+ALT+Delete         Toggle session drawer
-        SUPER+SHIFT+L           Lock with hyprlock
+        SUPER+SHIFT+L           Lock with Caelestia WlSessionLock
 
       Caelestia shell
         CTRL+SUPER+SHIFT+R      Stop session shell
@@ -134,19 +135,6 @@ in {
         primary = mkOpt bool false;
       };
     })) [{}];
-    hyprlock = {
-      settings = mkOpt (submodule {
-        options = {
-          general = mkOpt attrs {};
-          input-field = mkOpt attrs {};
-          backgrounds = mkOpt (listOf attrs) [];
-          labels = mkOpt (listOf attrs) [];
-          images = mkOpt (listOf attrs) [];
-          shapes = mkOpt (listOf attrs) [];
-        };
-      }) {};
-    };
-
     idle = {
       time = mkOpt int 600;       # 10 min
       autodpms = mkOpt int 1200;   # 20 min
@@ -215,12 +203,10 @@ in {
       # (prev: final: {
       #   hyprland = hey.inputs.hyprland.packages.${final.system}.hyprland;
       # })
-      # hey.inputs.hyprlock.overlays.default
       # hey.inputs.hyprpicker.overlays.default
     ];
 
     environment.systemPackages = with pkgs.unstable; [
-      hyprlock       # *fast* lock screen
       hypridle       # idle management for the Hyprland session
       hyprsunset     # night light/gamma integration
       hyprpicker     # screen-space color picker
@@ -264,9 +250,8 @@ in {
       partOf = [ "hyprland-session.target" ];
       path = [
         config.programs.hyprland.package
-        pkgs.unstable.hyprlock
-        pkgs.procps
-        pkgs.systemd
+        caelestiaCfg.cliPackage
+        caelestiaCfg.package
       ];
       serviceConfig = {
         ExecStart = "${pkgs.unstable.hypridle}/bin/hypridle";
@@ -424,7 +409,7 @@ in {
         bind = SUPER, Space, exec, $caelestia shell drawers toggle launcher
         bind = SUPER, A, exec, $caelestia shell drawers toggle sidebar
         bind = CTRL+ALT, Delete, exec, $caelestia shell drawers toggle session
-        bind = SUPER+SHIFT, L, exec, hyprlock
+        bind = SUPER+SHIFT, L, exec, ${caelestiaLockCommand}
         bindl = , XF86MonBrightnessUp, exec, $caelestia shell brightness set +10%
         bindl = , XF86MonBrightnessDown, exec, $caelestia shell brightness set 10%-
         bindl = , XF86AudioPlay, exec, $caelestia shell mpris playPause

@@ -42,6 +42,11 @@ with builtins;
             # Work around Hyprland 0.53.x color-management crashes on DPMS/resume.
             cm_enabled = false
           }
+
+          misc {
+            # Permit relaunching the Caelestia WlSessionLock client if it exits.
+            allow_session_lock_restore = true
+          }
         '';
         monitors = [{
           mode = "3840x2160@60";

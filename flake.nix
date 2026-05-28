@@ -28,9 +28,6 @@
       # Hyprland + core extensions
       # hyprland.url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
       # hyprland.inputs.nixpkgs.follows = "nixpkgs";
-      # hyprlock.url = "github:hyprwm/Hyprlock";
-      # hyprlock.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
       # Extras (imported directly by modules/hosts that need them)
       # hyprpicker.url = "github:hyprwm/hyprpicker";
       # hyprpicker.inputs.nixpkgs.follows = "nixpkgs-unstable";
