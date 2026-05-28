@@ -54,6 +54,7 @@
 - [Axiom Remove Idle Suspend](tasks/axiom-remove-idle-suspend.md)
 - [Axiom Remove Never Sleep](tasks/axiom-remove-never-sleep.md)
 - [Axiom Runtime Access And Session Fixes](tasks/axiom-runtime-access-session-fixes.md)
+- [Axiom Cloudflared HTTP2 Transport Fix](tasks/axiom-cloudflared-http2-transport.md)
 - [Axiom SSH Autossh and Opencode Cloudflared Fix](tasks/axiom-ssh-opencode-cloudflared-fix.md)
 - [Clash Verge NixOS Service Tun](tasks/clash-verge-nixos-service-tun.md)
 - [Cloudflare API Token Age Secret](tasks/cloudflare-api-token-age-secret.md)
