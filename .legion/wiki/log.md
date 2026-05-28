@@ -149,3 +149,5 @@
 - Updated current Axiom power decisions, validation patterns, and maintenance so Caelestia `general.idle.timeouts` is aligned to Hypridle's 15 minute lock and 30 minute DPMS policy, with no 600 second automatic sleep action.
 - Added task summary for `axiom-remove-default-keep-awake`.
 - Updated current Axiom power decisions, validation patterns, and maintenance so Caelestia Keep Awake / `idleInhibitor` remains a manual toggle and is no longer enabled by Axiom startup hooks.
+- Added task summary for `axiom-hdmi-audio-startup-fix`.
+- Updated current Axiom desktop decisions, runtime validation patterns, and maintenance with the NVIDIA DP/HDMI sink readiness rule for EasyEffects and browser audio.
