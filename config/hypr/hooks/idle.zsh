@@ -59,30 +59,15 @@ case $2 in
       --on)
         playerctl -a pause &
         hey .play-sound shutdown
-        # With nvidia cards, hyprlock suffers from redraw issues (making it
-        # appear like it's frozen). This helps a little:
-        hyprctl --batch \
-          keyword decoration:blur:enabled 0 \; \
-          keyword general:allow_tearing 1 \; \
-          keyword animations:enabled 0 \; \
-          keyword misc:vrr 1
-        if ! pidof hyprlock >/dev/null; then
-          {
-            hey .lock --immediate
-            sleep 1
-            hey .play-sound startup
-          } &
-        fi
+        {
+          hey .lock
+          sleep 1
+          hey .play-sound startup
+        } &
         sleep 3
       ;;
       --off)
         {
-          hyprctl --batch \
-            keyword decoration:blur:enabled 1 \; \
-            keyword general:allow_tearing 0 \; \
-            keyword animations:enabled 1 \; \
-            keyword misc:vrr 0
-          sleep 1
           hyprctl dispatch dpms on
         } &
         ;;
