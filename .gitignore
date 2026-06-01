@@ -3,3 +3,5 @@
 *.zwc
 *.janet.tested
 cloudflare
+/API_TOKEN.env
+/ssh_host_ed25519_key
