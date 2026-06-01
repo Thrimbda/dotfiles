@@ -2,7 +2,7 @@
 
 ## Summary
 
-BLOCKED on live Cloudflare Access control-plane credentials. Repository configuration and local Nix verification passed, and Cloudflare DNS read-only checks confirmed there is no current `status-axiom.0xc1.space` DNS record. The available encrypted Cloudflare API token can read the `0xc1.space` zone but receives `403` from Zero Trust Access endpoints, so the Access application/policy could not be created or verified. No DNS/tunnel route was created because doing so without Access verification could create an unauthenticated public surface after deployment.
+PASS with manual post-deploy smoke checks remaining. Repository configuration and local Nix verification passed. Cloudflare Access and DNS were reconciled after the user provided an Access-capable token in `/home/c1/dotfiles/API_TOKEN.env`: `status-axiom.0xc1.space` now has a self-hosted Access app restricted to Google, an exact-email allow policy for `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`, no broad/bypass policy, and a proxied CNAME to the `home-axiom` tunnel.
 
 ## Repo Verification
 
@@ -34,29 +34,11 @@ BLOCKED on live Cloudflare Access control-plane credentials. Repository configur
   - Result: PASS.
   - Evidence: no whitespace errors.
 
-## Cloudflare DNS Evidence
+## Cloudflare Token / Credential Evidence
 
-- Command: read DNS records for `status-axiom.0xc1.space` with the canonical encrypted Cloudflare API token.
+- Command: verify `/home/c1/dotfiles/API_TOKEN.env` without printing token material.
   - Result: PASS.
-  - Evidence: no DNS records currently exist for `status-axiom.0xc1.space`.
-
-- Command: read DNS records for `opencode-axiom.0xc1.space` with the canonical encrypted Cloudflare API token.
-  - Result: PASS.
-  - Evidence: proxied CNAME points to `bc8b3291-de93-4f7f-807a-23f802ef021f.cfargotunnel.com`.
-
-- Command: read DNS records for old `status.0xc1.space` with the canonical encrypted Cloudflare API token.
-  - Result: PASS.
-  - Evidence: no DNS records currently exist for `status.0xc1.space`.
-
-## Cloudflare Access Evidence
-
-- Command: `GET /accounts/<account-id>/access/identity_providers` with `hosts/charlie/secrets/cloudflare-api-token.age` decrypted in-process.
-  - Result: BLOCKED.
-  - Evidence: Cloudflare returned `403`.
-
-- Command: source `/home/c1/dotfiles/token.env` after user authorization.
-  - Result: BLOCKED.
-  - Evidence: file did not exist in the current filesystem state; no `API_TOKEN`, `CLOUDFLARE_API_TOKEN`, or `CF_API_TOKEN` environment variable was present.
+  - Evidence: token verification HTTP `200`; zone read HTTP `200`; Access identity providers HTTP `200`; Access apps read HTTP `200`; opencode policy read HTTP `200`.
 
 - Command: decrypt `hosts/axiom/secrets/cloudflared-credentials.age` with the user-provided axiom host key, without printing decrypted content.
   - Result: PASS.
@@ -66,24 +48,48 @@ BLOCKED on live Cloudflare Access control-plane credentials. Repository configur
   - Result: PASS.
   - Evidence: user key decrypts the re-encrypted age file; decrypted JSON remains valid; `TunnelID` still matches; no API token field exists.
 
+## Cloudflare Access Evidence
+
+- Command: read current `opencode-axiom.0xc1.space` Access app/policy and Google IdP.
+  - Result: PASS.
+  - Evidence: Google IdP is `399adc69-d770-4685-8acf-cdea3acca230`; opencode app is `d4fbde13-f314-43e8-9cc8-6243935569c6`, `self_hosted`, Google-only, `auto_redirect_to_identity = true`, `session_duration = 24h`; opencode allow policy includes exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com` and requires Google login.
+
+- Command: create `status-axiom.0xc1.space` self-hosted Access app.
+  - Result: PASS.
+  - Evidence: created app `c73a8ab9-990b-41f2-bc03-41370769a69b`, name `status-axiom`, domain `status-axiom.0xc1.space`, type `self_hosted`, `allowed_idps = [399adc69-d770-4685-8acf-cdea3acca230]`, `auto_redirect_to_identity = true`, `session_duration = 24h`.
+
+- Command: create `status-axiom.0xc1.space` allow policy.
+  - Result: PASS.
+  - Evidence: created policy `e20cae5a-a2de-4877-9fa0-285210ca76d1`, name `allow-c1-siyuan-froggy-google`, decision `allow`, precedence `1`, include exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`, require Google login method `399adc69-d770-4685-8acf-cdea3acca230`, exclude empty.
+
+- Command: assert final `status-axiom.0xc1.space` Access policy state.
+  - Result: PASS.
+  - Evidence: exactly one Access app exists for `status-axiom.0xc1.space`; app type/domain/IdP/auto-redirect shape is correct; exactly one allow policy has the required exact emails and Google requirement; broad/bypass policy count is `0`.
+
+## Cloudflare DNS Evidence
+
+- Command: create DNS record only after Access verification.
+  - Result: PASS.
+  - Evidence: created proxied CNAME `status-axiom.0xc1.space -> bc8b3291-de93-4f7f-807a-23f802ef021f.cfargotunnel.com`, record id `c7c261f01c4deeb89258b2d3941bb3a5`.
+
+- Command: read DNS records for old `status.0xc1.space`.
+  - Result: PASS.
+  - Evidence: no DNS records existed for `status.0xc1.space` during verification.
+
 ## Safety Decisions
 
-- Did not create the `status-axiom.0xc1.space` DNS CNAME route because the required Cloudflare Access app/policy could not be configured or verified first.
+- Created DNS only after Access app/policy assertions passed.
 - Did not print or persist decrypted token material, tunnel credential JSON, `TunnelSecret`, or OIDC secret values.
 - Did not run production `nixos-rebuild switch`.
 
-## Required Manual / Resume Steps
+## Manual Post-Deploy Checks
 
-When an Access-capable Cloudflare token is available, perform these in order:
-
-1. Verify the current Google identity provider and current `opencode-axiom.0xc1.space` Access app/policy state.
-2. Create or reconcile exactly one self-hosted Access app for `status-axiom.0xc1.space`.
-3. Restrict the app to the Google IdP, with `auto_redirect_to_identity = true` and session duration aligned with `opencode-axiom`.
-4. Create or update one allow policy with exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`, requiring the Google login method.
-5. Verify there are no broad domain, everyone, group, service-token, bypass, or non-Google allow policies.
-6. Only after Access verification, create the proxied CNAME `status-axiom.0xc1.space -> bc8b3291-de93-4f7f-807a-23f802ef021f.cfargotunnel.com`.
-7. Deploy `axiom`, then manually smoke `systemctl status gatus cloudflared prometheus`, allowed Google login, denied unlisted Google login, and Prometheus scrape visibility.
+- Deploy `axiom`.
+- Check `systemctl status gatus cloudflared prometheus`.
+- Confirm allowed Google login succeeds for the exact-email allowlist.
+- Confirm an unlisted Google account is denied.
+- Confirm Prometheus can scrape Gatus metrics.
 
 ## Final Status
 
-Repo changes are ready for review. Live Cloudflare Access/DNS reconciliation remains blocked on an Access-capable credential.
+Repo changes and Cloudflare Access/DNS reconciliation are complete. Production deployment and interactive browser smoke checks remain manual.

@@ -20,19 +20,22 @@
 - auto-merge 尝试结果：GitHub 拒绝，原因是 PR 仍是 draft。`gh pr checks 65 --required` 当前报告 no checks。
 - 已在 Linear `0XC-7` 添加 blocked handoff 评论，comment id `cef48775-f4c8-47f2-94df-eb60c3b9b88f`。
 - 已在 Linear `0XC-7` 添加 axiom credential inspection 更正评论，comment id `d0abbfe9-44fa-426d-a015-375ff3848f34`。
+- 用户写入 `/home/c1/dotfiles/API_TOKEN.env` 后，验证 token 成功：zone read、Access identity providers、Access apps 和 Access policies 均返回 200。
+- 已创建并验证 `status-axiom.0xc1.space` Cloudflare Access app `c73a8ab9-990b-41f2-bc03-41370769a69b`，Google IdP `399adc69-d770-4685-8acf-cdea3acca230`，`auto_redirect_to_identity = true`，`session_duration = 24h`。
+- 已创建并验证 allow policy `e20cae5a-a2de-4877-9fa0-285210ca76d1`，exact emails `c1@ntnl.io`、`siyuan.arc@gmail.com`、`froggy2818@gmail.com`，require Google login，无 broad/bypass policy。
+- Access 验证通过后，已创建 proxied CNAME `status-axiom.0xc1.space -> bc8b3291-de93-4f7f-807a-23f802ef021f.cfargotunnel.com`，DNS record id `c7c261f01c4deeb89258b2d3941bb3a5`。
 
 ### 进行中
 
-- 等待 Access-capable Cloudflare credential 后恢复 Cloudflare Access/DNS reconcile，并将 draft PR 转为可评审/可合并状态。
+- 更新 PR evidence，准备将 draft PR 转为 ready 并重新尝试 auto-merge。
 
 ### 阻塞/待定
 
-- Cloudflare Access 控制面配置被 credential 权限阻塞：`hosts/charlie/secrets/cloudflare-api-token.age` 可读 DNS/zone，但 `GET /accounts/<account-id>/access/identity_providers` 返回 403。
-- 用户授权尝试 `/home/c1/dotfiles/token.env`，但当前 filesystem 未找到该文件，`API_TOKEN` / `CLOUDFLARE_API_TOKEN` / `CF_API_TOKEN` 环境变量也不存在。
+- `hosts/charlie/secrets/cloudflare-api-token.age` 仍只可读 DNS/zone，`GET /accounts/<account-id>/access/identity_providers` 返回 403；本次 Cloudflare Access/DNS 使用的是用户提供的本地 `/home/c1/dotfiles/API_TOKEN.env`。
+- `/home/c1/dotfiles/API_TOKEN.env` 是本地明文 secret，不提交到 repo；后续应删除、移出 repo 或纳入 age 管理。
 - 用户随后把 `axiom` host key 放到 repo 根目录；已用该 key 解密 `hosts/axiom/secrets/cloudflared-credentials.age`，确认内容只有 cloudflared runtime JSON 字段 `AccountTag`、`Endpoint`、`TunnelID`、`TunnelSecret`，没有 `API_TOKEN` / `CLOUDFLARE_API_TOKEN` / `CF_API_TOKEN` 等 API token 字段。
 - 已将 `hosts/axiom/secrets/cloudflared-credentials.age` 重新加密到 axiom host key 和 `/home/c1/.ssh/id_ed25519.pub` 两个 recipient；验证 user key 可解密且 `TunnelID` 匹配。
-- 因 Access app/policy 无法配置/验证，未创建 `status-axiom.0xc1.space` DNS/tunnel route，避免部署后出现无 Access 边界的 public surface。
-- 交互式 Google 登录 smoke 无法保证自动完成，可能作为部署后人工验证。
+- 交互式 Google 登录 smoke 和生产 `axiom` deploy 未执行，作为部署后人工验证。
 
 ---
 
@@ -42,7 +45,7 @@
 - **branch**: `legion/gatus-axiom-cloudflare-access-route`
 - **worktree path**: `.worktrees/gatus-axiom-cloudflare-access`
 - **PR URL/state**: https://github.com/Thrimbda/dotfiles/pull/65 / OPEN draft
-- **checks/review state**: no required checks reported; review not started; auto-merge blocked by draft state; Linear updated twice
+- **checks/review state**: no required checks reported before ready-for-review; review not started; auto-merge pending retry after evidence update; Linear updated twice
 - **cleanup state**: pending
 - **main refresh state**: pending
 
@@ -50,10 +53,10 @@
 
 ## 快速交接
 
-1. Repo 变更和本地 Nix 验证已完成。
-2. Cloudflare Access 控制面被凭证权限阻塞；需要 Access-capable token 或人工 dashboard/API 操作。
-3. 恢复条件：提供可访问 Zero Trust Access apps/policies 的 token 后，先创建/验证 Access app/policy，再创建 DNS CNAME route。
+1. Repo 变更、本地 Nix 验证、Cloudflare Access app/policy 和 DNS CNAME 已完成。
+2. 待完成：更新 PR evidence、ready-for-review、auto-merge/checks/review follow-up。
+3. 部署后人工验证：`systemctl status gatus cloudflared prometheus`、allowed/denied Google Access login、Prometheus scrape。
 
 ---
 
-*Updated: 2026-05-17*
+*Updated: 2026-06-01*

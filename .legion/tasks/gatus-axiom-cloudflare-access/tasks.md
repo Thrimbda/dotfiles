@@ -2,9 +2,9 @@
 
 ## 快速恢复
 
-**当前阶段**: Blocked Handoff
-**当前检查项**: 等待 Access-capable Cloudflare credential 后恢复 PR
-**进度**: 4/5 任务完成
+**当前阶段**: 阶段 5 - Delivery
+**当前检查项**: 更新 PR 并跟进 checks / auto-merge
+**进度**: 5/5 任务完成，等待 PR 终态
 
 ---
 
@@ -27,16 +27,16 @@
 
 ---
 
-## 阶段 4: Verification ✅ COMPLETE WITH BLOCKER
+## 阶段 4: Verification ✅ COMPLETE
 
 - [x] 运行 Nix、Cloudflare API/CLI 与 secret hygiene 验证 | 验收: docs/test-report.md 记录证据和人工项
 
 ---
 
-## 阶段 5: Delivery 🚧 BLOCKED
+## 阶段 5: Delivery 🚧 PR OPEN
 
-- [ ] 完成 review、walkthrough、wiki writeback、PR lifecycle 和 Linear 更新 | 验收: 交付证据齐全或 blocker 明确 ← BLOCKED on Cloudflare Access credential
+- [x] 完成 review、walkthrough、wiki writeback、PR lifecycle 和 Linear 更新 | 验收: 交付证据齐全或 blocker 明确
 
 ---
 
-*Updated: 2026-05-17*
+*Updated: 2026-06-01*

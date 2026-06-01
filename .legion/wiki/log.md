@@ -153,3 +153,4 @@
 - Updated current Axiom desktop decisions, runtime validation patterns, and maintenance with the NVIDIA DP/HDMI sink readiness rule for EasyEffects and browser audio.
 - Added task summary for `gatus-axiom-cloudflare-access`.
 - Updated status page decisions and maintenance with the axiom/cloudflared target and the Cloudflare Access credential blocker.
+- Updated `gatus-axiom-cloudflare-access` after Cloudflare Access app/policy and DNS CNAME reconciliation completed with an Access-capable local token.
