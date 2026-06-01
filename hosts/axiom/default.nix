@@ -117,6 +117,12 @@ with builtins;
       opencodeDir = "${config.user.home}/.opencode";
       axiomHdmiAudioCard = "alsa_card.pci-0000_01_00.1";
       axiomHdmiAudioSink = "alsa_output.pci-0000_01_00.1.hdmi-stereo";
+      gatusPort = 8080;
+      statusLabels = service: {
+        inherit service;
+        environment = "production";
+        owner = "c1";
+      };
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
       caelestiaIdleSettings = {
@@ -320,6 +326,52 @@ with builtins;
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
 
+    modules.services.prometheus.enable = true;
+
+    modules.services.gatus = {
+      enable = true;
+      port = gatusPort;
+      prometheusScrape.enable = true;
+
+      endpoints = [
+        {
+          name = "vaultwarden-web";
+          group = "public";
+          url = "https://vault.0xc1.space";
+          interval = "1m";
+          conditions = [
+            "[STATUS] == 200"
+            "[CERTIFICATE_EXPIRATION] > 336h"
+            "[RESPONSE_TIME] < 2000"
+          ];
+          extra-labels = statusLabels "vaultwarden";
+        }
+        {
+          name = "status-page";
+          group = "infra";
+          url = "http://127.0.0.1:${toString gatusPort}";
+          interval = "1m";
+          conditions = [
+            "[STATUS] == 200"
+            "[RESPONSE_TIME] < 500"
+          ];
+          extra-labels = statusLabels "gatus";
+        }
+        {
+          name = "opencode-axiom";
+          group = "public";
+          url = "https://opencode-axiom.0xc1.space";
+          interval = "1m";
+          conditions = [
+            "[STATUS] == any(200, 302, 401, 403)"
+            "[CERTIFICATE_EXPIRATION] > 336h"
+            "[RESPONSE_TIME] < 3000"
+          ];
+          extra-labels = statusLabels "opencode";
+        }
+      ];
+    };
+
     systemd.services.opencode-server = {
       description = "Opencode server";
       after = [ "network.target" ];
@@ -372,6 +424,10 @@ with builtins;
           {
             hostname = "opencode-axiom.0xc1.space";
             service = "http://127.0.0.1:4096";
+          }
+          {
+            hostname = "status-axiom.0xc1.space";
+            service = "http://127.0.0.1:${toString gatusPort}";
           }
           { service = "http_status:404"; }
         ];

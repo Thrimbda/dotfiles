@@ -108,7 +108,9 @@ For TUN connectivity, the current default trusted interface set is `Mihomo` and 
 
 ## Status Page And Black-Box Monitoring
 
-Gatus is the current repo-managed status page and black-box monitoring entrypoint for `acorn`. It should stay NixOS-native through `modules.services.gatus` and host-local endpoint inventory, not Docker Compose, unless a future task explicitly changes deployment style.
+Gatus is the repo-managed status page and black-box monitoring entrypoint for `axiom`, using NixOS-native `modules.services.gatus` with host-local endpoint inventory. It should stay NixOS-native, not Docker Compose, unless a future task explicitly changes deployment style.
+
+The public hostname is `status-axiom.0xc1.space` through the existing `home-axiom` cloudflared tunnel to local `127.0.0.1:8080`. Cloudflare Access is the authentication boundary; cloudflared is only transport. Create or modify the public DNS/tunnel route only after the `status-axiom.0xc1.space` Access app/policy has been verified.
 
 Gatus covers user-visible availability, TLS/route checks, status page display, and Prometheus-exported probe results. Prometheus remains the white-box metrics system for application and infrastructure metrics.
 

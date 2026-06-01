@@ -52,5 +52,6 @@
 
 ## Status Page Follow-Up
 
-- After deploying `gatus-status-page-blackbox-monitoring`, confirm DNS for `status.0xc1.space` points to `acorn`, ACME issuance succeeds, `https://status.0xc1.space` loads, and Prometheus can scrape `http://127.0.0.1:8080/metrics` with Gatus metrics visible.
+- `status-axiom.0xc1.space` has a verified Cloudflare Access app and proxied CNAME to `home-axiom`; after merging/deploying `gatus-axiom-cloudflare-access`, deploy `axiom` and confirm `systemctl status gatus cloudflared prometheus`, allowed/denied Google Access login behavior, and Prometheus scrape visibility.
+- Remove, relocate, or age-encrypt the local plaintext `/home/c1/dotfiles/API_TOKEN.env` after Cloudflare reconciliation; do not commit it.
 - Fix the baseline `nix flake check --no-build` app schema failure in unchanged `apps.install = mkApp ./install.zsh` / `lib/nixos.nix` if full-flake checking is required as a merge gate for future tasks.
