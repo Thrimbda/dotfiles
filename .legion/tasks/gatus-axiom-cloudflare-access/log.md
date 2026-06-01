@@ -19,6 +19,7 @@
 - 已创建 draft PR: https://github.com/Thrimbda/dotfiles/pull/65。
 - auto-merge 尝试结果：GitHub 拒绝，原因是 PR 仍是 draft。`gh pr checks 65 --required` 当前报告 no checks。
 - 已在 Linear `0XC-7` 添加 blocked handoff 评论，comment id `cef48775-f4c8-47f2-94df-eb60c3b9b88f`。
+- 已在 Linear `0XC-7` 添加 axiom credential inspection 更正评论，comment id `d0abbfe9-44fa-426d-a015-375ff3848f34`。
 
 ### 进行中
 
@@ -41,7 +42,7 @@
 - **branch**: `legion/gatus-axiom-cloudflare-access-route`
 - **worktree path**: `.worktrees/gatus-axiom-cloudflare-access`
 - **PR URL/state**: https://github.com/Thrimbda/dotfiles/pull/65 / OPEN draft
-- **checks/review state**: no required checks reported; review not started; auto-merge blocked by draft state; Linear updated
+- **checks/review state**: no required checks reported; review not started; auto-merge blocked by draft state; Linear updated twice
 - **cleanup state**: pending
 - **main refresh state**: pending
 
