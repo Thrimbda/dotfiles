@@ -28,7 +28,8 @@
 
 - Cloudflare Access 控制面配置被 credential 权限阻塞：`hosts/charlie/secrets/cloudflare-api-token.age` 可读 DNS/zone，但 `GET /accounts/<account-id>/access/identity_providers` 返回 403。
 - 用户授权尝试 `/home/c1/dotfiles/token.env`，但当前 filesystem 未找到该文件，`API_TOKEN` / `CLOUDFLARE_API_TOKEN` / `CF_API_TOKEN` 环境变量也不存在。
-- 用户要求尝试解密 `axiom` 的 age credential；该文件不是当前用户 key 加密，非交互 `sudo` 读取 `/etc/ssh/ssh_host_ed25519_key` 需要密码，无法继续。即便可解密，cloudflared credential JSON 也不是 Cloudflare Zero Trust Access API token，不能创建 Access app/policy。
+- 用户随后把 `axiom` host key 放到 repo 根目录；已用该 key 解密 `hosts/axiom/secrets/cloudflared-credentials.age`，确认内容只有 cloudflared runtime JSON 字段 `AccountTag`、`Endpoint`、`TunnelID`、`TunnelSecret`，没有 `API_TOKEN` / `CLOUDFLARE_API_TOKEN` / `CF_API_TOKEN` 等 API token 字段。
+- 已将 `hosts/axiom/secrets/cloudflared-credentials.age` 重新加密到 axiom host key 和 `/home/c1/.ssh/id_ed25519.pub` 两个 recipient；验证 user key 可解密且 `TunnelID` 匹配。
 - 因 Access app/policy 无法配置/验证，未创建 `status-axiom.0xc1.space` DNS/tunnel route，避免部署后出现无 Access 边界的 public surface。
 - 交互式 Google 登录 smoke 无法保证自动完成，可能作为部署后人工验证。
 

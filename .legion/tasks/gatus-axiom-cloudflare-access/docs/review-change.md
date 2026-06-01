@@ -7,7 +7,7 @@
 ## Blocking Findings
 
 1. **Cloudflare Access/DNS acceptance remains incomplete due credential permissions**
-   - Evidence: `docs/test-report.md` records that the canonical encrypted Cloudflare API token can read DNS but receives `403` from Zero Trust Access endpoints; the user-authorized `/home/c1/dotfiles/token.env` file is absent; non-interactive host-key decryption for `axiom` cloudflared credentials is unavailable.
+   - Evidence: `docs/test-report.md` records that the canonical encrypted Cloudflare API token can read DNS but receives `403` from Zero Trust Access endpoints; the user-authorized `/home/c1/dotfiles/token.env` file is absent; the `axiom` cloudflared credential was decrypted and confirmed to contain only tunnel runtime fields, not an API token.
    - Impact: No Access app/policy was created or verified, and no `status-axiom.0xc1.space` DNS/tunnel route was created. The protected public route is therefore not live and the full task is not production-complete.
    - Minimal unblock: provide an Access-capable Cloudflare token, create/verify the exact-email Google Access app/policy first, then create the proxied CNAME route.
 

@@ -16,11 +16,13 @@
 - PASS: targeted evals proved Gatus loopback binding, metrics enabled, status cloudflared ingress, Prometheus scrape target, and old `acorn` vhost absence.
 - PASS: `git diff --check`.
 - PASS: DNS read-only checks proved `status-axiom.0xc1.space` currently has no record, `opencode-axiom.0xc1.space` points at the `home-axiom` tunnel, and `status.0xc1.space` has no record.
-- BLOCKED: Cloudflare Access API calls return `403` with the available encrypted token, and the user-authorized local `token.env` file is absent.
+- PASS: `axiom` cloudflared credential was decrypted with the provided host key, confirmed to contain no API token, and re-encrypted to both the host key and `/home/c1/.ssh/id_ed25519.pub`.
+- BLOCKED: Cloudflare Access API calls return `403` with the available encrypted API token, and the user-authorized local `token.env` file is absent.
 
 ## Security Notes
 
 - Cloudflare Access is the authentication boundary; cloudflared ingress is only transport.
+- The `axiom` cloudflared credential is tunnel runtime material, not a Zero Trust Access API token.
 - No DNS route was created because Access app/policy could not be configured or verified first.
 - No plaintext API token, tunnel credential JSON, `TunnelSecret`, or OIDC secret was printed or committed.
 

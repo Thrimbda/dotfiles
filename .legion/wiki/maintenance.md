@@ -52,7 +52,7 @@
 
 ## Status Page Follow-Up
 
-- Provide an Access-capable Cloudflare token or perform the equivalent dashboard/API work for `status-axiom.0xc1.space`. The available encrypted token can read DNS but returns `403` for Zero Trust Access APIs, and no local `token.env` was present during `gatus-axiom-cloudflare-access`.
+- Provide an Access-capable Cloudflare token or perform the equivalent dashboard/API work for `status-axiom.0xc1.space`. The available encrypted API token can read DNS but returns `403` for Zero Trust Access APIs, the `axiom` cloudflared credential contains only tunnel runtime fields, and no local `token.env` was present during `gatus-axiom-cloudflare-access`.
 - Before creating DNS for `status-axiom.0xc1.space`, create/verify one self-hosted Cloudflare Access app restricted to the Google IdP and exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`; do not add broad domain/everyone/bypass policies.
 - After Access verification, create the proxied CNAME `status-axiom.0xc1.space -> bc8b3291-de93-4f7f-807a-23f802ef021f.cfargotunnel.com`, deploy `axiom`, and confirm `systemctl status gatus cloudflared prometheus`, allowed/denied Google Access login behavior, and Prometheus scrape visibility.
 - Fix the baseline `nix flake check --no-build` app schema failure in unchanged `apps.install = mkApp ./install.zsh` / `lib/nixos.nix` if full-flake checking is required as a merge gate for future tasks.

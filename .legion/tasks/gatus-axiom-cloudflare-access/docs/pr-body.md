@@ -10,10 +10,11 @@
 - Targeted Nix evals for Gatus loopback binding, metrics, cloudflared ingress, Prometheus scrape, and old `acorn` vhost absence
 - `git diff --check`
 - Cloudflare DNS read-only checks for `status-axiom.0xc1.space`, `opencode-axiom.0xc1.space`, and `status.0xc1.space`
+- Axiom cloudflared credential inspection with the provided host key; no API token field found; re-encrypted to host key plus `/home/c1/.ssh/id_ed25519.pub`
 
 ## Blocker
 
-Live Cloudflare Access app/policy reconciliation is blocked because the available encrypted Cloudflare token receives `403` from Zero Trust Access endpoints, and the user-authorized local `token.env` file is absent. The DNS route was intentionally not created without verified Access protection.
+Live Cloudflare Access app/policy reconciliation is blocked because the available encrypted Cloudflare API token receives `403` from Zero Trust Access endpoints, the `axiom` cloudflared credential is tunnel runtime material rather than an API token, and the user-authorized local `token.env` file is absent. The DNS route was intentionally not created without verified Access protection.
 
 ## Manual Follow-Up
 

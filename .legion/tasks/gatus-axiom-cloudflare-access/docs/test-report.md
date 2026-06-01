@@ -58,9 +58,13 @@ BLOCKED on live Cloudflare Access control-plane credentials. Repository configur
   - Result: BLOCKED.
   - Evidence: file did not exist in the current filesystem state; no `API_TOKEN`, `CLOUDFLARE_API_TOKEN`, or `CF_API_TOKEN` environment variable was present.
 
-- Command: inspect `axiom` cloudflared credential availability without printing decrypted content.
-  - Result: BLOCKED.
-  - Evidence: current user key does not match the age recipients; non-interactive `sudo` for `/etc/ssh/ssh_host_ed25519_key` requires a password. Also, cloudflared runtime credential JSON is not a Cloudflare Zero Trust Access API token and cannot create Access apps/policies.
+- Command: decrypt `hosts/axiom/secrets/cloudflared-credentials.age` with the user-provided axiom host key, without printing decrypted content.
+  - Result: PASS.
+  - Evidence: decrypted JSON keys are `AccountTag`, `Endpoint`, `TunnelID`, and `TunnelSecret`; `TunnelID` matches `bc8b3291-de93-4f7f-807a-23f802ef021f`; no `API_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`, `token`, or `api_token` field exists.
+
+- Command: re-encrypt `hosts/axiom/secrets/cloudflared-credentials.age` to both the axiom host public key and `/home/c1/.ssh/id_ed25519.pub`, then verify with `/home/c1/.ssh/id_ed25519`.
+  - Result: PASS.
+  - Evidence: user key decrypts the re-encrypted age file; decrypted JSON remains valid; `TunnelID` still matches; no API token field exists.
 
 ## Safety Decisions
 
