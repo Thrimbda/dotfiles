@@ -28,6 +28,8 @@ For flake-sourced GUI clients such as Sidra, a small reusable app module is acce
 
 For Axiom Playwright tooling, prefer enabling the existing `modules.dev.playwright` module over manually adding `pkgs.playwright-test` to host-local packages. Validate the evaluated host option, evaluated `users.users.c1.packages`, CLI version, wrapper `PLAYWRIGHT_BROWSERS_PATH`, and Axiom toplevel dry-run; live browser launch remains a post-switch graphical-session smoke check.
 
+For VSCode extension fixes that need to be persistent in Nix, prefer a `vscode-with-extensions` wrapper around the existing VSCode package rather than relying on mutable `$HOME/.vscode/extensions` state. Remember that the wrapper passes a generated `--extensions-dir`, so manually installed extensions are not the source of truth under that launcher. Declare the target extension and any required `extensionPack` members explicitly, then validate the target host user package list, build the wrapper package, inspect the wrapper `--extensions-dir`, and confirm the generated extension directory contains the expected publisher/name directories. Live extension activation remains a post-deploy graphical smoke check.
+
 ## Runtime Entry Validation
 
 For display-manager runtime regressions, validate the effective NixOS session data rather than guessing desktop entry names. Check `services.displayManager.sessionData.sessionNames`, the generated `share/wayland-sessions/*.desktop` entries, and the consumer command that references them.

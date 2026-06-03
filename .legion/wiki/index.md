@@ -49,6 +49,7 @@
 - [Axiom Sidra Apple Music](tasks/axiom-sidra-apple-music.md)
 - [Axiom Thunar Caelestia Theme Contrast](tasks/axiom-thunar-caelestia-theme-contrast.md)
 - [Axiom Thunar Contrast Regression](tasks/axiom-thunar-contrast-regression.md)
+- [Axiom VSCode Data Wrangler Jupyter Extension Fix](tasks/axiom-vscode-datawrangler-jupyter-extension-fix.md)
 - [Axiom and Charlie Opencode Cloudflare Access Google OIDC](tasks/axiom-charlie-opencode-access-google-oidc.md)
 - [Axiom Quickshell Notification Center](tasks/axiom-quickshell-notification-center.md)
 - [Axiom Quickshell Quick Controls and OSD](tasks/axiom-quickshell-quick-controls-osd.md)

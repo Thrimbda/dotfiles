@@ -34,6 +34,10 @@
 - After deploying `axiom-thunar-caelestia-theme-contrast`, open Thunar and confirm file and sidebar labels are readable under `Breeze-Dark` GTK.
 - After deploying `axiom-thunar-caelestia-theme-contrast`, restart Fcitx5 or the graphical session, trigger a candidate window, and confirm `FluentDark` has readable contrast while Rime/Pinyin still work.
 
+## Axiom Editor Follow-Up
+
+- After deploying `axiom-vscode-datawrangler-jupyter-extension-fix`, start VSCode from the normal launcher and from `code`, confirm the active extension directory includes `ms-toolsai.datawrangler` and `ms-toolsai.jupyter`, then launch Data Wrangler on a dataframe/notebook and confirm kernel startup no longer reports `Could not get Jupyter extension`. If other VSCode extensions are missing under the managed wrapper, add them to `modules/editors/vscode.nix` explicitly rather than relying on mutable user-installed extensions.
+
 ## Axiom Audio Follow-Up
 
 - After deploying `axiom-hdmi-audio-startup-fix`, start a fresh graphical session and confirm `systemctl --user status axiom-hdmi-audio.service easyeffects.service` shows the HDMI readiness unit ran before EasyEffects, `wpctl status` lists `HDA NVidia 数字立体声 (HDMI)` as the default sink, and Zen/Sidra playback reaches the DELL U2720QM headphone output without manual `pactl set-card-profile` toggling.
