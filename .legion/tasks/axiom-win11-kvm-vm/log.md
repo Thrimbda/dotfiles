@@ -17,3 +17,4 @@
 - Review-change passed the repository change with an operational blocker: code/config is ready for PR, but host activation and VM creation require sudo/session refresh.
 - Produced implementation-mode report walkthrough and PR body.
 - Wrote Legion wiki task summary, current decision entry, maintenance follow-up, and wiki log entries.
+- Created PR: https://github.com/Thrimbda/dotfiles/pull/77
