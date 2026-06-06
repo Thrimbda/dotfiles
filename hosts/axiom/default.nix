@@ -224,6 +224,20 @@ with builtins;
       uv
     ];
 
+    user.extraGroups = [ "kvm" "libvirtd" ];
+
+    environment.systemPackages = with pkgs; [
+      virt-viewer
+      virtio-win
+    ];
+
+    programs.virt-manager.enable = true;
+
+    virtualisation.libvirtd = {
+      enable = true;
+      qemu.swtpm.enable = true;
+    };
+
     systemd.tmpfiles.rules = [
       "d /var/lib/todesk 0700 c1 users - -"
     ];
