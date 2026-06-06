@@ -54,6 +54,8 @@ Axiom Stage 3 quick controls and OSD use a Quickshell-owned panel plus fixed-ver
 
 Axiom monitor-headphone audio should treat the NVIDIA DP/HDMI sink `alsa_output.pci-0000_01_00.1.hdmi-stereo` as the real output source of truth. EasyEffects may remain as optional processing, but graphical-session startup must first create/prefer the real HDMI sink and then let EasyEffects bind to it; do not let the EasyEffects virtual sink become the only available sink for Zen/Sidra browser streams.
 
+Axiom's first Windows 11 virtualization stack is host-local libvirt/QEMU, swtpm, and virt-manager configuration in `hosts/axiom/default.nix`, not a broadening of `modules.virt.qemu.enable`. Keep the shared QEMU module semantics unchanged unless a separate cross-host task introduces explicit sub-options. The initial Windows 11 VM shape should be a normal system libvirt VM with Q35, UEFI/Secure Boot capable firmware, emulated TPM 2.0, VirtIO storage/network, SPICE display, and no PCI GPU passthrough.
+
 Axiom OSD feedback should prefer Quickshell IPC for volume/brightness/media display while preserving existing state-changing commands. Volume and brightness continue through `hey .osd` wrappers, and media keys may route through `axiom-control-helper media ...`; if Quickshell IPC is unavailable, notify/direct command fallback must keep the key behavior operational.
 
 Old X11/bspwm/sxhkd/Polybar/Dunst/Waybar/legacy-idle/browser/media/Spotify compatibility is not preserved unless a future task explicitly reopens that scope.

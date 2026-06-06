@@ -156,3 +156,5 @@
 - Updated `gatus-axiom-cloudflare-access` after Cloudflare Access app/policy and DNS CNAME reconciliation completed with an Access-capable local token.
 - Added task summary for `axiom-vscode-datawrangler-jupyter-extension-fix`.
 - Added VSCode declarative extension validation pattern and Axiom editor post-deploy smoke follow-up.
+- Added task summary for `axiom-win11-kvm-vm`.
+- Updated current Axiom decisions and maintenance with the host-local libvirt/swtpm/virt-manager Windows 11 VM stack and post-deploy activation/guest-validation follow-up.

@@ -42,6 +42,12 @@
 
 - After deploying `axiom-hdmi-audio-startup-fix`, start a fresh graphical session and confirm `systemctl --user status axiom-hdmi-audio.service easyeffects.service` shows the HDMI readiness unit ran before EasyEffects, `wpctl status` lists `HDA NVidia 数字立体声 (HDMI)` as the default sink, and Zen/Sidra playback reaches the DELL U2720QM headphone output without manual `pactl set-card-profile` toggling.
 
+## Axiom Virtualization Follow-Up
+
+- After deploying `axiom-win11-kvm-vm`, run `sudo nixos-rebuild test --flake <deployed-dotfiles>#axiom` or switch through the normal host deployment flow, then start a fresh `c1` session and confirm `id c1` includes `kvm` and `libvirtd`, `systemctl is-active libvirtd virtlogd virtlockd` is active, and `virsh -c qemu:///system list --all` works.
+- Once libvirt is active, download or provide the Windows 11 ISO, use the repository-provided `virtio-win` media, and create the non-GPU-passthrough Windows 11 VM with Q35, UEFI/Secure Boot capable firmware, swtpm TPM 2.0, VirtIO disk/network, and SPICE display. Verify TPM 2.0, Secure Boot, VirtIO drivers, network, clipboard, and basic desktop responsiveness inside the guest.
+- Do not use RTX 5090 passthrough, alter the 1.8T NTFS disk, enable SPICE USB redirection, or bypass Windows licensing/account prompts as part of this follow-up unless a new scoped task explicitly reopens those boundaries.
+
 ## Axiom Remote Access Follow-Up
 
 - Delete the mistakenly created `axiom-opencode.0xc1.space` CNAME in Cloudflare DNS/Zero Trust. The active axiom opencode hostname is `opencode-axiom.0xc1.space`.
