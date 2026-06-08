@@ -40,6 +40,7 @@
 - [Axiom HDMI Audio Startup Fix](tasks/axiom-hdmi-audio-startup-fix.md)
 - [Axiom Host](tasks/axiom-host.md)
 - [Axiom Hyprland DPMS Safe Mode Fix](tasks/axiom-hyprland-dpms-safe-mode-fix.md)
+- [Axiom Install Sops CLI](tasks/axiom-install-sops-cli.md)
 - [Axiom Install ToDesk](tasks/axiom-install-todesk.md)
 - [Axiom ToDesk Service Network](tasks/axiom-todesk-service-network.md)
 - [Axiom Input And Caelestia Config Hotfix](tasks/axiom-input-caelestia-config-hotfix.md)

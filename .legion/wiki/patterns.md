@@ -14,9 +14,11 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
-## Host-Local GUI Package Pattern
+## Host-Local Package Pattern
 
-For one-off, host-specific GUI client requests on `axiom`, prefer the existing host-local `user.packages` list over introducing a reusable desktop app module. Use a reusable module when the app needs cross-host enablement, NixOS service integration, firewall/system settings, generated config, or runtime policy ownership.
+For one-off, host-specific CLI or GUI package requests on `axiom`, prefer the existing host-local `user.packages` list over introducing a reusable module. Use a reusable module when the app/tool needs cross-host enablement, NixOS service integration, firewall/system settings, generated config, or runtime policy ownership.
+
+CLI package-only installation should not imply declarative service/config integration. For secrets tooling specifically, installing `sops` is not the same as adopting `sops-nix`; evaluate agenix coexistence, migration, identity source, rollback, and secret ownership in a separate scoped task.
 
 Package-only GUI client installation should not imply account state, proxy setup, cache management, autostart, credentials, organization policy, or live `nixos-rebuild switch` unless the task contract explicitly includes those runtime concerns.
 

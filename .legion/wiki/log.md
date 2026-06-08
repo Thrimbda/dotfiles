@@ -158,3 +158,5 @@
 - Added VSCode declarative extension validation pattern and Axiom editor post-deploy smoke follow-up.
 - Added task summary for `axiom-win11-kvm-vm`.
 - Updated current Axiom decisions and maintenance with the host-local libvirt/swtpm/virt-manager Windows 11 VM stack and post-deploy activation/guest-validation follow-up.
+- Added task summary for `axiom-install-sops-cli`.
+- Extended host-local package patterns with CLI-only tooling guidance and the `sops` CLI versus `sops-nix` boundary.
