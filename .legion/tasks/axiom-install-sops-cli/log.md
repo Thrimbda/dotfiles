@@ -13,6 +13,7 @@
 - 完成只读 readiness review，结论 PASS，无 blocking findings；安全视角确认未改 secrets/agenix/sops-nix。
 - 生成 reviewer-facing walkthrough 和 PR body。
 - 完成 wiki writeback：新增 task summary，并扩展 host-local package pattern 的 CLI-only tooling / `sops` vs `sops-nix` 边界。
+- 已提交并创建 PR: https://github.com/Thrimbda/dotfiles/pull/78
 
 ### 进行中
 
@@ -53,6 +54,9 @@
 **`.legion/wiki/patterns.md`** [updated]
 - 作用: host-local package pattern 中补充 CLI-only tooling 和 `sops`/`sops-nix` 边界。
 
+**`.legion/tasks/axiom-install-sops-cli/pr-url.txt`** [created]
+- 作用: PR URL 记录。
+
 ---
 
 ## 关键决策
@@ -68,9 +72,9 @@
 ## 快速交接
 
 **下次继续从这里开始：**
-1. 提交当前 worktree 变更。
-2. Push 前执行 `git fetch origin && git rebase origin/master`。
-3. Push 分支并创建 PR；继续跟进 checks/review。
+1. 尝试启用 auto-merge。
+2. 跟进 PR checks/review。
+3. PR merge/closed 后清理 worktree，并刷新主工作区 baseline。
 
 **注意事项：**
 - 不要在本任务中修改 agenix、secrets 文件或引入 `sops-nix`。
