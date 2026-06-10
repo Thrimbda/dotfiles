@@ -80,6 +80,16 @@ For NixOS GUI apps that also ship service/TUN installers, prefer the upstream Ni
 
 For Clash Verge Rev specifically, validate `programs.clash-verge.serviceMode`, `tunMode`, `autoStart`, the generated `clash-verge.service` `ExecStart`, capability bounding set, `networking.firewall.trustedInterfaces`, `extraReversePathFilterRules`, and the host `system.build.toplevel.drvPath`.
 
+## Critical Network Resilience Pattern
+
+For workstation remote-access and network-control services that must survive memory pressure, validate both kernel OOM selection and cgroup pressure behavior. `OOMScoreAdjust` is the primary proof for global OOM priority; `MemoryMin` and `MemoryLow` are cgroup reinforcement. Do not claim a service is protected if only one layer was checked.
+
+For active-but-broken daemons, pair `systemctl active` with a functional health predicate. For cloudflared, check `/ready` and make the metrics endpoint explicit in generated config. For reverse SSH, prove the remote endpoint reaches the intended local host by comparing the host key exposed through the reverse port against the local host public key; a generic `SSH-2.0` banner is not enough.
+
+Timer-driven healthchecks that run as root may restart local system services after repeated failures, but should not perform irreversible remote cleanup without a separate reviewed design. If remote listener evidence is useful, log bounded `ss` output for the exact reserved port and leave cleanup manual.
+
+When validating generated healthchecks before deployment, combine the target host toplevel build, focused Nix evals, generated unit inspection, `systemd-analyze verify`, shell syntax checks, and safe live predicates. Do not force OOM stress or failure-threshold restarts on the live workstation unless the task explicitly scopes destructive testing.
+
 ## 上游桌面参考采用模式
 
 使用大型外部桌面 dotfiles 仓库作为产品灵感时，应先提取能力，再考虑代码移动。需要把 compositor/session model、shell ownership、notification/search/control surfaces、theming、state writes、dependency assumptions 和 rollback boundaries 与 Axiom 当前 Nix-native model 对比。

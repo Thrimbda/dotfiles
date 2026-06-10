@@ -160,3 +160,6 @@
 - Updated current Axiom decisions and maintenance with the host-local libvirt/swtpm/virt-manager Windows 11 VM stack and post-deploy activation/guest-validation follow-up.
 - Added task summary for `axiom-install-sops-cli`.
 - Extended host-local package patterns with CLI-only tooling guidance and the `sops` CLI versus `sops-nix` boundary.
+- Added task summary for `axiom-critical-network-resilience`.
+- Updated current reverse SSH / critical network decisions with tiered OOM/resource protection, host-key based autossh endpoint health, and the no-automatic-remote-kill boundary.
+- Added critical network resilience validation pattern and post-deploy maintenance checks.

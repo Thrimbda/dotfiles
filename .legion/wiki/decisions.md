@@ -84,6 +84,10 @@ Current autossh reverse tunnels to `root@8.159.128.125` bind remote loopback exp
 
 Do not reuse an existing remote port while its host tunnel remains active, and do not relax the remote bind address away from `127.0.0.1` without a new security review.
 
+On `axiom`, critical network services are protected as a tiered survival path. `sshd.service` and `autossh-reverse-ssh.service` use `OOMScoreAdjust=-900`; `cloudflared.service` and `clash-verge.service` use `OOMScoreAdjust=-850`; the Clash GUI autostart drop-in normalizes to `OOMScoreAdjust=0` with `MemoryLow=256M`. The system services also use `MemoryMin`/`MemoryLow` and restart policy tuned for recovery.
+
+`axiom` autossh health should prove endpoint identity, not only listener existence. The durable check is: from `8.159.128.125`, scan `127.0.0.1:2223` and compare the exposed ED25519 host key with `axiom`'s `/etc/ssh/ssh_host_ed25519_key.pub`. Timer-driven healthchecks must not kill remote `sshd` processes; stale remote listeners are detected/logged and remain manual cleanup unless a future task explicitly designs safe remote cleanup.
+
 ## Opencode Cloudflare Exposure
 
 `axiom` opencode exposure uses a local-only systemd service running `/home/c1/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4096`, with cloudflared ingress on `opencode-axiom.0xc1.space`. `charlie` uses the same loopback opencode pattern through `opencode-charlie.0xc1.space`.
