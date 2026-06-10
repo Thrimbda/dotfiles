@@ -55,6 +55,7 @@
 - After deploying the SSH/opencode/cloudflared fix, run `ssh azar`, `systemctl status autossh-reverse-ssh` on `azar`, and `systemctl status opencode-server cloudflared` on `axiom`.
 - After deploying `axiom-cloudflared-http2-transport`, restart or reload `cloudflared.service` on `axiom`, confirm `journalctl -u cloudflared` shows registered `protocol=http2` connections, confirm `https://opencode-axiom.0xc1.space` reaches Cloudflare Access, then stop the temporary user-level HTTP/2 connector if it is still running.
 - After deploying the ToDesk service-network fix, run `systemctl status todesk`, launch ToDesk in the graphical session, and confirm the GUI no longer reports no network. Confirm `/var/lib/todesk` is not world-traversable after tmpfiles applies.
+- After deploying `axiom-critical-network-resilience`, confirm `systemctl show autossh-reverse-ssh.service cloudflared.service clash-verge.service sshd.service` reports the intended OOM/resource settings, `systemctl list-timers '*healthcheck*'` shows the three healthcheck timers, `curl --fail http://127.0.0.1:20241/ready` passes, the autossh remote endpoint key still matches `axiom`'s local host key, and `systemctl --user show 'app-clash\x2dverge@autostart.service'` reports the GUI drop-in. Then run each healthcheck service once through systemd and inspect journal output before relying on restart automation.
 
 ## Cloudflare Credentials Follow-Up
 

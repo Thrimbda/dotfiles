@@ -117,12 +117,165 @@ with builtins;
       opencodeDir = "${config.user.home}/.opencode";
       axiomHdmiAudioCard = "alsa_card.pci-0000_01_00.1";
       axiomHdmiAudioSink = "alsa_output.pci-0000_01_00.1.hdmi-stereo";
+      autosshRemoteHost = "8.159.128.125";
+      autosshRemotePort = 2223;
+      autosshRemoteHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAHARUNf8QKGEqfBx2pCtJkBp5HEqoBjp9XyqIos07nA";
+      cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       gatusPort = 8080;
+      healthcheckStateDir = "/run/axiom-healthchecks";
       statusLabels = service: {
         inherit service;
         environment = "production";
         owner = "c1";
       };
+      healthcheckServiceConfig = {
+        Type = "oneshot";
+        RuntimeDirectory = "axiom-healthchecks";
+        RuntimeDirectoryPreserve = "yes";
+      };
+      cloudflaredHealthcheck = pkgs.writeShellScript "axiom-cloudflared-healthcheck" ''
+        set -eu
+
+        state_dir=${escapeShellArg healthcheckStateDir}
+        counter="$state_dir/cloudflared.failures"
+        threshold=3
+
+        ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
+
+        if ${pkgs.curl}/bin/curl --fail --silent --show-error --max-time 5 ${escapeShellArg cloudflaredReadyUrl} >/dev/null; then
+          ${pkgs.coreutils}/bin/rm -f "$counter"
+          exit 0
+        fi
+
+        failures=0
+        if [ -s "$counter" ]; then
+          failures="$(${pkgs.coreutils}/bin/cat "$counter" 2>/dev/null || printf '0')"
+        fi
+        case "$failures" in
+          ""|*[!0-9]*) failures=0 ;;
+        esac
+        failures=$((failures + 1))
+        printf '%s\n' "$failures" > "$counter"
+        printf 'cloudflared ready check failed (%s/%s)\n' "$failures" "$threshold" >&2
+
+        if [ "$failures" -ge "$threshold" ]; then
+          ${pkgs.coreutils}/bin/rm -f "$counter"
+          ${pkgs.systemd}/bin/systemctl restart cloudflared.service
+          exit 1
+        fi
+      '';
+      autosshHealthcheck = pkgs.writeShellScript "axiom-autossh-reverse-ssh-healthcheck" ''
+        set -eu
+
+        state_dir=${escapeShellArg healthcheckStateDir}
+        counter="$state_dir/autossh-reverse-ssh.failures"
+        threshold=3
+        remote_host=${escapeShellArg autosshRemoteHost}
+        remote_port=${toString autosshRemotePort}
+        expected_key_file=/etc/ssh/ssh_host_ed25519_key.pub
+
+        ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
+
+        if [ ! -r "$expected_key_file" ]; then
+          printf 'autossh healthcheck: missing local SSH host key %s\n' "$expected_key_file" >&2
+          exit 1
+        fi
+
+        expected_key="$(${pkgs.coreutils}/bin/cut -d ' ' -f 1,2 "$expected_key_file")"
+        remote_scan_cmd="timeout 8 ssh-keyscan -T 5 -p $remote_port 127.0.0.1 2>/dev/null"
+        remote_scan="$(${pkgs.util-linux}/bin/runuser -u c1 -- \
+          ${pkgs.coreutils}/bin/env HOME=/home/c1 \
+          ${pkgs.openssh}/bin/ssh \
+            -o BatchMode=yes \
+            -o ConnectTimeout=8 \
+            -o StrictHostKeyChecking=yes \
+            -o UpdateHostKeys=no \
+            root@"$remote_host" "$remote_scan_cmd" 2>/dev/null || true)"
+        remote_key="$(printf '%s\n' "$remote_scan" \
+          | ${pkgs.gnugrep}/bin/grep -m1 'ssh-ed25519 ' \
+          | ${pkgs.gnused}/bin/sed 's/^[^[:space:]]*[[:space:]]//' || true)"
+
+        if [ "$remote_key" = "$expected_key" ]; then
+          ${pkgs.coreutils}/bin/rm -f "$counter"
+          exit 0
+        fi
+
+        listener="$(${pkgs.util-linux}/bin/runuser -u c1 -- \
+          ${pkgs.coreutils}/bin/env HOME=/home/c1 \
+          ${pkgs.openssh}/bin/ssh \
+            -o BatchMode=yes \
+            -o ConnectTimeout=8 \
+            -o StrictHostKeyChecking=yes \
+            -o UpdateHostKeys=no \
+            root@"$remote_host" \
+            "ss -H -ltnp '( sport = :$remote_port )' 2>/dev/null || true" 2>/dev/null || true)"
+
+        failures=0
+        if [ -s "$counter" ]; then
+          failures="$(${pkgs.coreutils}/bin/cat "$counter" 2>/dev/null || printf '0')"
+        fi
+        case "$failures" in
+          ""|*[!0-9]*) failures=0 ;;
+        esac
+        failures=$((failures + 1))
+        printf '%s\n' "$failures" > "$counter"
+        printf 'autossh reverse endpoint key check failed (%s/%s)\n' "$failures" "$threshold" >&2
+        if [ -n "$listener" ]; then
+          printf 'remote listener evidence on %s:%s: %s\n' "$remote_host" "$remote_port" "$listener" >&2
+        else
+          printf 'remote listener evidence on %s:%s: none or unreachable\n' "$remote_host" "$remote_port" >&2
+        fi
+
+        if [ "$failures" -ge "$threshold" ]; then
+          ${pkgs.coreutils}/bin/rm -f "$counter"
+          ${pkgs.systemd}/bin/systemctl restart autossh-reverse-ssh.service
+          exit 1
+        fi
+      '';
+      clashVergeHealthcheck = pkgs.writeShellScript "axiom-clash-verge-healthcheck" ''
+        set -eu
+
+        state_dir=${escapeShellArg healthcheckStateDir}
+        counter="$state_dir/clash-verge.failures"
+        threshold=2
+
+        ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
+
+        healthy=false
+        if ${pkgs.systemd}/bin/systemctl is-active --quiet clash-verge.service; then
+          main_pid="$(${pkgs.systemd}/bin/systemctl show -P MainPID clash-verge.service 2>/dev/null || printf '0')"
+          if [ "$main_pid" != "0" ] \
+              && ${pkgs.procps}/bin/pgrep -P "$main_pid" -f 'verge-mihomo|mihomo|clash' >/dev/null 2>&1; then
+            healthy=true
+          fi
+          if ${pkgs.iproute2}/bin/ip link show Mihomo >/dev/null 2>&1 \
+              || ${pkgs.iproute2}/bin/ip link show Meta >/dev/null 2>&1; then
+            healthy=true
+          fi
+        fi
+
+        if [ "$healthy" = true ]; then
+          ${pkgs.coreutils}/bin/rm -f "$counter"
+          exit 0
+        fi
+
+        failures=0
+        if [ -s "$counter" ]; then
+          failures="$(${pkgs.coreutils}/bin/cat "$counter" 2>/dev/null || printf '0')"
+        fi
+        case "$failures" in
+          ""|*[!0-9]*) failures=0 ;;
+        esac
+        failures=$((failures + 1))
+        printf '%s\n' "$failures" > "$counter"
+        printf 'clash-verge service/core health check failed (%s/%s)\n' "$failures" "$threshold" >&2
+
+        if [ "$failures" -ge "$threshold" ]; then
+          ${pkgs.coreutils}/bin/rm -f "$counter"
+          ${pkgs.systemd}/bin/systemctl restart clash-verge.service
+          exit 1
+        fi
+      '';
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
       caelestiaIdleSettings = {
@@ -286,10 +439,24 @@ with builtins;
       });
     '';
 
-    programs.ssh.startAgent = true;
+    programs.ssh = {
+      startAgent = true;
+      knownHosts."autossh-remote-8.159.128.125" = {
+        hostNames = [ autosshRemoteHost ];
+        publicKey = autosshRemoteHostKey;
+      };
+    };
     services.openssh.startWhenNeeded = mkForce false;
     # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
     services.logrotate.checkConfig = false;
+
+    zramSwap = {
+      enable = true;
+      algorithm = "zstd";
+      memoryPercent = 20;
+      memoryMax = 8589934592;
+      priority = 100;
+    };
 
     services.pipewire.wireplumber.extraConfig."51-axiom-audio-priority" = {
       "monitor.alsa.rules" = [
@@ -332,6 +499,17 @@ with builtins;
     systemd.user.services.easyeffects.unitConfig = {
       After = mkAfter [ "axiom-hdmi-audio.service" ];
       Wants = mkAfter [ "axiom-hdmi-audio.service" ];
+    };
+
+    systemd.user.services."app-clash\\x2dverge@autostart" = {
+      overrideStrategy = "asDropin";
+      serviceConfig = {
+        Restart = "on-failure";
+        RestartSec = "5s";
+        MemoryAccounting = true;
+        MemoryLow = "256M";
+        OOMScoreAdjust = 0;
+      };
     };
 
     modules.shell.zsh.envInit = mkBefore ''
@@ -406,11 +584,25 @@ with builtins;
       };
     };
 
+    systemd.services.sshd.serviceConfig = {
+      MemoryAccounting = true;
+      MemoryMin = "32M";
+      MemoryLow = "128M";
+      OOMPolicy = "continue";
+      OOMScoreAdjust = -900;
+    };
+
+    systemd.services."user@1000" = {
+      overrideStrategy = "asDropin";
+      serviceConfig.OOMScoreAdjust = mkForce 0;
+    };
+
     systemd.services.autossh-reverse-ssh = {
       description = "Autossh reverse SSH tunnel to 8.159.128.125";
       after = [ "network-online.target" "sshd.service" ];
       wants = [ "network-online.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
+      unitConfig.StartLimitIntervalSec = 0;
       path = [ pkgs.openssh ];
       environment = {
         AUTOSSH_GATETIME = "0";
@@ -422,7 +614,94 @@ with builtins;
         WorkingDirectory = "/home/c1";
         ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes -R 127.0.0.1:2223:127.0.0.1:22 root@8.159.128.125";
         Restart = "always";
-        RestartSec = "10s";
+        RestartSec = "5s";
+        MemoryAccounting = true;
+        MemoryMin = "32M";
+        MemoryLow = "128M";
+        OOMPolicy = "stop";
+        OOMScoreAdjust = -900;
+      };
+    };
+
+    systemd.services.cloudflared = {
+      unitConfig.StartLimitIntervalSec = 0;
+      serviceConfig = {
+        Restart = mkForce "always";
+        RestartSec = mkForce "5s";
+        MemoryAccounting = true;
+        MemoryMin = "128M";
+        MemoryLow = "512M";
+        OOMPolicy = "stop";
+        OOMScoreAdjust = -850;
+      };
+    };
+
+    systemd.services.clash-verge = {
+      serviceConfig = {
+        Restart = mkForce "on-failure";
+        RestartSec = "5s";
+        MemoryAccounting = true;
+        MemoryMin = "256M";
+        MemoryLow = "1G";
+        OOMPolicy = "stop";
+        OOMScoreAdjust = -850;
+      };
+    };
+
+    systemd.services.cloudflared-healthcheck = {
+      description = "Cloudflared readiness health check";
+      after = [ "cloudflared.service" ];
+      wants = [ "cloudflared.service" ];
+      serviceConfig = healthcheckServiceConfig // {
+        ExecStart = "${cloudflaredHealthcheck}";
+      };
+    };
+
+    systemd.timers.cloudflared-healthcheck = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "2m";
+        OnUnitActiveSec = "45s";
+        RandomizedDelaySec = "15s";
+        Unit = "cloudflared-healthcheck.service";
+      };
+    };
+
+    systemd.services.autossh-reverse-ssh-healthcheck = {
+      description = "Autossh reverse SSH endpoint health check";
+      after = [ "network-online.target" "autossh-reverse-ssh.service" ];
+      wants = [ "network-online.target" "autossh-reverse-ssh.service" ];
+      serviceConfig = healthcheckServiceConfig // {
+        ExecStart = "${autosshHealthcheck}";
+      };
+    };
+
+    systemd.timers.autossh-reverse-ssh-healthcheck = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "2m";
+        OnUnitActiveSec = "1m";
+        RandomizedDelaySec = "15s";
+        Unit = "autossh-reverse-ssh-healthcheck.service";
+      };
+    };
+
+    systemd.services.clash-verge-healthcheck = {
+      description = "Clash Verge service-mode health check";
+      after = [ "clash-verge.service" ];
+      wants = [ "clash-verge.service" ];
+      serviceConfig = healthcheckServiceConfig // {
+        ExecStart = "${clashVergeHealthcheck}";
+      };
+    };
+
+    systemd.timers.clash-verge-healthcheck = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "2m";
+        OnUnitActiveSec = "1m";
+        RandomizedDelaySec = "15s";
+        Unit = "clash-verge-healthcheck.service";
       };
     };
 
@@ -433,6 +712,7 @@ with builtins;
       credentialsFile = ./secrets/cloudflared-credentials.age;
       warpRouting.enabled = false;
       extraConfig = {
+        metrics = "127.0.0.1:20241";
         protocol = "http2";
         tunnelName = "home-axiom";
         ingress = [
