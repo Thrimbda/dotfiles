@@ -21,3 +21,4 @@
 - Review: `review-change` passed with security lens applied. No blocking findings. Residual risk remains that stale remote `2223` listeners may require manual cleanup because timers deliberately do not kill remote processes.
 - Delivery: wrote implementation-mode `docs/report-walkthrough.md` and PR-ready `docs/pr-body.md` from existing RFC, verification, and review evidence.
 - Wiki: added task summary and promoted reusable critical-network resilience decisions, validation pattern, and post-deploy maintenance checks.
+- PR lifecycle: implementation PR `https://github.com/Thrimbda/dotfiles/pull/79` merged after auto-merge attempt. This closeout update records the terminal Legion task state; local worktree cleanup and main workspace refresh follow after closeout PR merge.

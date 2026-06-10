@@ -102,3 +102,4 @@
 2026-06-10T14:23:09.760Z,legion_review_change,axiom-critical-network-resilience,Axiom Critical Network Resilience,OpenCode,"result: PASS; security lens applied",success
 2026-06-10T14:23:59.985Z,legion_report_walkthrough,axiom-critical-network-resilience,Axiom Critical Network Resilience,OpenCode,"wrote report-walkthrough and pr-body",success
 2026-06-10T14:25:09.328Z,legion_wiki_writeback,axiom-critical-network-resilience,Axiom Critical Network Resilience,OpenCode,"added task summary, decisions, patterns, maintenance",success
+2026-06-10T14:28:24.851Z,legion_update_tasks,axiom-critical-network-resilience,Axiom Critical Network Resilience,OpenCode,"implementation PR #79 merged; closeout records terminal task state",success

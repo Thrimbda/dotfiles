@@ -2,9 +2,9 @@
 
 ## Quick Resume
 
-**Current Phase**: Phase 6 - Delivery
-**Current Checkpoint**: Complete PR lifecycle or record blocker
-**Progress**: 5/6 phases complete
+**Current Phase**: Complete
+**Current Checkpoint**: PR #79 merged; closeout PR records terminal state
+**Progress**: 6/6 phases complete
 
 ---
 
@@ -14,7 +14,7 @@
 
 ---
 
-## Phase 2: Design CURRENT
+## Phase 2: Design COMPLETE
 
 - [x] Produce focused RFC | Acceptance: RFC covers OOM/resource policy, health checks, rollback, verification, alternatives, and user-unit override uncertainty.
 - [x] Review RFC | Acceptance: Review decides whether implementation can safely begin or returns required design changes.
@@ -41,11 +41,11 @@
 
 ---
 
-## Phase 6: Delivery CURRENT
+## Phase 6: Delivery COMPLETE
 
 - [x] Produce walkthrough and PR body | Acceptance: reviewer-facing summary and test evidence are available.
 - [x] Update Legion wiki | Acceptance: current truth and reusable patterns are written back.
-- [ ] Complete PR lifecycle or record blocker | Acceptance: PR is merged/closed/blocked with worktree cleanup status documented.
+- [x] Complete PR lifecycle or record blocker | Acceptance: PR is merged/closed/blocked with worktree cleanup status documented.
 
 ---
 
