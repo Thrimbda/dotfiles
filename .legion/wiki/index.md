@@ -52,6 +52,7 @@
 - [Axiom Thunar Caelestia Theme Contrast](tasks/axiom-thunar-caelestia-theme-contrast.md)
 - [Axiom Thunar Contrast Regression](tasks/axiom-thunar-contrast-regression.md)
 - [Axiom VSCode Data Wrangler Jupyter Extension Fix](tasks/axiom-vscode-datawrangler-jupyter-extension-fix.md)
+- [Axiom VS Code Keyring Libsecret Fix](tasks/vscode-keyring-libsecret.md)
 - [Axiom Win11 KVM VM](tasks/axiom-win11-kvm-vm.md)
 - [Axiom and Charlie Opencode Cloudflare Access Google OIDC](tasks/axiom-charlie-opencode-access-google-oidc.md)
 - [Axiom Quickshell Notification Center](tasks/axiom-quickshell-notification-center.md)

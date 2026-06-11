@@ -163,3 +163,4 @@
 - Added task summary for `axiom-critical-network-resilience`.
 - Updated current reverse SSH / critical network decisions with tiered OOM/resource protection, host-key based autossh endpoint health, and the no-automatic-remote-kill boundary.
 - Added critical network resilience validation pattern and post-deploy maintenance checks.
+- Added task summary for `vscode-keyring-libsecret`, recorded the Axiom VS Code `gnome-libsecret` credential-store decision, and added the Hyprland VS Code keyring validation pattern.
