@@ -26,6 +26,8 @@ Axiom user-installed opencode is exposed through explicit zsh startup and genera
 
 Wayland desktop hosts using the reusable Fcitx5 module should use Fcitx5's native Wayland frontend by default. Do not force `GTK_IM_MODULE=fcitx` from managed session variables when `waylandFrontend` is enabled and working; GTK should use the Wayland text-input path while Fcitx5 GTK/Qt addons can remain installed.
 
+Axiom VS Code credential storage should use the existing GNOME Secret Service backend explicitly through `--password-store=gnome-libsecret`. Do not choose weaker VS Code encryption and do not spoof the whole Hyprland session as GNOME just to satisfy Electron password-store detection.
+
 Current Axiom Caelestia visual theming aligns GTK with qtengine through KDE `Breeze-Dark`/`breeze-gtk` while qtengine uses `BreezeDark.colors`. For Thunar specifically, the repository must also own GTK3 `gtk.css`/`thunar.css` when stale generated CSS would otherwise force light file-manager surfaces over the dark theme; do not treat GTK theme name alone as proof of live Thunar contrast. Fcitx should use a declarative visible theme package/name; Axiom currently uses `fcitx5-fluent` with `Theme=FluentDark`. Do not treat Catppuccin as categorically forbidden, but only choose it through a scoped theme task that deliberately aligns GTK, Fcitx, and Qt/Caelestia together. Keep Rime/Pinyin engine selection separate from visual theme alignment.
 
 Ordinary Axiom idle/keybind lock paths should use Caelestia's own WlSessionLock through `caelestia shell lock lock`. Do not reinstall `hyprlock` or route normal lock requests through `loginctl lock-session` unless a future scoped task proves the logind integration path is stable and intentionally reopens that boundary.

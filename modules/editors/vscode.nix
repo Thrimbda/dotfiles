@@ -6,8 +6,12 @@ with lib;
 with hey.lib;
 let
   cfg = config.modules.editors.vscode;
+  vscodeBase = pkgs.vscode.override {
+    # Hyprland is not reliably detected by Electron's password-store fallback.
+    commandLineArgs = "--password-store=gnome-libsecret";
+  };
   vscodePkg = pkgs.vscode-with-extensions.override {
-    vscode = pkgs.vscode.fhs;
+    vscode = vscodeBase.fhs;
     vscodeExtensions = with pkgs.vscode-extensions; [
       ms-toolsai.datawrangler
       ms-toolsai.jupyter

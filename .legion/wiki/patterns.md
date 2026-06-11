@@ -32,6 +32,8 @@ For Axiom Playwright tooling, prefer enabling the existing `modules.dev.playwrig
 
 For VSCode extension fixes that need to be persistent in Nix, prefer a `vscode-with-extensions` wrapper around the existing VSCode package rather than relying on mutable `$HOME/.vscode/extensions` state. Remember that the wrapper passes a generated `--extensions-dir`, so manually installed extensions are not the source of truth under that launcher. Declare the target extension and any required `extensionPack` members explicitly, then validate the target host user package list, build the wrapper package, inspect the wrapper `--extensions-dir`, and confirm the generated extension directory contains the expected publisher/name directories. Live extension activation remains a post-deploy graphical smoke check.
 
+For VS Code keyring prompts under Hyprland, first validate that `org.freedesktop.secrets` is available on the user bus and that the host enables `gnome-keyring`. If the Secret Service backend exists but VS Code still cannot identify an OS keyring, prefer a VS Code package-level `commandLineArgs = "--password-store=gnome-libsecret"` override. This keeps terminal and desktop-entry launches consistent through the same wrapper and avoids global `XDG_CURRENT_DESKTOP` spoofing or weaker encryption.
+
 ## Runtime Entry Validation
 
 For display-manager runtime regressions, validate the effective NixOS session data rather than guessing desktop entry names. Check `services.displayManager.sessionData.sessionNames`, the generated `share/wayland-sessions/*.desktop` entries, and the consumer command that references them.
