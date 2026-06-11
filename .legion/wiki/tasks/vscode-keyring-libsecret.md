@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `vscode-keyring-libsecret`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `low`
 - `schema-version`: `2026-06-11`
 - `historical`: `false`
@@ -30,6 +30,7 @@
 - `test-report`: `.legion/tasks/vscode-keyring-libsecret/docs/test-report.md`
 - `review`: `.legion/tasks/vscode-keyring-libsecret/docs/review-change.md`
 - `report`: `.legion/tasks/vscode-keyring-libsecret/docs/report-walkthrough.md`
+- `pr`: `.legion/tasks/vscode-keyring-libsecret/pr-url.txt`
 
 ## Notes
 

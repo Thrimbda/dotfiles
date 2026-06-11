@@ -11,10 +11,11 @@
 - Review: PASS with security lens applied for credential storage behavior.
 - Report: wrote reviewer walkthrough and PR body.
 - Wiki: wrote task summary and durable VS Code keyring decision/pattern entries.
+- Git Delivery: implementation PR `https://github.com/Thrimbda/dotfiles/pull/81` merged as `f2d9ce04`.
 
 ### 🟡 进行中
 
-- Git Delivery: inspect, commit, rebase, push, open PR, and follow PR lifecycle.
+- Closeout: record terminal state in a docs-only closeout PR, then delete worktree and refresh main workspace.
 
 ### ⚠️ 阻塞/待定
 
@@ -54,7 +55,9 @@
 
 **下次继续从这里开始：**
 
-1. Finish Git delivery from `.worktrees/vscode-keyring-libsecret`.
+1. Merge the closeout PR.
+2. Delete `.worktrees/vscode-keyring-libsecret`.
+3. Refresh the main workspace to `origin/master`.
 
 **注意事项：**
 
@@ -63,4 +66,4 @@
 
 ---
 
-*最后更新: 2026-06-11 15:40 by OpenCode*
+*最后更新: 2026-06-11 15:42 by OpenCode*
