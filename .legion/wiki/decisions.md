@@ -114,6 +114,8 @@ Clash Verge Rev on NixOS should be integrated through the upstream `programs.cla
 
 For TUN connectivity, the current default trusted interface set is `Mihomo` and `Meta`, paired with a reverse-path filter exception for those names. Do not globally disable reverse-path filtering or migrate to `services.mihomo` unless a future scoped task explicitly chooses that route.
 
+For axiom terminal-driven Clash Verge node switching, use the local Clash/Mihomo controller API at `http://127.0.0.1:9090` with default group `Nexitally`. Do not edit subscription YAML or proxy-group definitions for runtime node switching. If a controller secret is configured, pass it at runtime and keep it out of repository files.
+
 ## Status Page And Black-Box Monitoring
 
 Gatus is the repo-managed status page and black-box monitoring entrypoint for `axiom`, using NixOS-native `modules.services.gatus` with host-local endpoint inventory. It should stay NixOS-native, not Docker Compose, unless a future task explicitly changes deployment style.

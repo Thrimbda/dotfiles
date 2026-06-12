@@ -82,6 +82,8 @@ For NixOS GUI apps that also ship service/TUN installers, prefer the upstream Ni
 
 For Clash Verge Rev specifically, validate `programs.clash-verge.serviceMode`, `tunMode`, `autoStart`, the generated `clash-verge.service` `ExecStart`, capability bounding set, `networking.firewall.trustedInterfaces`, `extraReversePathFilterRules`, and the host `system.build.toplevel.drvPath`.
 
+For local Clash/Mihomo controller helper scripts, prefer loopback defaults, runtime-only secret inputs, and mock-controller validation. Verify `GET /proxies` response parsing, target group `all[]` extraction, `PUT /proxies/<group>` request bodies, ambiguous node-name handling, and non-TTY interactive guards without changing the live workstation proxy selection unless a task explicitly scopes a live switch smoke test.
+
 ## Critical Network Resilience Pattern
 
 For workstation remote-access and network-control services that must survive memory pressure, validate both kernel OOM selection and cgroup pressure behavior. `OOMScoreAdjust` is the primary proof for global OOM priority; `MemoryMin` and `MemoryLow` are cgroup reinforcement. Do not claim a service is protected if only one layer was checked.
