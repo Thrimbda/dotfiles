@@ -165,3 +165,5 @@
 - Added critical network resilience validation pattern and post-deploy maintenance checks.
 - Added task summary for `vscode-keyring-libsecret`, recorded the Axiom VS Code `gnome-libsecret` credential-store decision, and added the Hyprland VS Code keyring validation pattern.
 - Marked `vscode-keyring-libsecret` completed after implementation PR #81 merged.
+- Added task summary for `axiom-clash-verge-proxy-switch`.
+- Updated current Clash Verge decisions and patterns with local controller API switching, runtime-only secret handling, and mock-controller validation for proxy switch helper scripts.
