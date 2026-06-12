@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-clash-verge-proxy-switch`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `low`
 - `schema-version`: `current`
 - `historical`: `false`

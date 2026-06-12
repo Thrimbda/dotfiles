@@ -167,3 +167,4 @@
 - Marked `vscode-keyring-libsecret` completed after implementation PR #81 merged.
 - Added task summary for `axiom-clash-verge-proxy-switch`.
 - Updated current Clash Verge decisions and patterns with local controller API switching, runtime-only secret handling, and mock-controller validation for proxy switch helper scripts.
+- Marked `axiom-clash-verge-proxy-switch` completed after implementation PR #83 merged and cleanup/refresh completed.
