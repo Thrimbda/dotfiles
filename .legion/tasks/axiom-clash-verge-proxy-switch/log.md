@@ -11,3 +11,4 @@
 - Completed review-change with PASS. Security lens applied for optional controller secret handling; no repository secret persistence or service exposure was found.
 - Wrote implementation-mode `docs/report-walkthrough.md` and `docs/pr-body.md` from existing verification and review evidence.
 - Completed wiki writeback with task summary, current Clash Verge controller-switch decision, mock-controller validation pattern, and wiki log/index updates.
+- PR #83 merged at `ee3d554f`; no required checks were reported. The implementation worktree was removed and the main workspace was refreshed to `origin/master`.

@@ -5,4 +5,4 @@
 - [x] Verify CLI syntax and command behavior.
 - [x] Review change for scope, safety, and secrets handling.
 - [x] Produce walkthrough and wiki writeback.
-- [ ] Complete delivery closeout.
+- [x] Complete delivery closeout.
