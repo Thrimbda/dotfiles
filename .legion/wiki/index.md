@@ -70,6 +70,7 @@
 - [Cloudflare API Token Age Secret](tasks/cloudflare-api-token-age-secret.md)
 - [Dotfiles Quickshell Product Desktop](tasks/dotfiles-quickshell-product-desktop.md)
 - [Dotfiles Fcitx5 Wayland GTK IM Module](tasks/dotfiles-fcitx5-wayland-gtk-im-module.md)
+- [Dotfiles Flake Update Warning Cleanup](tasks/dotfiles-flake-update-warning-cleanup.md)
 - [Dots Hyprland Desktop Complete End4 Import](tasks/dots-hyprland-desktop-rfc.md)
 - [Gatus Status Page Blackbox Monitoring](tasks/gatus-status-page-blackbox-monitoring.md)
 - [OpenCode Global Auto-Accept Permissions](tasks/opencode-global-auto-accept.md)

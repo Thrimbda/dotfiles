@@ -1,9 +1,9 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isLinux, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.virt.qemu or {};
-in mkIf pkgs.stdenv.isLinux {
+in mkIf isLinux {
   options.modules.virt.qemu = {
     enable = mkBoolOpt false;
   };

@@ -2,7 +2,7 @@
 #
 # Gatus status page and black-box monitoring entrypoint.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isLinux, ... }:
 
 with lib;
 with hey.lib;
@@ -39,7 +39,7 @@ in {
     };
   };
 
-  config = mkIf (cfg.enable && pkgs.stdenv.isLinux) (mkMerge [
+  config = mkIf (cfg.enable && isLinux) (mkMerge [
     {
       services.gatus = {
         enable = true;

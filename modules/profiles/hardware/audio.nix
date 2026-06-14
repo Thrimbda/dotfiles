@@ -46,12 +46,11 @@ mkMerge [
     };
 
     # Disable Pulseaudio because Pipewire is used.
-    hardware.pulseaudio.enable = false;
     services.pulseaudio.enable = false;
 
     # HACK: Prevent ~/.esd_auth files by disabling the esound protocol module
     #   for pulseaudio, which I likely don't need. Is there a better way?
-    hardware.pulseaudio.configFile =
+    services.pulseaudio.configFile =
       let inherit (pkgs) runCommand pulseaudio;
           paConfigFile =
             runCommand "disablePulseaudioEsoundModule"
@@ -60,7 +59,7 @@ mkMerge [
                 cp ${pulseaudio}/etc/pulse/default.pa "$out/default.pa"
                 sed -i -e 's|load-module module-esound-protocol-unix|# ...|' "$out/default.pa"
               '';
-      in mkIf config.hardware.pulseaudio.enable
+      in mkIf config.services.pulseaudio.enable
         "${paConfigFile}/default.pa";
   })
 

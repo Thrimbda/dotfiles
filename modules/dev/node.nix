@@ -3,7 +3,7 @@
 # JS is one of those "when it's good, it's alright, when it's bad, it's a
 # disaster" languages.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -52,7 +52,7 @@ in {
         # environment.variables.PATH = [ "$(${pkgs.yarn}/bin/yarn global bin)" ];
       }
 
-      (mkIf pkgs.stdenv.isDarwin {
+      (mkIf isDarwin {
         home.packages = nodePackages;
         modules.shell.zsh.envInit = mkBefore ''
           path=( "${npmBinDir}" "''${path[@]}" )
@@ -62,7 +62,7 @@ in {
     ]))
 
     (mkIf cfg.xdg.enable (
-      if pkgs.stdenv.isDarwin then {
+      if isDarwin then {
         # NPM refuses to adopt XDG conventions upstream, so I enforce it myself.
         environment.variables = {
           NPM_CONFIG_USERCONFIG = npmConfigFile;

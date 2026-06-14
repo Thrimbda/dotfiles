@@ -1,12 +1,9 @@
 # default.nix
 
-{ hey, lib, options, config, pkgs, ... }:
+{ hey, lib, options, config, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
-let
-  isDarwin = pkgs.stdenv.isDarwin;
-in
 {
   imports = mapModulesRec' ./modules import;
 
@@ -113,6 +110,7 @@ in
           trusted-users = [ "root" config.user.name ];
           allowed-users = [ "root" config.user.name ];
           auto-optimise-store = true;
+          download-buffer-size = 268435456;
         };
       };
 

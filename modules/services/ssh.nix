@@ -1,4 +1,4 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isLinux, ... }:
 
 with lib;
 with hey.lib;
@@ -44,7 +44,7 @@ in
     }
     
     # systemd tmpfiles are Linux-only
-    (mkIf pkgs.stdenv.isLinux {
+    (mkIf isLinux {
       # Ensure this directory exists and has correct permissions.
       systemd.user.tmpfiles.rules = [ "d %h/.config/ssh 700 - - - -" ];
     })

@@ -1,4 +1,4 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -20,7 +20,7 @@ in {
       };
     }
 
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [ pkgs.playwright-test ];
     })
   ]);

@@ -13,7 +13,7 @@
 # than what I had before NixOS). home-manager is one black box too many for my
 # liking.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with builtins;
 with lib;
@@ -38,8 +38,8 @@ let cfg = config.home;
     };
 in {
   imports =
-    (optional (!pkgs.stdenv.isDarwin) hey.inputs.home-manager.nixosModules.home-manager)
-    ++ (optional pkgs.stdenv.isDarwin hey.inputs.home-manager.darwinModules.home-manager);
+    (optional (!isDarwin) hey.inputs.home-manager.nixosModules.home-manager)
+    ++ (optional isDarwin hey.inputs.home-manager.darwinModules.home-manager);
 
   options.home = with types; {
     file       = mkOpt' attrs {} "Files to place directly in $HOME";
@@ -58,11 +58,11 @@ in {
   };
 
   config = mkIf (userName != "") (mkMerge [
-    (optionalAttrs (!pkgs.stdenv.isDarwin) {
+    (optionalAttrs (!isDarwin) {
       environment.localBinInPath = true;
     })
 
-    (if pkgs.stdenv.isDarwin then {
+    (if isDarwin then {
       environment.variables = mkOrder 10 baseSessionVars;
     } else {
       environment.sessionVariables = mkOrder 10 baseSessionVars;
@@ -70,7 +70,7 @@ in {
 
     # On Darwin, automatically map user.packages to home.packages
     # since nix-darwin doesn't support users.users.*.packages
-    (mkIf (pkgs.stdenv.isDarwin && userCfg ? packages) {
+    (mkIf (isDarwin && userCfg ? packages) {
       home.packages = userCfg.packages or [];
     })
 
@@ -124,7 +124,7 @@ in {
             dataHome   = mkForce cfg.dataDir;
             stateHome  = mkForce cfg.stateDir;
           };
-        } // (optionalAttrs pkgs.stdenv.isDarwin (
+        } // (optionalAttrs isDarwin (
           let
             hmPkgsBase =
               import hey.inputs.home-manager.inputs.nixpkgs {

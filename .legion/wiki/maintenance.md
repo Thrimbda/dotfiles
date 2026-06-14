@@ -4,6 +4,12 @@
 
 - Foot terminal notification behavior was disabled by removing unsupported `[main].notify` from the global config. If terminal notification behavior is still desired, restore it only through a Foot 1.25-supported option or an explicit external wrapper design validated with `foot --check-config`.
 
+## Flake Update Follow-Up
+
+- After deploying `dotfiles-flake-update-warning-cleanup`, run the normal Axiom system switch path and smoke-test high-risk runtime surfaces affected by the input update: Hyprland/Caelestia startup, NVIDIA graphics, Docker, Steam, VSCode, Cloudflared, SSH/Agenix, and audio.
+- If full warning-free `nix flake check --no-build` becomes a hard gate, either move repository metadata outputs such as `hostMetadata` behind an app/check-supported shape or update `hey` to query an accepted output path. Do not remove those outputs while `lib/hey/lib.janet` still queries `.#hostMetadata.<host>`.
+- Darwin and non-current architecture builds were not run for the flake update; validate affected Darwin hosts separately before relying on the platform-argument refactor outside Linux.
+
 ## Caelestia Shell Follow-Up
 
 - Live Axiom validation remains required inside the actual Hyprland session: start or restart the generated `caelestia-session` runner, confirm the shell process cgroup is under `session-*.scope`, confirm the shell renders, and exercise launcher, sidebar/session/lock, notification/tray, OSD/media/brightness, screenshot/recording, wallpaper, default apps, polkit prompts, NetworkManager, Bluetooth, and power-profile paths.

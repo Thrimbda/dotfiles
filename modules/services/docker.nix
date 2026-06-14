@@ -1,8 +1,9 @@
-{ hey, lib, options, config, pkgs, ... }:
+{ hey, lib, options, config, pkgs, isLinux, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.services.docker;
+    dockerPackage = pkgs.docker_29;
 in {
   options.modules.services.docker = {
     enable = mkBoolOpt false;
@@ -10,10 +11,10 @@ in {
   };
 
   # Docker is only available on Linux
-  config = mkIf (cfg.enable && pkgs.stdenv.isLinux) (mkMerge [
+  config = mkIf (cfg.enable && isLinux) (mkMerge [
     {
       user.packages = with pkgs; [
-        docker
+        dockerPackage
         docker-compose
       ];
 
@@ -29,6 +30,7 @@ in {
       virtualisation = {
         docker = {
           enable = true;
+          package = dockerPackage;
           autoPrune.enable = true;
           enableOnBoot = mkDefault false;
           # listenOptions = [];

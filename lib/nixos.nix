@@ -16,8 +16,9 @@ with attrs;
 with modules;
 rec {
   mkApp = program: {
-    inherit program;
+    program = toString program;
     type = "app";
+    meta.description = "Flake app";
   };
 
   # FIXME: Refactor me! (Use submodules?)
@@ -195,7 +196,9 @@ rec {
                 nameValuePair "" null
               else
                 let
-                  overlaysForHost = overlaysList ++ [
+                  overlaysForHost = overlaysList
+                    ++ optional (hostBase.modules.editors.emacs.enable or false) inputs.emacs-overlay.overlays.default
+                    ++ [
                     (final: prev: {
                       unstable = mkPkgs system nixpkgs-unstable overlaysList;
                     })
@@ -254,12 +257,14 @@ rec {
               specialArgs = {
                 self = hostInfo.selfSpecial;
                 hey = hostInfo.heySpecial;
-                pkgs = hostInfo.pkgs;
+                isDarwin = false;
+                isLinux = true;
                 home-manager = hey.inputs.home-manager;
               };
               modules =
                 [
                   disko.nixosModules.disko
+                  (nixpkgs + "/nixos/modules/misc/nixpkgs/read-only.nix")
                   (if isFunction storageValue
                    then (attrs: { disko.devices = storageValue attrs; })
                    else { disko.devices = storageValue; })
@@ -298,6 +303,8 @@ rec {
                   hey = hostInfo.heySpecial;
                   home-manager = hey.inputs.home-manager;
                   pkgs = hostInfo.pkgs;
+                  isDarwin = true;
+                  isLinux = false;
                 };
                 modules =
                   [

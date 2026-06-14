@@ -4,7 +4,7 @@
 # me. The Py2->3 transition make trainwrecks jealous. But SciPy, NumPy, iPython
 # and Jupyter can have my babies. Every single one.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -40,7 +40,7 @@ in {
           ipylab = "ipython --pylab=qt5 --no-banner";
         };
       }
-      (mkIf pkgs.stdenv.isDarwin {
+      (mkIf isDarwin {
         home.packages = pythonPackages;
       })
     ]))

@@ -10,7 +10,7 @@ in mkShell {
   buildInputs = [
     git
     nix-zsh-completions
-    nixVersions.nix_2_19
+    nixVersions.stable
   ];
   shellHook = ''
     export NIX_USER_CONF_FILES="${nixConfig}"
