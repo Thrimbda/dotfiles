@@ -1,4 +1,4 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -12,10 +12,10 @@ in {
   config = mkIf cfg.enable (mkMerge [
     {
       environment = mkMerge [
-        (optionalAttrs pkgs.stdenv.isDarwin {
+        (optionalAttrs isDarwin {
           variables.GNUPGHOME = "$HOME/.config/gnupg";
         })
-        (optionalAttrs (!pkgs.stdenv.isDarwin) {
+        (optionalAttrs (!isDarwin) {
           sessionVariables.GNUPGHOME = "$HOME/.config/gnupg";
         })
       ];
@@ -26,7 +26,7 @@ in {
       #   "GNUPGHOME=${config.home.configDir}/gnupg"
       # ];
 
-      programs = optionalAttrs (!pkgs.stdenv.isDarwin) {
+      programs = optionalAttrs (!isDarwin) {
         gnupg = {
           agent = {
             enable = true;
@@ -45,7 +45,7 @@ in {
         allow-loopback-pinentry
       '';
     }
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [ pkgs.gnupg ];
     })
   ]);

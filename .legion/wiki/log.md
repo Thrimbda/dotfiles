@@ -158,6 +158,9 @@
 - Added VSCode declarative extension validation pattern and Axiom editor post-deploy smoke follow-up.
 - Added task summary for `axiom-win11-kvm-vm`.
 - Updated current Axiom decisions and maintenance with the host-local libvirt/swtpm/virt-manager Windows 11 VM stack and post-deploy activation/guest-validation follow-up.
+- Added task summary for `dotfiles-flake-update-warning-cleanup`.
+- Added flake update warning cleanup pattern covering target-host build warnings, maintained package replacements, read-only `nixpkgs.pkgs`, module overlay ownership, and explicit platform facts.
+- Added flake update follow-up for Axiom runtime smoke, custom output warning policy, and Darwin/non-current architecture validation.
 - Added task summary for `axiom-install-sops-cli`.
 - Extended host-local package patterns with CLI-only tooling guidance and the `sops` CLI versus `sops-nix` boundary.
 - Added task summary for `axiom-critical-network-resilience`.

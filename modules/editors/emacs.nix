@@ -2,7 +2,7 @@
 # https://github.com/doomemacs. This module sets it up to meet my particular
 # Doomy needs.
 
-{ hey, lib, config, pkgs, ... }:
+{ hey, lib, config, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -11,7 +11,6 @@ let
   cfg = config.modules.editors.emacs;
   desktop = config.modules.desktop or {};
   desktopType = desktop.type or null;
-  isDarwin = pkgs.stdenv.isDarwin;
   doomCfg = if cfg ? doom then cfg.doom else {};
   doomEnabled = attrByPath [ "enable" ] false doomCfg;
   doomRepo = attrByPath [ "repoUrl" ] "https://github.com/doomemacs/doomemacs" doomCfg;
@@ -87,10 +86,6 @@ in {
   config = mkIf cfg.enable (mkMerge [
     (mkMerge [
       {
-      nixpkgs.overlays = [
-        hey.inputs.emacs-overlay.overlays.default
-      ];
-
       user.packages = emacsPackagesList;
 
       modules.shell.zsh.rcFiles = [ "${hey.configDir}/emacs/aliases.zsh" ];
@@ -118,7 +113,7 @@ in {
 
     (if isDarwin then {} else {
       fonts.packages = [
-        (pkgs.nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
+        pkgs.nerd-fonts.symbols-only
       ];
       system.userActivationScripts = mkIf doomEnabled {
         installDoomEmacs = ''

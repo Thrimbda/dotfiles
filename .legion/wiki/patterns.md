@@ -14,6 +14,16 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
+## Flake Update Warning Cleanup Pattern
+
+For broad `nix flake update` tasks, separate three validation surfaces: the target host build, full flake evaluation, and runtime smoke. If the user asks to remove `nix build` warnings, the target host toplevel build is the decisive surface; `nix flake check` warnings about intentionally exposed custom outputs should be documented separately instead of forcing metadata API removal.
+
+When newer nixpkgs marks a default package insecure, prefer a maintained package attribute over `permittedInsecurePackages`. For Docker, use `docker_29` for both the user-facing package and `virtualisation.docker.package` when the default `docker` attribute still points at insecure Docker 28.
+
+When a NixOS configuration supplies an already-created `pkgs`, use `nixpkgs.pkgs` with nixpkgs `read-only.nix` and avoid writing `nixpkgs.overlays` from modules. Apply conditional overlays during host `pkgs` construction, before passing the package set into the NixOS system.
+
+Avoid using `pkgs.stdenv.isLinux` / `pkgs.stdenv.isDarwin` in module-level predicates that must be evaluated before `_module.args.pkgs` exists. Pass explicit platform facts such as `isLinux` and `isDarwin` through `specialArgs` and reserve `pkgs` for package construction.
+
 ## Host-Local Package Pattern
 
 For one-off, host-specific CLI or GUI package requests on `axiom`, prefer the existing host-local `user.packages` list over introducing a reusable module. Use a reusable module when the app/tool needs cross-host enablement, NixOS service integration, firewall/system settings, generated config, or runtime policy ownership.

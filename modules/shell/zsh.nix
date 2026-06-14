@@ -1,4 +1,4 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -22,7 +22,7 @@ let
   ];
   zshPackages =
     zshPackagesBase
-    ++ optionals (!pkgs.stdenv.isDarwin) [ pkgs.at ];
+    ++ optionals (!isDarwin) [ pkgs.at ];
 in {
   options.modules.shell.zsh = with types; {
     enable = mkBoolOpt false;
@@ -53,7 +53,7 @@ in {
           # Again. I configure the prompt myself, so disable the default.
           promptInit = "";
         }
-        // optionalAttrs (!pkgs.stdenv.isDarwin) {
+        // optionalAttrs (!isDarwin) {
           enableGlobalCompInit = false;
           # Respect XDG please!
           histFile = "$XDG_STATE_HOME/zsh/history";
@@ -120,11 +120,11 @@ in {
         '';
       };
     }
-      (mkIf pkgs.stdenv.isDarwin {
+      (mkIf isDarwin {
         home.packages = zshPackages;
       })
     ])
-    (optionalAttrs (!pkgs.stdenv.isDarwin) {
+    (optionalAttrs (!isDarwin) {
       users.defaultUserShell = pkgs.zsh;
 
       # Ensure that ZSH's cache directory exists, lest we have IO errors early on.

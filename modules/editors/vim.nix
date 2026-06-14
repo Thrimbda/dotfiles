@@ -1,7 +1,7 @@
 # When I'm stuck in the terminal or don't have access to Emacs, (neo)vim is my
 # go-to. I am a vimmer at heart, after all.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -51,7 +51,7 @@ in {
       #   '';
       # };
     }
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [
         pkgs.neovim
       ];

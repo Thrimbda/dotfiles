@@ -1,4 +1,4 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -35,7 +35,7 @@ in {
       modules.shell.zsh.rcFiles = [ "${hey.configDir}/tmux/aliases.zsh" ];
     }
 
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [ pkgs.tmux ];
     })
   ]);

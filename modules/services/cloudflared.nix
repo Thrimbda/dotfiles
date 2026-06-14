@@ -92,7 +92,7 @@
 # - Ensure firewall allows SSH (port 22) between local devices
 #
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isLinux, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -101,8 +101,8 @@ let
   user = config.user.name;
   homeDir = config.user.home;
   configDir = "${homeDir}/.cloudflared";
-  configFile = if pkgs.stdenv.isLinux then "/etc/cloudflared/config.yml" else "${configDir}/config.yml";
-  secretGroup = if pkgs.stdenv.isDarwin then "staff" else "users";
+  configFile = if isLinux then "/etc/cloudflared/config.yml" else "${configDir}/config.yml";
+  secretGroup = if isDarwin then "staff" else "users";
   configText = let
     baseConfig = {
       tunnel = cfg.tunnelId;
@@ -160,7 +160,7 @@ in {
     }
 
     # Ensure config directory exists with correct permissions
-    (optionalAttrs pkgs.stdenv.isLinux {
+    (optionalAttrs isLinux {
         # Keep Linux connector config out of ~/.cloudflared. Agenix owns the
         # credential path there before Home Manager activation can link files.
         environment.etc."cloudflared/config.yml".text = configText;
@@ -219,7 +219,7 @@ in {
         };
       })
 
-      (optionalAttrs pkgs.stdenv.isDarwin {
+      (optionalAttrs isDarwin {
         home.file.".cloudflared/config.yml".text = configText;
 
         launchd.user.agents.cloudflared = {

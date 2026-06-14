@@ -2,12 +2,12 @@
 #
 # TODO
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isLinux, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.system.fs;
-in mkIf pkgs.stdenv.isLinux {
+in mkIf isLinux {
   options.modules.system.fs = {
     enable = mkBoolOpt true;
     zfs.enable = mkBoolOpt (any (x: x ? fsType && x.fsType == "zfs") (attrValues config.fileSystems));

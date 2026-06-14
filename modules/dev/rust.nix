@@ -7,7 +7,7 @@
 # is no formal proof of your claims for safety, but who said you have to solve
 # all the world's problems to be wonderful?
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -29,7 +29,7 @@ in {
           ca  = "cargo";
         };
       }
-      (mkIf pkgs.stdenv.isDarwin {
+      (mkIf isDarwin {
         home.packages = [ pkgs.rustup ];
       })
     ]))

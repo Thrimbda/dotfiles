@@ -7,8 +7,8 @@ in rec {
   mapModules = dir: fn:
     attrs.mapFilterAttrs'
       (n: v:
-        let path = "${toString dir}/${n}"; in
-        if v == "directory" && pathExists "${path}/default.nix"
+        let path = dir + "/${n}"; in
+        if v == "directory" && pathExists (path + "/default.nix")
         then nameValuePair n (fn path)
         else if v == "regular" &&
                 n != "default.nix" &&
@@ -28,7 +28,7 @@ in rec {
   mapModulesRec = dir: fn:
     attrs.mapFilterAttrs'
       (n: v:
-        let path = "${toString dir}/${n}"; in
+        let path = dir + "/${n}"; in
         if v == "directory"
         then nameValuePair n (mapModulesRec path fn)
         else if v == "regular" &&
@@ -47,11 +47,11 @@ in rec {
     let
       dirs =
         mapAttrsToList
-          (k: _: "${dir}/${k}")
+          (k: _: dir + "/${k}")
           (filterAttrs
             (n: v: v == "directory"
                    && !(hasPrefix "_" n)
-                   && !(pathExists "${dir}/${n}/.noload"))
+                   && !(pathExists (dir + "/${n}/.noload")))
             (readDir dir));
       files = attrValues (mapModules dir id);
       paths = files ++ concatLists (map (d: mapModulesRec' d id) dirs);

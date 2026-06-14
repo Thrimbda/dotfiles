@@ -159,8 +159,8 @@ in {
 
     # Hyprland's aquamarine requires newer MESA drivers.
     hardware.graphics = {
-      package = pkgs.unstable.mesa.drivers;
-      package32 = pkgs.unstable.pkgsi686Linux.mesa.drivers;
+      package = pkgs.unstable.mesa;
+      package32 = pkgs.unstable.pkgsi686Linux.mesa;
     };
 
     programs.hyprland = {
@@ -195,17 +195,6 @@ in {
       ydotool.enable = true;
     };
 
-    # Retrieve the latest versions.
-    nixpkgs.overlays = [
-      # Avoiding the hyprland input overlays to avoid cachix misses (and not
-      # setting programs.hyprland.package because other packages, like
-      # pkgs.hyprshade, may reference pkgs.hyprland in their derivations).
-      # (prev: final: {
-      #   hyprland = hey.inputs.hyprland.packages.${final.system}.hyprland;
-      # })
-      # hey.inputs.hyprpicker.overlays.default
-    ];
-
     environment.systemPackages = with pkgs.unstable; [
       hypridle       # idle management for the Hyprland session
       hyprsunset     # night light/gamma integration
@@ -215,7 +204,7 @@ in {
 
       ## For Hyprland
       swaybg         # feh (as a wallpaper manager)
-      xorg.xrandr    # for XWayland windows
+      xrandr         # for XWayland windows
       grim
       slurp
       wf-recorder

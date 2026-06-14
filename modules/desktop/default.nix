@@ -1,9 +1,8 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.desktop;
-    isDarwin = pkgs.stdenv.isDarwin;
     setEnv = name: value:
       if isDarwin
       then {}

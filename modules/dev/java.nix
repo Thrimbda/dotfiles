@@ -2,7 +2,7 @@
 #
 # TODO
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, isDarwin, ... }:
 
 with lib;
 with hey.lib;
@@ -19,13 +19,13 @@ in {
       {
         user.packages = [ pkgs.openjdk ];
       }
-      (mkIf pkgs.stdenv.isDarwin {
+      (mkIf isDarwin {
         home.packages = [ pkgs.openjdk ];
       })
     ]))
 
     (mkIf cfg.xdg.enable (
-      if pkgs.stdenv.isDarwin then {
+      if isDarwin then {
         environment.variables._JAVA_OPTIONS =
           ''-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME/java"'';
       } else {
