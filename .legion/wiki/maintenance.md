@@ -42,6 +42,11 @@
 
 - After deploying `axiom-hdmi-audio-startup-fix`, start a fresh graphical session and confirm `systemctl --user status axiom-hdmi-audio.service easyeffects.service` shows the HDMI readiness unit ran before EasyEffects, `wpctl status` lists `HDA NVidia 数字立体声 (HDMI)` as the default sink, and Zen/Sidra playback reaches the DELL U2720QM headphone output without manual `pactl set-card-profile` toggling.
 
+## Axiom Display Follow-Up
+
+- After deploying `axiom-4k240-hdr-display`, restart or reload the Axiom Hyprland session and run `hyprctl monitors` to confirm the active display reports `3840x2160@240`. If the monitor remains at 60Hz, inspect the physical output name, cable/port path, and advertised modes before changing GPU/kernel settings.
+- HDR remains a follow-up, not part of the default deployed state. Only remove or relax `render.cm_enabled = false` after the pinned Hyprland package is known to contain the color-management hotplug fix, then repeat a live DPMS/resume smoke before keeping HDR enabled.
+
 ## Axiom Virtualization Follow-Up
 
 - After deploying `axiom-win11-kvm-vm`, run `sudo nixos-rebuild test --flake <deployed-dotfiles>#axiom` or switch through the normal host deployment flow, then start a fresh `c1` session and confirm `id c1` includes `kvm` and `libvirtd`, `systemctl is-active libvirtd virtlogd virtlockd` is active, and `virsh -c qemu:///system list --all` works.
