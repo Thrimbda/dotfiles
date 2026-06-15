@@ -168,3 +168,5 @@
 - Added task summary for `axiom-clash-verge-proxy-switch`.
 - Updated current Clash Verge decisions and patterns with local controller API switching, runtime-only secret handling, and mock-controller validation for proxy switch helper scripts.
 - Marked `axiom-clash-verge-proxy-switch` completed after implementation PR #83 merged and cleanup/refresh completed.
+- Added task summary for `axiom-4k240-hdr-display`.
+- Updated current Axiom Hyprland display decisions, monitor validation patterns, and maintenance with the 4K 240Hz target and HDR/color-management follow-up boundary.

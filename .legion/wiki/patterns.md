@@ -44,6 +44,8 @@ For PipeWire/EasyEffects startup regressions, separate hardware-path proof from 
 
 For Hyprland config syntax migrations, do not rely on Nix build/eval alone. Build a combined config from generated pre config, checked-in base config, and generated post/theme config, then run the evaluated Hyprland binary with `--verify-config`.
 
+For Hyprland monitor mode changes, directly evaluate the generated Home Manager `hypr/monitors.conf` text for the target host. This proves the active Nix monitor rule requests the intended mode, for example `3840x2160@240`, without confusing it with checked-in source defaults. When adding optional monitor fields such as `bitdepth`, `cm`, `sdrbrightness`, or `sdrsaturation`, use a temporary `extendModules` override to validate the generated `monitorv2` shape; still record that real refresh rate and HDR behavior require a live `hyprctl monitors` session smoke.
+
 For visible-shell startup regressions where Hyprland shows a cursor but the desktop stays black, validate the generated startup chain directly. Check that `exec-once = hey hook startup` is present, startup hooks are ordered as expected, the early session hook starts `hyprland-session.target`, DMS/Quickshell is wanted by the session target, wallpaper starts through the configured background hook, and no foreground lock command gates the shell path.
 
 For Hyprland/UWSM startup warnings, validate the actual command resolution instead of only checking desktop entry existence. A `uwsm start` dry run should resolve to `start-hyprland`; if it resolves to direct `Hyprland`, the generated startup path can still trigger the upstream warning even when UWSM is present.

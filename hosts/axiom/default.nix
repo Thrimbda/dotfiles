@@ -40,6 +40,8 @@ with builtins;
         extraConfig = ''
           render {
             # Work around Hyprland 0.53.x color-management crashes on DPMS/resume.
+            # HDR is lower priority than 240Hz and needs color management, so keep
+            # this guard until the Axiom session is re-tested on the real display.
             cm_enabled = false
           }
 
@@ -49,7 +51,7 @@ with builtins;
           }
         '';
         monitors = [{
-          mode = "3840x2160@60";
+          mode = "3840x2160@240";
           position = "0x0";
           scale = 1.5;
         }];
