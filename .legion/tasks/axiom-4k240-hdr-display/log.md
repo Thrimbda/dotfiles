@@ -19,3 +19,4 @@
 - 变更评审结论为 PASS：无阻塞问题，未命中安全触发条件；残余风险是 240Hz/HDR 运行态仍需 Axiom 实机会话确认。
 - 已生成 implementation 模式 walkthrough 和 PR body，供 reviewer 快速查看变更、验证与残余风险。
 - 已完成 Legion wiki 收口：新增任务摘要，并更新 Axiom 显示决策、Hyprland monitor 验证模式和部署后实机确认维护项。
+- 已提交并推送分支 `legion/axiom-4k240-hdr-display`，创建 PR：https://github.com/Thrimbda/dotfiles/pull/86。
