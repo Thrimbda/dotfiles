@@ -172,3 +172,6 @@
 - Updated current Axiom Hyprland display decisions, monitor validation patterns, and maintenance with the 4K 240Hz target and HDR/color-management follow-up boundary.
 - Added task summary for `nix-warning-cleanup`.
 - Added current NixOS read-only pkgs decision and validation pattern; recorded the unrelated `godot_4-export-templates` package rename as maintenance follow-up.
+- Added task summary for `aliyun-acorn-ecs-deploy`.
+- Updated current Aliyun ECS image deployment decisions with dotfiles/aliyun-ops ownership, explicit UEFI import, runtime SSH key injection, and paid-resource gates.
+- Added Aliyun ECS custom image validation/deployment pattern and live-validation maintenance follow-up.
