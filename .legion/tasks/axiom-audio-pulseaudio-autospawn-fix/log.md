@@ -10,3 +10,6 @@
 - Stopping EasyEffects moved the active Cyberpunk 2077 stream to `MPG272UX OLED` and restored sound.
 - Implemented host-specific hardening in `hosts/axiom/default.nix`: disable PulseAudio autospawn via `home.configFile."pulse/client.conf"` and clear stray `pulseaudio` in `axiom-ensure-hdmi-audio`.
 - For immediate runtime effect, `/home/c1/.config/pulse/client.conf` was also created with `autospawn = no`; the declarative config uses `force = true` so a later Home Manager switch can own it.
+- Verification, readiness review, walkthrough, and wiki writeback were recorded under this task.
+- Implementation PR #90 (`https://github.com/Thrimbda/dotfiles/pull/90`) merged at 2026-06-16T04:03:42Z with merge commit `bd3e6f95b489e1f44fb63fe2bee7240a4683b8ff`.
+- The implementation worktree `.worktrees/axiom-audio-pulseaudio-autospawn-fix` was removed after PR #90 merged; this closing branch records the final Legion task state.
