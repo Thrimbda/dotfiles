@@ -11,7 +11,7 @@
 - Opened worktree `.worktrees/aliyun-acorn-ecs-deploy` on branch `legion/aliyun-acorn-ecs-deploy-aliyun-image` from `origin/master`.
 - Updated `hosts/aliyun-acorn/image/flake.lock` so the nested image flake includes current root inputs such as `qtengine` and `sidra`.
 - Expanded `hosts/aliyun-acorn/README.md` into a guarded Alibaba Cloud ECS deployment runbook covering build, Aliyun ops shell, OSS upload, ImportImage with UEFI, runtime cloud-init SSH access, RunInstances dry-run/live gate, first-boot validation, and cleanup.
-- Verification passed: nested image flake evaluates, image dry-run plans, full `nix build --no-link` produced `/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image/nixos-aliyun-acorn.qcow2`, `git diff --check` passed, and sensitive-pattern scan found only policy text.
+- Verification passed: nested image flake evaluates, image dry-run plans, full `nix build --no-link` produced `/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image/nixos-aliyun-acorn.qcow2`, `git diff --check` passed, and sensitive-pattern scan found only policy text.
 - Review-change passed with security lens applied; no blocking findings.
 - Produced reviewer-facing walkthrough and PR body from existing design, verification, and review evidence.
 - Completed Legion wiki writeback with task summary, Aliyun ECS current decisions, reusable deployment/validation pattern, wiki log, and live-validation follow-up.

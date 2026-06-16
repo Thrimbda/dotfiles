@@ -9,7 +9,7 @@
 - PASS: `nix eval --raw './hosts/aliyun-acorn/image#aliyun-image.system'`
 - PASS: `nix build --dry-run './hosts/aliyun-acorn/image#aliyun-image'`
 - PASS: `nix build --no-link './hosts/aliyun-acorn/image#aliyun-image'`
-- PASS: built output `/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image/nixos-aliyun-acorn.qcow2`
+- PASS: built output `/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image/nixos-aliyun-acorn.qcow2`
 - PASS: `git diff --check`
 - PASS: sensitive-pattern scan found no secret values
 

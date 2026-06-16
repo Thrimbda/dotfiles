@@ -24,7 +24,7 @@ Security lens applied because the change documents cloud credentials, identity, 
 ## Verification Review
 
 - `docs/test-report.md` records direct evidence that the stale lock blocker is fixed and the image builds.
-- Actual image build passed with output `/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image/nixos-aliyun-acorn.qcow2`.
+- Actual image build passed with output `/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image/nixos-aliyun-acorn.qcow2`.
 - `git diff --check` passed.
 - Sensitive-pattern scan found only policy/runbook mentions, not secret values.
 - Live Aliyun validation was correctly skipped because it requires explicit cloud resource confirmation.

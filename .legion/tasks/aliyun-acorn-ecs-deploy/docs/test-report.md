@@ -10,12 +10,12 @@ Live Aliyun upload/import/instance operations were not run because they create o
 
 | Check | Command | Result |
 |---|---|---|
-| Image flake system eval | `nix eval --raw './hosts/aliyun-acorn/image#aliyun-image.system'` | PASS. Returned `x86_64-linux`. Nix emitted the existing `specialArgs.pkgs` warning, unrelated to this change. |
+| Image flake system eval | `nix eval --raw './hosts/aliyun-acorn/image#aliyun-image.system'` | PASS. Returned `x86_64-linux`. |
 | Image build dry-run | `nix build --dry-run './hosts/aliyun-acorn/image#aliyun-image'` | PASS. Planned the image build through `nixos-disk-image.drv`. |
 | Actual image build | `nix build --no-link './hosts/aliyun-acorn/image#aliyun-image'` | PASS. Built without creating a repository `result` symlink. |
-| Image output path | `nix build --print-out-paths --no-link './hosts/aliyun-acorn/image#aliyun-image'` | PASS. Output: `/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image`. |
-| Output contents | Read `/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image` | PASS. Contains `nixos-aliyun-acorn.qcow2` and `nix-support/`. |
-| Output size | `nix path-info -S '/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image'` | PASS. Store path size is `13396420520` bytes. |
+| Image output path | `nix build --print-out-paths --no-link './hosts/aliyun-acorn/image#aliyun-image'` | PASS. Output: `/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image`. |
+| Output contents | Read `/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image` | PASS. Contains `nixos-aliyun-acorn.qcow2` and `nix-support/`. |
+| Output size | `nix path-info -S '/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image'` | PASS. Store path size is `13396763488` bytes. |
 | Whitespace | `git diff --check` | PASS. No whitespace errors. |
 | Sensitive pattern scan | Grep changed markdown for `AccessKeys`, `tfvars`, `private key`, `PRIVATE KEY`, `ALIYUN_ACCESS`, `AccessKeySecret`, `AccessKeyId` | PASS. Matches are policy/runbook text warning not to commit secrets; no secret value or private key material found. |
 

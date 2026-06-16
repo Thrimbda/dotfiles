@@ -28,7 +28,7 @@
 
 - `nix eval --raw './hosts/aliyun-acorn/image#aliyun-image.system'` returned `x86_64-linux`.
 - `nix build --dry-run './hosts/aliyun-acorn/image#aliyun-image'` planned the image derivation.
-- `nix build --no-link './hosts/aliyun-acorn/image#aliyun-image'` built `/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image/nixos-aliyun-acorn.qcow2`.
+- `nix build --no-link './hosts/aliyun-acorn/image#aliyun-image'` built `/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image/nixos-aliyun-acorn.qcow2`.
 - `git diff --check` passed.
 - Sensitive-pattern review found policy/runbook mentions only, not secret values or key material.
 - `docs/review-change.md` recorded PASS with no blocking findings.

@@ -35,7 +35,7 @@ From `.legion/tasks/aliyun-acorn-ecs-deploy/docs/test-report.md`:
 - PASS: `nix eval --raw './hosts/aliyun-acorn/image#aliyun-image.system'` returned `x86_64-linux`.
 - PASS: `nix build --dry-run './hosts/aliyun-acorn/image#aliyun-image'` planned the image derivation.
 - PASS: `nix build --no-link './hosts/aliyun-acorn/image#aliyun-image'` built the QCOW2 image.
-- PASS: output path is `/nix/store/44yiwbiq8qipv1hnsl75lh8kid8k4g4z-nixos-disk-image`, containing `nixos-aliyun-acorn.qcow2`.
+- PASS: output path is `/nix/store/3q240pib2zgaxpjijgb0inb77fkglhg5-nixos-disk-image`, containing `nixos-aliyun-acorn.qcow2`.
 - PASS: `git diff --check`.
 - PASS: sensitive-pattern scan found only policy/runbook text, not secret values.
 
