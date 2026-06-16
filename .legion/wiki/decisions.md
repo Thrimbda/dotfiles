@@ -78,6 +78,14 @@ When NetworkManager uses iwd as the Wi-Fi backend, NetworkManager owns DHCP/rout
 
 Darwin remains a shared shell/dev/editor/XDG target. Linux desktop/system concerns such as Hyprland, DMS/Quickshell, Steam, NetworkManager/iwd, BlueZ/Blueman, portals, and display-manager wiring must stay out of Darwin imports unless a future Darwin-specific task changes the contract.
 
+## NixOS Package Set Evaluation
+
+NixOS configurations reuse the host package set through `nixpkgs.nixosModules.readOnlyPkgs` plus `nixpkgs.pkgs = hostInfo.pkgs`. Do not pass `pkgs` through NixOS `specialArgs`; that continues to trigger the `specialArgs.pkgs` warning even when `readOnlyPkgs` is imported.
+
+Under read-only pkgs, module `pkgs` is provided through configuration, so import-time platform decisions and top-level config shape should use the plain `hostSystem` special argument. Do not force `pkgs.stdenv.isLinux` or `pkgs.stdenv.isDarwin` in `imports` or top-level `optionalAttrs` / `mkIf` conditions that affect module collection.
+
+When NixOS uses a prebuilt pkgs set, local modules should not set `nixpkgs.overlays` or `nixpkgs.config`. Put durable package-set customization in the flake's package construction path instead, or keep it explicitly Darwin-only if it is only intended for nix-darwin.
+
 ## Reverse SSH Tunnels
 
 Current autossh reverse tunnels to `root@8.159.128.125` bind remote loopback explicitly and forward back to each host's local SSH daemon on `127.0.0.1:22`.

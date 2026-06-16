@@ -3,20 +3,21 @@
 # ZSH and Janet are the powerhouses of my dotfiles. This module configures both
 # for my scripting needs (particularly by bin/hey).
 
-{ hey, lib, options, config, pkgs, ... }:
+{ hey, lib, options, config, pkgs, hostSystem ? null, ... }:
 
 with builtins;
 with lib;
 with hey.lib;
 let cfg = config.hey;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isDarwin = hasSuffix "-darwin" system;
 
     janet = pkgs.janet;
     jpmWrapped = mkWrapper pkgs.jpm ''
       wrapProgram $out/bin/jpm --add-flags '--tree="$JANET_TREE" --binpath="$XDG_BIN_HOME" --headerpath=${janet}/include --libpath=${janet}/lib'
     '';
-    jpmPkg = if pkgs.stdenv.isDarwin then pkgs.jpm else jpmWrapped;
+    jpmPkg = if isDarwin then pkgs.jpm else jpmWrapped;
     janetTreeDir = "${config.home.dataDir}/janet/jpm_tree";
-    isDarwin = pkgs.stdenv.isDarwin;
     heyWrapper = pkgs.writeShellScriptBin "hey" ''
       export JANET_PATH=${hey.libDir}:${janetTreeDir}/lib
       export JANET_TREE=${janetTreeDir}

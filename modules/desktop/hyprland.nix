@@ -194,8 +194,8 @@ in {
 
     # Hyprland's aquamarine requires newer MESA drivers.
     hardware.graphics = {
-      package = pkgs.unstable.mesa.drivers;
-      package32 = pkgs.unstable.pkgsi686Linux.mesa.drivers;
+      package = pkgs.unstable.mesa;
+      package32 = pkgs.unstable.pkgsi686Linux.mesa;
     };
 
     programs.hyprland = {
@@ -229,17 +229,6 @@ in {
       # REVIEW: Get rid of this when wtype adds mouse support (atx/wtype#24).
       ydotool.enable = true;
     };
-
-    # Retrieve the latest versions.
-    nixpkgs.overlays = [
-      # Avoiding the hyprland input overlays to avoid cachix misses (and not
-      # setting programs.hyprland.package because other packages, like
-      # pkgs.hyprshade, may reference pkgs.hyprland in their derivations).
-      # (prev: final: {
-      #   hyprland = hey.inputs.hyprland.packages.${final.system}.hyprland;
-      # })
-      # hey.inputs.hyprpicker.overlays.default
-    ];
 
     environment.systemPackages = with pkgs.unstable; [
       hypridle       # idle management for the Hyprland session

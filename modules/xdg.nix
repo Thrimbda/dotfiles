@@ -1,6 +1,6 @@
 # xdg.nix --- enforcing XDG compliance on any host
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with builtins;
 with lib;
@@ -8,8 +8,9 @@ with hey.lib;
 let
   cfg = config.modules.xdg;
   home = config.home;
-  isLinux = pkgs.stdenv.isLinux;
-  isDarwin = pkgs.stdenv.isDarwin;
+  system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+  isLinux = hasSuffix "-linux" system;
+  isDarwin = hasSuffix "-darwin" system;
   mkEnvVar = name: value:
     if isLinux
     then { environment.sessionVariables.${name} = value; }

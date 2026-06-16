@@ -2,13 +2,14 @@
 # intertwined with others, and are solely responsible for aesthetics. Disabling
 # a theme module should never leave a system non-functional.
 
-args @ { hey, heyBin, lib, options, config, pkgs, home-manager, ... }:
+args @ { hey, heyBin, lib, options, config, pkgs, home-manager, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let
   cfg = config.modules.theme;
-  isDarwin = pkgs.stdenv.isDarwin;
+  system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+  isDarwin = hasSuffix "-darwin" system;
 in {
   # Load theme submodules, but only pull in the darwin-specific helper when
   # we're actually on macOS to avoid duplicate option declarations.

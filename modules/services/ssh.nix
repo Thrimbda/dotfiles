@@ -1,8 +1,10 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.services.ssh;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isLinux = hasSuffix "-linux" system;
 in
 {
   options.modules.services.ssh = {
@@ -44,7 +46,7 @@ in
     }
     
     # systemd tmpfiles are Linux-only
-    (mkIf pkgs.stdenv.isLinux {
+    (mkIf isLinux {
       # Ensure this directory exists and has correct permissions.
       systemd.user.tmpfiles.rules = [ "d %h/.config/ssh 700 - - - -" ];
     })

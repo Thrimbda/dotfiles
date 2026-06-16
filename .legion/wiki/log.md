@@ -170,3 +170,5 @@
 - Marked `axiom-clash-verge-proxy-switch` completed after implementation PR #83 merged and cleanup/refresh completed.
 - Added task summary for `axiom-4k240-hdr-display`.
 - Updated current Axiom Hyprland display decisions, monitor validation patterns, and maintenance with the 4K 240Hz target and HDR/color-management follow-up boundary.
+- Added task summary for `nix-warning-cleanup`.
+- Added current NixOS read-only pkgs decision and validation pattern; recorded the unrelated `godot_4-export-templates` package rename as maintenance follow-up.

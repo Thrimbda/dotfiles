@@ -51,7 +51,7 @@ in {
              fi
           fi
         ''}
-        exec ${hey.inputs.agenix.packages.${pkgs.system}.default}/bin/agenix "''${ARGS[@]}"
+        exec ${hey.inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/agenix "''${ARGS[@]}"
       '')
     ];
 

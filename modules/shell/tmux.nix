@@ -1,8 +1,10 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.shell.tmux;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isDarwin = hasSuffix "-darwin" system;
 in {
   options.modules.shell.tmux = with types; {
     enable = mkBoolOpt false;
@@ -35,7 +37,7 @@ in {
       modules.shell.zsh.rcFiles = [ "${hey.configDir}/tmux/aliases.zsh" ];
     }
 
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [ pkgs.tmux ];
     })
   ]);

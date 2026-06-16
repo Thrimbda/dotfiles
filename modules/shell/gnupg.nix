@@ -1,8 +1,10 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.shell.gnupg;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isDarwin = hasSuffix "-darwin" system;
 in {
   options.modules.shell.gnupg = with types; {
     enable   = mkBoolOpt false;
@@ -12,10 +14,10 @@ in {
   config = mkIf cfg.enable (mkMerge [
     {
       environment = mkMerge [
-        (optionalAttrs pkgs.stdenv.isDarwin {
+        (optionalAttrs isDarwin {
           variables.GNUPGHOME = "$HOME/.config/gnupg";
         })
-        (optionalAttrs (!pkgs.stdenv.isDarwin) {
+        (optionalAttrs (!isDarwin) {
           sessionVariables.GNUPGHOME = "$HOME/.config/gnupg";
         })
       ];
@@ -26,7 +28,7 @@ in {
       #   "GNUPGHOME=${config.home.configDir}/gnupg"
       # ];
 
-      programs = optionalAttrs (!pkgs.stdenv.isDarwin) {
+      programs = optionalAttrs (!isDarwin) {
         gnupg = {
           agent = {
             enable = true;
@@ -45,7 +47,7 @@ in {
         allow-loopback-pinentry
       '';
     }
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [ pkgs.gnupg ];
     })
   ]);

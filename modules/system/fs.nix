@@ -2,12 +2,14 @@
 #
 # TODO
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.system.fs;
-in mkIf pkgs.stdenv.isLinux {
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isLinux = hasSuffix "-linux" system;
+in mkIf isLinux {
   options.modules.system.fs = {
     enable = mkBoolOpt true;
     zfs.enable = mkBoolOpt (any (x: x ? fsType && x.fsType == "zfs") (attrValues config.fileSystems));

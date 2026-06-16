@@ -1,5 +1,9 @@
 # Maintenance
 
+## Nix Evaluation Follow-Up
+
+- Full all-host NixOS evaluation is currently blocked by an unrelated existing package rename: `godot_4-export-templates` should be updated to `godot_4-export-templates-bin` in a separate scoped task if all-host evaluation or full flake checks become required.
+
 ## Terminal Follow-Up
 
 - Foot terminal notification behavior was disabled by removing unsupported `[main].notify` from the global config. If terminal notification behavior is still desired, restore it only through a Foot 1.25-supported option or an explicit external wrapper design validated with `foot --check-config`.

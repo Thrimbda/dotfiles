@@ -2,12 +2,14 @@
 #
 # Gatus status page and black-box monitoring entrypoint.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let
   cfg = config.modules.services.gatus;
+  system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+  isLinux = hasSuffix "-linux" system;
   prometheusCfg = config.modules.services.prometheus;
   gatusUrl = "http://127.0.0.1:${toString cfg.port}";
   settings = recursiveUpdate {
@@ -39,7 +41,7 @@ in {
     };
   };
 
-  config = mkIf (cfg.enable && pkgs.stdenv.isLinux) (mkMerge [
+  config = mkIf (cfg.enable && isLinux) (mkMerge [
     {
       services.gatus = {
         enable = true;
