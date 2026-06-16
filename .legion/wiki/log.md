@@ -175,3 +175,4 @@
 - Added task summary for `aliyun-acorn-ecs-deploy`.
 - Updated current Aliyun ECS image deployment decisions with dotfiles/aliyun-ops ownership, explicit UEFI import, runtime SSH key injection, and paid-resource gates.
 - Added Aliyun ECS custom image validation/deployment pattern and live-validation maintenance follow-up.
+- Marked `aliyun-acorn-ecs-deploy` completed after implementation PR #88 merged and worktree cleanup/main refresh completed.

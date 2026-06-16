@@ -15,11 +15,13 @@
 - Review-change passed with security lens applied; no blocking findings.
 - Produced reviewer-facing walkthrough and PR body from existing design, verification, and review evidence.
 - Completed Legion wiki writeback with task summary, Aliyun ECS current decisions, reusable deployment/validation pattern, wiki log, and live-validation follow-up.
+- Implementation PR #88 merged as `0a5e6f0e391a9a52b9ca650551162dd19a49985b`; GitHub reported no check rollup entries and no blocking review decision.
+- Removed implementation worktree `.worktrees/aliyun-acorn-ecs-deploy` and refreshed the main checkout to merged `origin/master`.
 
 (暂无)
 ### 🟡 进行中
 
-- Complete PR lifecycle or record blocker.
+- (none)
 ### ⚠️ 阻塞/待定
 
 - Live Aliyun upload/import/RunInstances steps skipped until bucket, network, security group, instance type, SSH CIDR, and cleanup policy are explicitly confirmed.
@@ -53,7 +55,7 @@
 
 **下次继续从这里开始：**
 
-1. Run final checks, rebase on `origin/master`, commit/push the branch, create or update the PR, and follow checks/review per `git-worktree-pr`.
+1. Task is closed repository-side. Live Aliyun upload/import/RunInstances remains a separate explicitly confirmed operation.
 
 **注意事项：**
 
