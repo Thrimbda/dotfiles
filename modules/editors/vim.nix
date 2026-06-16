@@ -1,11 +1,13 @@
 # When I'm stuck in the terminal or don't have access to Emacs, (neo)vim is my
 # go-to. I am a vimmer at heart, after all.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.editors.vim;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isDarwin = hasSuffix "-darwin" system;
     configDir = config.dotfiles.configDir;
     username = config.user.name;
 in {
@@ -51,7 +53,7 @@ in {
       #   '';
       # };
     }
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [
         pkgs.neovim
       ];

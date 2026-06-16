@@ -1,8 +1,10 @@
-{ hey, lib, options, config, pkgs, ... }:
+{ hey, lib, options, config, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.services.docker;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isLinux = hasSuffix "-linux" system;
 in {
   options.modules.services.docker = {
     enable = mkBoolOpt false;
@@ -10,7 +12,7 @@ in {
   };
 
   # Docker is only available on Linux
-  config = mkIf (cfg.enable && pkgs.stdenv.isLinux) (mkMerge [
+  config = mkIf (cfg.enable && isLinux) (mkMerge [
     {
       user.packages = with pkgs; [
         docker

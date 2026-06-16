@@ -254,11 +254,12 @@ rec {
               specialArgs = {
                 self = hostInfo.selfSpecial;
                 hey = hostInfo.heySpecial;
-                pkgs = hostInfo.pkgs;
+                hostSystem = hostInfo.system;
                 home-manager = hey.inputs.home-manager;
               };
               modules =
                 [
+                  nixpkgs.nixosModules.readOnlyPkgs
                   disko.nixosModules.disko
                   (if isFunction storageValue
                    then (attrs: { disko.devices = storageValue attrs; })
@@ -296,6 +297,7 @@ rec {
                 specialArgs = {
                   self = hostInfo.selfSpecial;
                   hey = hostInfo.heySpecial;
+                  hostSystem = hostInfo.system;
                   home-manager = hey.inputs.home-manager;
                   pkgs = hostInfo.pkgs;
                 };

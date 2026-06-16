@@ -1,9 +1,10 @@
-{ hey, lib, config, pkgs, ... }:
+{ hey, lib, config, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.desktop.caelestia;
-    system = pkgs.stdenv.hostPlatform.system;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isLinux = hasSuffix "-linux" system;
     themeWallpaper = config.modules.theme.wallpapers."*" or {};
     defaultWallpaperPath = themeWallpaper.path or null;
     qtPlatform = "wayland;xcb";
@@ -15,11 +16,11 @@ let cfg = config.modules.desktop.caelestia;
       sans = "Rubik";
     };
     defaultShellPackage =
-      if pkgs.stdenv.isLinux
+      if isLinux
       then hey.inputs.caelestia-shell.packages.${system}.with-cli
       else pkgs.runCommand "caelestia-shell-unavailable" {} "mkdir -p $out";
     defaultCliPackage =
-      if pkgs.stdenv.isLinux
+      if isLinux
       then hey.inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.default
       else pkgs.runCommand "caelestia-cli-unavailable" {} "mkdir -p $out";
     terminalCommand = config.modules.desktop.term.default or "foot";
@@ -275,7 +276,7 @@ let cfg = config.modules.desktop.caelestia;
       esac
     '';
 in {
-  imports = optional pkgs.stdenv.isLinux hey.inputs.qtengine.nixosModules.default;
+  imports = optional isLinux hey.inputs.qtengine.nixosModules.default;
 
   options.modules.desktop.caelestia = with types; {
     enable = mkBoolOpt false;
@@ -298,12 +299,12 @@ in {
   config = mkIf cfg.enable (mkMerge [
     {
       assertions = [{
-        assertion = pkgs.stdenv.isLinux;
+        assertion = isLinux;
         message = "Caelestia shell is Linux-only and must not be enabled on Darwin.";
       }];
     }
 
-    (mkIf pkgs.stdenv.isLinux {
+    (mkIf isLinux {
       programs.qtengine = {
         enable = true;
         config = {

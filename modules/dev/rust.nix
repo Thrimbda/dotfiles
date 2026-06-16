@@ -7,12 +7,14 @@
 # is no formal proof of your claims for safety, but who said you have to solve
 # all the world's problems to be wonderful?
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let devCfg = config.modules.dev;
     cfg = devCfg.rust;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isDarwin = hasSuffix "-darwin" system;
 in {
   options.modules.dev.rust = {
     enable = mkBoolOpt false;
@@ -29,7 +31,7 @@ in {
           ca  = "cargo";
         };
       }
-      (mkIf pkgs.stdenv.isDarwin {
+      (mkIf isDarwin {
         home.packages = [ pkgs.rustup ];
       })
     ]))

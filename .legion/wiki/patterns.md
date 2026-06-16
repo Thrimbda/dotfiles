@@ -14,6 +14,14 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
+## NixOS Read-Only Pkgs Pattern
+
+When a NixOS configuration intentionally reuses an already imported host package set, use the recommended read-only path: include `nixpkgs.nixosModules.readOnlyPkgs`, set `nixpkgs.pkgs = <host pkgs>`, and do not pass `pkgs` through `specialArgs`.
+
+Because `readOnlyPkgs` makes module `pkgs` config-provided rather than externally supplied, avoid `pkgs.stdenv.isLinux` / `pkgs.stdenv.isDarwin` in `imports` and top-level config-shaping expressions. Pass a plain host system string such as `hostSystem` and derive booleans from that string for import-time platform branching.
+
+Validate warning-cleanup changes with a representative host toplevel evaluation and dry-run build. For this repository, `nix eval --impure --raw .#nixosConfigurations.axiom.config.system.build.toplevel.drvPath` plus `nix build --impure --dry-run .#nixosConfigurations.axiom.config.system.build.toplevel` directly exercises Hyprland, audio, agenix, and desktop platform paths without requiring a privileged switch.
+
 ## Host-Local Package Pattern
 
 For one-off, host-specific CLI or GUI package requests on `axiom`, prefer the existing host-local `user.packages` list over introducing a reusable module. Use a reusable module when the app/tool needs cross-host enablement, NixOS service integration, firewall/system settings, generated config, or runtime policy ownership.

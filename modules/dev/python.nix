@@ -4,13 +4,15 @@
 # me. The Py2->3 transition make trainwrecks jealous. But SciPy, NumPy, iPython
 # and Jupyter can have my babies. Every single one.
 
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let
   devCfg = config.modules.dev;
   cfg = devCfg.python;
+  system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+  isDarwin = hasSuffix "-darwin" system;
   pythonPackages = with pkgs; [
     python312
     python312Packages.pip
@@ -40,7 +42,7 @@ in {
           ipylab = "ipython --pylab=qt5 --no-banner";
         };
       }
-      (mkIf pkgs.stdenv.isDarwin {
+      (mkIf isDarwin {
         home.packages = pythonPackages;
       })
     ]))

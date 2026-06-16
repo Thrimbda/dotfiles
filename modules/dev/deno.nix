@@ -2,13 +2,15 @@
 #
 # Deno is amazingly a future of JavaScript/TypeScript.
 
-{ hey, config, options, lib, pkgs, ... }:
+{ hey, config, options, lib, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let
   devCfg = config.modules.dev;
   cfg = devCfg.deno;
+  system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+  isDarwin = hasSuffix "-darwin" system;
 in
 {
   options.modules.dev.deno = {
@@ -21,7 +23,7 @@ in
         pkgs.deno
       ];
     }
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = [
         pkgs.deno
       ];

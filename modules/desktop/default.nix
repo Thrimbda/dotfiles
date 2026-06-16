@@ -1,9 +1,10 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let cfg = config.modules.desktop;
-    isDarwin = pkgs.stdenv.isDarwin;
+    system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+    isDarwin = hasSuffix "-darwin" system;
     setEnv = name: value:
       if isDarwin
       then {}

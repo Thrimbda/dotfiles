@@ -1,9 +1,11 @@
-{ hey, lib, config, options, pkgs, ... }:
+{ hey, lib, config, options, pkgs, hostSystem ? null, ... }:
 
 with lib;
 with hey.lib;
 let
   cfg = config.modules.shell.git;
+  system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
+  isDarwin = hasSuffix "-darwin" system;
   gitPackagesBase = with pkgs; [
     git-annex
     gh
@@ -31,7 +33,7 @@ in {
 
       modules.shell.zsh.rcFiles = [ "${hey.configDir}/git/aliases.zsh" ];
     }
-    (mkIf pkgs.stdenv.isDarwin {
+    (mkIf isDarwin {
       home.packages = gitPackages;
     })
   ]);
