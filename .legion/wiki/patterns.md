@@ -60,7 +60,7 @@ For display-manager runtime regressions, validate the effective NixOS session da
 
 For NetworkManager/iwd changes, validate service ownership explicitly: NetworkManager backend/DNS, iwd `EnableNetworkConfiguration`, resolved enablement, legacy DHCP service presence, and any generated NetworkManager ensure profiles.
 
-For PipeWire/EasyEffects startup regressions, separate hardware-path proof from session-routing proof. First test the actual ALSA device, then inspect the PipeWire/Pulse default sink, app sink-inputs, EasyEffects virtual sink links, and generated systemd user ordering. If HDMI works directly but browsers attach to EasyEffects before a real hardware sink exists, prefer a declarative startup-order/default-sink fix over manual `pactl` repair commands.
+For PipeWire/EasyEffects startup regressions, separate hardware-path proof from session-routing proof. First test the actual ALSA device, then inspect the PipeWire/Pulse default sink, app sink-inputs, EasyEffects virtual sink links, generated systemd user ordering, and whether a real `pulseaudio --start` process is holding `/dev/snd` outside PipeWire. If HDMI works directly but apps attach to EasyEffects before a real hardware sink exists, prefer a declarative startup-order/default-sink fix plus PulseAudio autospawn prevention over manual `pactl` repair commands.
 
 For Hyprland config syntax migrations, do not rely on Nix build/eval alone. Build a combined config from generated pre config, checked-in base config, and generated post/theme config, then run the evaluated Hyprland binary with `--verify-config`.
 

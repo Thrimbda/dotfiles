@@ -335,6 +335,10 @@ with builtins;
       ensureAxiomHdmiAudio = pkgs.writeShellScript "axiom-ensure-hdmi-audio" ''
         set -eu
 
+        # A stray real PulseAudio daemon can autospawn and hold hdmi:0 before
+        # PipeWire creates the HDMI sink.
+        ${pkgs.procps}/bin/pkill -x pulseaudio || true
+
         for _ in $(${pkgs.coreutils}/bin/seq 1 20); do
           if ${pkgs.pulseaudio}/bin/pactl list short cards \
               | ${pkgs.gnugrep}/bin/grep -F -q ${escapeShellArg axiomHdmiAudioCard}; then
@@ -481,6 +485,13 @@ with builtins;
           };
         }
       ];
+    };
+
+    home.configFile."pulse/client.conf" = {
+      force = true;
+      text = ''
+        autospawn = no
+      '';
     };
 
     systemd.user.services.axiom-hdmi-audio = {
