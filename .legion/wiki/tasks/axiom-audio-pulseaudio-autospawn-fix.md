@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-audio-pulseaudio-autospawn-fix`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `low`
 - `schema-version`: `legion-workflow-2026-05`
 - `historical`: `false`

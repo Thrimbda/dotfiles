@@ -178,3 +178,4 @@
 - Marked `aliyun-acorn-ecs-deploy` completed after implementation PR #88 merged and worktree cleanup/main refresh completed.
 - Added task summary for `axiom-audio-pulseaudio-autospawn-fix`.
 - Updated current Axiom audio decisions, validation patterns, and maintenance with PipeWire Pulse server ownership and real PulseAudio autospawn prevention.
+- Marked `axiom-audio-pulseaudio-autospawn-fix` completed after implementation PR #90 merged and the implementation worktree was cleaned up.
