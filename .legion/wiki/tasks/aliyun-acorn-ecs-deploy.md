@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `aliyun-acorn-ecs-deploy`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `high`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -32,6 +32,7 @@
 - `git diff --check` passed.
 - Sensitive-pattern review found policy/runbook mentions only, not secret values or key material.
 - `docs/review-change.md` recorded PASS with no blocking findings.
+- Implementation PR #88 merged as `0a5e6f0e391a9a52b9ca650551162dd19a49985b`, followed by worktree cleanup and main checkout refresh.
 
 ## Follow-Up
 
