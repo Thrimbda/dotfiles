@@ -22,6 +22,18 @@ Because `readOnlyPkgs` makes module `pkgs` config-provided rather than externall
 
 Validate warning-cleanup changes with a representative host toplevel evaluation and dry-run build. For this repository, `nix eval --impure --raw .#nixosConfigurations.axiom.config.system.build.toplevel.drvPath` plus `nix build --impure --dry-run .#nixosConfigurations.axiom.config.system.build.toplevel` directly exercises Hyprland, audio, agenix, and desktop platform paths without requiring a privileged switch.
 
+## Aliyun ECS Custom Image Deployment Pattern
+
+For NixOS QCOW2 images intended for Alibaba Cloud ECS custom-image import, validate the repository-owned image target before any cloud writes. At minimum, evaluate the image flake system, run a build dry-run, and prefer `nix build --no-link` for full artifact proof so no `result` symlink or QCOW2 artifact is accidentally added to the repository.
+
+Keep Aliyun credentials and durable cloud state outside dotfiles. Use the approved ops environment, such as `~/Work/aliyun-ops` with local `aliyun configure`, `ossutil`, and Terraform conventions. Do not commit AccessKeys, Aliyun CLI profiles, Terraform state, `tfvars`, local cloud exports, passwords, SSH private keys, or generated QCOW2 images.
+
+For ECS image import, use an OSS object in the same region as `ImportImage`, preflight the image-import RAM role and object visibility, and pass explicit image parameters: `Architecture=x86_64`, `OSType=linux`, `Format=qcow2`, and `BootMode=UEFI` for EFI/systemd-boot NixOS images. Treat Alibaba Cloud defaults as unsafe unless verified against the current image shape.
+
+For first-boot validation, generate cloud-init `UserData` locally from a public SSH key at execution time, run `RunInstances` with `--DryRun true` before live creation, restrict SSH ingress to an operator CIDR, and bound temporary validation instances with auto-release when possible. Validate serial console/system logs, cloud-init, DHCP/networkd, SSH login, root partition growth, and `nixos-version` before claiming ECS readiness.
+
+Clean up temporary ECS validation resources in dependency order: release the instance, delete the custom image when unused, delete the staging OSS object, delete a task-specific bucket only if empty, and remove any temporary SSH ingress rule created outside Terraform.
+
 ## Host-Local Package Pattern
 
 For one-off, host-specific CLI or GUI package requests on `axiom`, prefer the existing host-local `user.packages` list over introducing a reusable module. Use a reusable module when the app/tool needs cross-host enablement, NixOS service integration, firewall/system settings, generated config, or runtime policy ownership.

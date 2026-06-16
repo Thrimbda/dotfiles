@@ -1,5 +1,13 @@
 # Decisions
 
+## Aliyun ECS Image Deployment
+
+`hosts/aliyun-acorn` dotfiles ownership stops at the NixOS host/image target and guarded ECS custom-image runbook. Durable Aliyun ECS/VPC/security-group state should live in `~/Work/aliyun-ops` Terraform if `aliyun-acorn` becomes long-lived; dotfiles must not store Aliyun credentials, CLI profiles, Terraform state, `tfvars`, QCOW2 artifacts, private keys, passwords, or account exports.
+
+Imported Alibaba Cloud ECS custom images for `aliyun-acorn` must set `BootMode=UEFI`, `Architecture=x86_64`, `OSType=linux`, and `Format=qcow2` to match the EFI/systemd-boot NixOS image target. Do not rely on ECS `ImportImage` defaults, because BIOS is the unsafe default for this host shape.
+
+Live Aliyun writes for `aliyun-acorn` remain gated until bucket, same-region OSS object, image-import role, VPC/vSwitch/security group, instance type, SSH source CIDR, cost/dry-run result, and cleanup policy are confirmed. First-boot SSH access should be injected at runtime through cloud-init `UserData` from local public-key material, not committed authorized keys or passwords.
+
 ## Linux Workstation Desktop Baseline
 
 Current Axiom Linux workstation desktop direction is Hyprland + UWSM + NixOS-owned desktop integration, with Zen as the browser baseline, mpv as the scoped media player, Vesktop/Discord as the scoped chat app, Steam Gamescope/Gamemode/Umu tuning, NetworkManager+iwd+resolved for workstation Wi-Fi, and BlueZ/Blueman reliability settings.

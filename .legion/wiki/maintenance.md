@@ -4,6 +4,12 @@
 
 - Full all-host NixOS evaluation is currently blocked by an unrelated existing package rename: `godot_4-export-templates` should be updated to `godot_4-export-templates-bin` in a separate scoped task if all-host evaluation or full flake checks become required.
 
+## Aliyun Acorn ECS Follow-Up
+
+- Before running live `aliyun-acorn` validation, confirm the OSS bucket/object, image-import RAM role, VPC/vSwitch/security group, instance type, operator SSH CIDR, auto-release time, expected cost/dry-run result, and cleanup owner.
+- Run the first live ECS validation by uploading the built QCOW2 to same-region OSS, importing it with `BootMode=UEFI`, creating a temporary validation instance, checking serial console/cloud-init/DHCP/SSH/root partition growth, then cleaning up temporary resources or recording any intentionally retained IDs.
+- If `aliyun-acorn` should become a long-lived host, create a follow-up in `~/Work/aliyun-ops` for Terraform-owned ECS/VPC/security-group state instead of preserving one-off CLI state as durable infrastructure.
+
 ## Terminal Follow-Up
 
 - Foot terminal notification behavior was disabled by removing unsupported `[main].notify` from the global config. If terminal notification behavior is still desired, restore it only through a Foot 1.25-supported option or an explicit external wrapper design validated with `foot --check-config`.
