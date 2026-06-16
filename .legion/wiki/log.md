@@ -176,3 +176,5 @@
 - Updated current Aliyun ECS image deployment decisions with dotfiles/aliyun-ops ownership, explicit UEFI import, runtime SSH key injection, and paid-resource gates.
 - Added Aliyun ECS custom image validation/deployment pattern and live-validation maintenance follow-up.
 - Marked `aliyun-acorn-ecs-deploy` completed after implementation PR #88 merged and worktree cleanup/main refresh completed.
+- Added task summary for `axiom-audio-pulseaudio-autospawn-fix`.
+- Updated current Axiom audio decisions, validation patterns, and maintenance with PipeWire Pulse server ownership and real PulseAudio autospawn prevention.

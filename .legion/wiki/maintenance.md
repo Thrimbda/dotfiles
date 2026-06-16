@@ -51,6 +51,7 @@
 ## Axiom Audio Follow-Up
 
 - After deploying `axiom-hdmi-audio-startup-fix`, start a fresh graphical session and confirm `systemctl --user status axiom-hdmi-audio.service easyeffects.service` shows the HDMI readiness unit ran before EasyEffects, `wpctl status` lists `HDA NVidia 数字立体声 (HDMI)` as the default sink, and Zen/Sidra playback reaches the DELL U2720QM headphone output without manual `pactl set-card-profile` toggling.
+- After deploying `axiom-audio-pulseaudio-autospawn-fix`, start a fresh graphical session and confirm `pgrep -a pulseaudio` is empty, plain non-session `pactl info` does not autospawn real PulseAudio, desktop `pactl info` reports `PulseAudio (on PipeWire ...)`, and `wpctl status` still lists `HDA NVidia 数字立体声 (HDMI)` as the default sink.
 
 ## Axiom Display Follow-Up
 
