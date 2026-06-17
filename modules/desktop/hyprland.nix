@@ -37,9 +37,13 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       || monitor.cm != null
       || monitor.sdrbrightness != null
       || monitor.sdrsaturation != null;
+    monitorEffectiveMode = monitor:
+      if monitor.modePolicy == "native-max-refresh" && monitor.fallbackMode != null
+      then monitor.fallbackMode
+      else monitor.mode;
     monitorV2Fields = monitor: [
       "  output = ${monitor.output}"
-      "  mode = ${monitor.mode}"
+      "  mode = ${monitorEffectiveMode monitor}"
       "  position = ${monitor.position}"
       "  scale = ${toString monitor.scale}"
     ]
@@ -52,7 +56,185 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       then "monitor = ${monitor.output},disable"
       else if hasAdvancedMonitorFields monitor
       then concatStringsSep "\n" ([ "monitorv2 {" ] ++ monitorV2Fields monitor ++ [ "}" ])
-      else "monitor = ${monitor.output},${monitor.mode},${monitor.position},${toString monitor.scale}";
+      else "monitor = ${monitor.output},${monitorEffectiveMode monitor},${monitor.position},${toString monitor.scale}";
+    monitorInventory = {
+      known = map (monitor: {
+        inherit (monitor) output position scale disable modePolicy;
+        mode = monitorEffectiveMode monitor;
+        fallbackMode = if monitor.fallbackMode != null then monitor.fallbackMode else monitor.mode;
+        match = filterAttrs (_: value: value != null && value != "") monitor.match;
+      }) cfg.monitors;
+      unknown = cfg.monitorHotplug.unknown;
+    };
+    monitorInventoryFile = pkgs.writeText "hypr-monitor-inventory.json" (builtins.toJSON monitorInventory);
+    monitorReconcilePackage = pkgs.writeShellScriptBin "hyprland-reconcile-monitors" ''
+      set -eu
+
+      inventory=${escapeShellArg "${monitorInventoryFile}"}
+      hyprctl=${escapeShellArg "${config.programs.hyprland.package}/bin/hyprctl"}
+      jq=${escapeShellArg "${pkgs.jq}/bin/jq"}
+
+      live="$($hyprctl monitors all -j)"
+      commands="$($jq -r --slurpfile inventory "$inventory" '
+        def abs: if . < 0 then -. else . end;
+        def parseMode($mode):
+          (($mode // "") | capture("^(?<w>[0-9]+)x(?<h>[0-9]+)@(?<r>[0-9.]+)(Hz)?$")?) as $parsed
+          | if $parsed == null then null else {
+              w: ($parsed.w | tonumber),
+              h: ($parsed.h | tonumber),
+              r: ($parsed.r | tonumber)
+            } end;
+        def modeText($mode): "\($mode.w)x\($mode.h)@\($mode.r)";
+        def modes($output): [ $output.availableModes[]? | parseMode(.) | select(. != null) ];
+        def dynamicMode($output):
+          (modes($output)) as $modes
+          | if ($modes | length) == 0 then null else
+              ($modes[0]) as $native
+              | ($modes | map(select(.w == $native.w and .h == $native.h)) | max_by(.r) | modeText(.))
+            end;
+        def identityFieldMatches($monitor; $output; $field):
+          (($monitor.match[$field] // "") == "") or (($output[$field] // "") == $monitor.match[$field]);
+        def hasIdentity($monitor):
+          ["make", "model", "serial", "description"] | any(($monitor.match[.] // "") != "");
+        def identityMatches($monitor; $output):
+          hasIdentity($monitor)
+          and (["make", "model", "serial", "description"] | all(identityFieldMatches($monitor; $output; .)));
+        def outputMatches($monitor; $output):
+          (($monitor.output // "") != "") and ($monitor.output == $output.name);
+        def knownConfig($inventory; $output):
+          ([ $inventory.known[] | select((.disable // false) | not) | select(identityMatches(.; $output)) ][0]
+           // [ $inventory.known[] | select((.disable // false) | not) | select(outputMatches(.; $output)) ][0]);
+        def unknownConfig($inventory; $output):
+          if ($inventory.unknown.enable // false) then {
+            output: $output.name,
+            position: ($inventory.unknown.position // "auto"),
+            scale: ($inventory.unknown.scale // 1),
+            modePolicy: ($inventory.unknown.modePolicy // "native-max-refresh"),
+            fallbackMode: ($inventory.unknown.fallbackMode // null)
+          } else null end;
+        def targetMode($output; $config):
+          if ($config.modePolicy // "static") == "native-max-refresh" then
+            dynamicMode($output) // $config.fallbackMode // $config.mode
+          else
+            $config.mode // $config.fallbackMode
+          end;
+        def needsApply($output; $mode; $position; $scale):
+          (parseMode($mode)) as $target
+          | if $target == null then true else
+              ($output.width != $target.w)
+              or ($output.height != $target.h)
+              or ((($output.refreshRate // 0) - $target.r) | abs > 0.2)
+              or (($position != "auto") and ((($output.x | tostring) + "x" + ($output.y | tostring)) != $position))
+              or (((($output.scale // 1) - ($scale | tonumber)) | abs) > 0.001)
+            end;
+
+        ($inventory[0]) as $inventory
+        | .[]
+        | select((.disabled // false) | not)
+        | select((.availableModes // []) | length > 0)
+        | . as $output
+        | (knownConfig($inventory; $output) // unknownConfig($inventory; $output)) as $config
+        | select($config != null)
+        | (targetMode($output; $config)) as $mode
+        | select($mode != null)
+        | select(needsApply($output; $mode; $config.position; $config.scale))
+        | "\($output.name),\($mode),\($config.position),\($config.scale)"
+      ' <<EOF
+      $live
+      EOF
+      )"
+
+      [ -n "$commands" ] || exit 0
+
+      status=0
+      while IFS= read -r command; do
+        [ -n "$command" ] || continue
+        if ! "$hyprctl" keyword monitor "$command"; then
+          status=1
+        fi
+      done <<EOF
+      $commands
+      EOF
+      exit "$status"
+    '';
+    monitorHotplugWatcher = pkgs.writeShellScript "hyprland-monitor-hotplug" ''
+      set -eu
+
+      reconcile=${escapeShellArg "${monitorReconcilePackage}/bin/hyprland-reconcile-monitors"}
+      runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
+
+      if [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+        printf 'hyprland-monitor-hotplug: HYPRLAND_INSTANCE_SIGNATURE is not set\n' >&2
+        exit 1
+      fi
+
+      socket="$runtime_dir/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+      debounce_file="$runtime_dir/hyprland-monitor-hotplug.debounce"
+
+      schedule_reconcile() {
+        [ ! -e "$debounce_file" ] || return 0
+        : > "$debounce_file"
+        (
+          ${pkgs.coreutils}/bin/sleep ${toString cfg.monitorHotplug.debounceSeconds}
+          ${pkgs.coreutils}/bin/rm -f "$debounce_file"
+          "$reconcile" || true
+        ) &
+      }
+
+      while true; do
+        if [ ! -S "$socket" ]; then
+          ${pkgs.coreutils}/bin/sleep 1
+          continue
+        fi
+
+        ${pkgs.socat}/bin/socat -u UNIX-CONNECT:"$socket" - | while IFS= read -r event; do
+          case "$event" in
+            monitor*|configreloaded*) schedule_reconcile ;;
+          esac
+        done
+
+        ${pkgs.coreutils}/bin/sleep 1
+      done
+    '';
+    caelestiaMonitorSeeds = filter (entry: entry.settings != {} && entry.output != "") (map (monitor: {
+      inherit (monitor) output;
+      settings = monitor.caelestia.settings;
+    }) cfg.monitors);
+    caelestiaMonitorSeedsFile = pkgs.writeText "caelestia-monitor-settings.json" (builtins.toJSON caelestiaMonitorSeeds);
+    caelestiaMonitorSeedScript = pkgs.writeShellScript "caelestia-seed-monitor-settings" ''
+      set -eu
+
+      config_dir=${escapeShellArg "${config.home.configDir}/caelestia"}
+      seed=${escapeShellArg "${caelestiaMonitorSeedsFile}"}
+      jq=${escapeShellArg "${pkgs.jq}/bin/jq"}
+
+      $jq -c '.[]' "$seed" | while IFS= read -r entry; do
+        output="$(printf '%s\n' "$entry" | $jq -r '.output')"
+        monitor_dir="$config_dir/monitors/$output"
+        config_path="$monitor_dir/shell.json"
+
+        ${pkgs.coreutils}/bin/install -d -m 0755 "$monitor_dir"
+
+        replace_monitor_config=false
+        if [ ! -e "$config_path" ] && [ ! -L "$config_path" ]; then
+          replace_monitor_config=true
+        elif [ -L "$config_path" ]; then
+          target="$(${pkgs.coreutils}/bin/readlink "$config_path")"
+          case "$target" in
+            /nix/store/*) replace_monitor_config=true ;;
+          esac
+        fi
+
+        if [ "$replace_monitor_config" = true ]; then
+          tmp="$(${pkgs.coreutils}/bin/mktemp "$config_path.XXXXXX")"
+          trap '${pkgs.coreutils}/bin/rm -f "$tmp"' EXIT
+          printf '%s\n' "$entry" | $jq '.settings' > "$tmp"
+          ${pkgs.coreutils}/bin/install -m 0644 "$tmp" "$config_path"
+          ${pkgs.coreutils}/bin/rm -f "$tmp"
+          trap - EXIT
+        fi
+      done
+    '';
     qtPlatform = "wayland;xcb";
     qtPlatformTheme = "qtengine";
     desktopSessionPath = concatStringsSep ":" [
@@ -150,8 +332,17 @@ in {
       options = {
         output = mkOpt str "";
         mode = mkOpt str "preferred";
+        modePolicy = mkOpt (enum [ "static" "native-max-refresh" ]) "static";
+        fallbackMode = mkOpt (nullOr str) null;
         position = mkOpt str "auto";
         scale = mkOpt (oneOf [ int float ]) 1;
+        match = {
+          make = mkOpt (nullOr str) null;
+          model = mkOpt (nullOr str) null;
+          serial = mkOpt (nullOr str) null;
+          description = mkOpt (nullOr str) null;
+        };
+        caelestia.settings = mkOpt attrs {};
         bitdepth = mkOpt (nullOr int) null;
         cm = mkOpt (nullOr (enum [
           "auto"
@@ -170,6 +361,17 @@ in {
         primary = mkOpt bool false;
       };
     })) [{}];
+    monitorHotplug = {
+      enable = mkBoolOpt false;
+      debounceSeconds = mkOpt (oneOf [ int float ]) 0.75;
+      unknown = {
+        enable = mkBoolOpt false;
+        modePolicy = mkOpt (enum [ "static" "native-max-refresh" ]) "native-max-refresh";
+        fallbackMode = mkOpt (nullOr str) null;
+        position = mkOpt str "auto";
+        scale = mkOpt (oneOf [ int float ]) 1;
+      };
+    };
     idle = {
       time = mkOpt int 600;       # 10 min
       autodpms = mkOpt int 1200;   # 20 min
@@ -284,6 +486,18 @@ in {
       };
     };
 
+    systemd.user.services.hyprland-monitor-hotplug = mkIf cfg.monitorHotplug.enable {
+      description = "Hyprland monitor hotplug reconciler";
+      wantedBy = [ "hyprland-session.target" ];
+      after = [ "hyprland-session.target" ];
+      partOf = [ "hyprland-session.target" ];
+      serviceConfig = {
+        ExecStart = "${monitorHotplugWatcher}";
+        Restart = "on-failure";
+        RestartSec = 2;
+      };
+    };
+
     ## Session entry.
     services.greetd = {
       enable = true;
@@ -315,6 +529,9 @@ in {
           hey.do systemctl --user start hyprland-session.target
           hey .play-sound startup
         '';
+        startup."07-monitor-reconcile" = optionalString cfg.monitorHotplug.enable ''
+          hey.do ${monitorReconcilePackage}/bin/hyprland-reconcile-monitors
+        '';
 
         # I'm using this instead of exec= lines in hyprland.conf so I can ensure
         # these aren't run at startup and sequentially (i.e. predictable order,
@@ -325,6 +542,9 @@ in {
             hey.do hyprctl -i ''${i//*\//} reload config-only
           done
         '';
+        reload."96-monitor-reconcile" = optionalString cfg.monitorHotplug.enable ''
+          hey.do ${monitorReconcilePackage}/bin/hyprland-reconcile-monitors
+        '';
       } // optionalAttrs (!caelestiaOwnsWallpaper) {
         # Set wallpaper according to modules.theme.wallpapers when Caelestia is
         # not the wallpaper owner.
@@ -332,6 +552,8 @@ in {
         reload."10-wallpaper" = swaybgWallpaperHook;
       };
     };
+
+    modules.desktop.caelestia.session.preStart = optional (caelestiaCfg.enable && caelestiaMonitorSeeds != []) "${caelestiaMonitorSeedScript}";
 
     home.configFile = {
       "hypr" = {
@@ -521,11 +743,11 @@ in {
       '';
     };
 
-    user.packages = with pkgs; [
+    user.packages = (with pkgs; [
       (mkLauncherEntry "Color picker: copy hex at point" {
         icon = "com.github.finefindus.eyedropper";
         exec = "hyprpicker -a";
       })
-    ];
+    ]) ++ optional cfg.monitorHotplug.enable monitorReconcilePackage;
   };
 }
