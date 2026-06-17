@@ -613,6 +613,7 @@ with builtins;
       description = "Opencode server";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
+      path = [ pkgs.git ];
       environment = {
         HOME = "/home/c1";
         OPENCODE_ENABLE_EXA = "1";
@@ -776,6 +777,10 @@ with builtins;
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
       allowedUDPPorts = [ 7844 ];
+      extraCommands = ''
+        # Allow the local research workbench only from the home LAN.
+        iptables -w -A nixos-fw -s 192.168.50.0/24 -p tcp -m multiport --dports 5173,8765 -j nixos-fw-accept
+      '';
       allowedTCPPortRanges = [{
         from = 49152;
         to = 65535;
