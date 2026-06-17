@@ -54,6 +54,16 @@ For VSCode extension fixes that need to be persistent in Nix, prefer a `vscode-w
 
 For VS Code keyring prompts under Hyprland, first validate that `org.freedesktop.secrets` is available on the user bus and that the host enables `gnome-keyring`. If the Secret Service backend exists but VS Code still cannot identify an OS keyring, prefer a VS Code package-level `commandLineArgs = "--password-store=gnome-libsecret"` override. This keeps terminal and desktop-entry launches consistent through the same wrapper and avoids global `XDG_CURRENT_DESKTOP` spoofing or weaker encryption.
 
+## Host Service Modularization Pattern
+
+For NixOS host files, keep durable host facts in the host and move repeated service mechanics into focused modules. Good module candidates are systemd service wrappers, restart/OOM policy, healthcheck timer/counter/restart loops, public ingress glue, and status endpoint generation. Do not keep old inline service shapes as compatibility aliases unless another checked-in host actively consumes them.
+
+For public loopback services, prefer a single service module declaration that owns the local systemd service and optionally contributes Gatus endpoints and Cloudflared ingress. This keeps the app port, public hostname, and monitoring target from diverging across host, tunnel, and status-page sections.
+
+For Cloudflared tunnel config, model ingress as first-class module data and keep host `extraConfig` for connector-level knobs such as metrics, protocol, and tunnel metadata. Keep local services bound to `127.0.0.1` and remove broad firewall ranges unless a service module or reviewed host fact requires them.
+
+For root-run timer healthchecks that restart local services after repeated failures, share the counter/threshold/restart skeleton and keep only the functional predicate host-specific. Remote cleanup remains out of scope unless a separate design proves it safe.
+
 ## Runtime Entry Validation
 
 For display-manager runtime regressions, validate the effective NixOS session data rather than guessing desktop entry names. Check `services.displayManager.sessionData.sessionNames`, the generated `share/wayland-sessions/*.desktop` entries, and the consumer command that references them.

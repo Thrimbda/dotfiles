@@ -114,7 +114,10 @@ let
     warpConfig = optionalAttrs cfg.warpRouting.enabled {
       warp-routing.enabled = true;
     };
-    mergedConfig = recursiveUpdate (baseConfig // warpConfig) cfg.extraConfig;
+    ingressConfig = optionalAttrs (cfg.ingress != []) {
+      ingress = cfg.ingress;
+    };
+    mergedConfig = recursiveUpdate (baseConfig // warpConfig // ingressConfig) cfg.extraConfig;
   in builtins.toJSON mergedConfig;
 in {
   options.modules.services.cloudflared = with types; {
@@ -128,6 +131,8 @@ in {
       "Age-encrypted credentials JSON file (e.g., secrets/cloudflared-credentials.age)";
 
     extraConfig = mkOpt' attrs {} "Additional YAML config attributes";
+
+    ingress = mkOpt' (listOf attrs) [] "Cloudflare Tunnel ingress rules";
 
     warpRouting = {
       enabled = mkBoolOpt false;

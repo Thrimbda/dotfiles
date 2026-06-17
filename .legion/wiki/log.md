@@ -181,3 +181,6 @@
 - Marked `axiom-audio-pulseaudio-autospawn-fix` completed after implementation PR #90 merged and the implementation worktree was cleaned up.
 - Added task summary for `axiom-dynamic-monitor-hotplug`.
 - Updated current Axiom display decisions and Hyprland monitor validation patterns with cohesive monitor inventory, native-max-refresh hotplug policy, and Caelestia per-monitor seed boundary.
+- Added task summary for `axiom-default-modularization`.
+- Added host service modularization pattern for focused NixOS modules, Cloudflared ingress data, public loopback service glue, and shared healthcheck mechanics.
+- Added post-deploy Axiom service smoke and desktop architecture follow-up after Axiom host/service modularization.
