@@ -4,8 +4,10 @@ with lib;
 with hey.lib;
 let cfg = config.modules.services.calibre;
 in {
-  options.modules.services.calibre = {
+  options.modules.services.calibre = with types; {
     enable = mkBoolOpt false;
+    user = mkOpt str config.user.name;
+    group = mkOpt str (config.user.group or "users");
   };
 
   config = mkIf cfg.enable {
@@ -16,12 +18,10 @@ in {
         ip = "0.0.0.0";
       };
 
-      # dataDir = "/home/c1/Books";
-      user = "c1";
-      group = "users";
+      user = cfg.user;
+      group = cfg.group;
 
       options = {
-        # calibreLibrary = /home/c1/Books;
         enableBookUploading = true;
       };
 

@@ -3,7 +3,6 @@
 with lib;
 with hey.lib;
 let cfg = config.modules.services.gnome-keyring;
-    configDir = config.dotfiles.configDir;
 in {
   options.modules.services.gnome-keyring = {
     enable = mkBoolOpt false;
