@@ -50,11 +50,42 @@ with builtins;
             allow_session_lock_restore = true
           }
         '';
-        monitors = [{
-          mode = "3840x2160@240";
-          position = "0x0";
-          scale = 1.5;
-        }];
+        monitors = [
+          {
+            output = "DP-4";
+            modePolicy = "native-max-refresh";
+            fallbackMode = "3840x2160@240";
+            position = "0x0";
+            scale = 1.5;
+            primary = true;
+            match = {
+              make = "Microstep";
+              model = "MPG272UX OLED";
+              serial = "0x01010101";
+            };
+          }
+          {
+            output = "DP-5";
+            modePolicy = "native-max-refresh";
+            fallbackMode = "3840x2160@60";
+            position = "2560x0";
+            scale = 1.5;
+            match = {
+              make = "Dell Inc.";
+              model = "DELL U2720QM";
+              serial = "42N2YG3";
+            };
+          }
+        ];
+        monitorHotplug = {
+          enable = true;
+          unknown = {
+            enable = true;
+            modePolicy = "native-max-refresh";
+            position = "auto";
+            scale = 1.5;
+          };
+        };
       };
       apps = {
         clash-verge.enable = true;

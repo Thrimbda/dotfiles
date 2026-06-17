@@ -179,3 +179,5 @@
 - Added task summary for `axiom-audio-pulseaudio-autospawn-fix`.
 - Updated current Axiom audio decisions, validation patterns, and maintenance with PipeWire Pulse server ownership and real PulseAudio autospawn prevention.
 - Marked `axiom-audio-pulseaudio-autospawn-fix` completed after implementation PR #90 merged and the implementation worktree was cleaned up.
+- Added task summary for `axiom-dynamic-monitor-hotplug`.
+- Updated current Axiom display decisions and Hyprland monitor validation patterns with cohesive monitor inventory, native-max-refresh hotplug policy, and Caelestia per-monitor seed boundary.
