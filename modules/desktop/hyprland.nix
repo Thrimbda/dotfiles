@@ -321,6 +321,8 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
         SUPER+E                 Open file manager
         SUPER+Q                 Close active window
         SUPER+F                 Toggle fullscreen
+        SUPER+Left mouse drag   Move window
+        SUPER+Right mouse drag  Resize window
         SUPER+SHIFT+C           Pick color at cursor
 
       Capture and clipboard
@@ -337,6 +339,8 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
         SUPER+1..9,0            Switch to workspace 1..10
         SUPER+SHIFT+1..9,0      Move window to workspace 1..10
         ${optionalString (secondaryMonitorName != "") "SUPER+ALT+1..9,0        Switch to workspace 11..20\n  SUPER+ALT+SHIFT+1..9,0  Move window to workspace 11..20"}
+        SUPER+SHIFT+Wheel down  Move window to next workspace
+        SUPER+SHIFT+Wheel up    Move window to previous workspace
 
       Media and brightness
         XF86MonBrightnessUp     Increase brightness 10%
@@ -707,6 +711,8 @@ in {
         bind = SUPER, E, exec, app2unit -- $fileExplorer
         bind = SUPER, Q, killactive
         bind = SUPER, F, fullscreen, 0
+        bindm = SUPER, mouse:272, movewindow
+        bindm = SUPER, mouse:273, resizewindow
         bind = SUPER+SHIFT, C, exec, hyprpicker -a
 
         bindl = , Print, exec, $caelestia screenshot
@@ -719,6 +725,8 @@ in {
         bind = SUPER, Period, exec, $caelestia emoji -p
 
         ${workspaceKeybindLines}
+        bind = SUPER+SHIFT, mouse_down, movetoworkspace, +1
+        bind = SUPER+SHIFT, mouse_up, movetoworkspace, -1
 
         bind = SUPER+SHIFT, R, exec, hey reload
       '';
