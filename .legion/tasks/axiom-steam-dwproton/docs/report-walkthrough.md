@@ -19,7 +19,7 @@ Axiom needs access to a newer Proton compatibility tool without changing the def
 - Axiom Steam `extraCompatPackages` evaluates to `["dwproton-11.0-4"]`.
 - Azar option evaluates to `false` and `extraCompatPackages` evaluates to `[]`.
 - The selected Axiom compatibility package builds to `/nix/store/rynhdf4br2rqb4dx3hifa3hwfgy7grci-dwproton-11.0-4`.
-- Axiom NixOS toplevel builds to `/nix/store/hrpwjpm0p8m8p2h9cbi65fk1gl4gvmps-nixos-system-axiom-25.11.20260203.e576e3c`.
+- Axiom NixOS toplevel builds to `/nix/store/ffyd1nisyp3h13yxfz8wnfgfxxwkipja-nixos-system-axiom-25.11.20260203.e576e3c`.
 - `git diff --check` passes.
 
 See `docs/test-report.md` for command details.

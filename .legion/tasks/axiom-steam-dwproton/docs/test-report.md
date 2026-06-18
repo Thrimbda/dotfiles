@@ -115,7 +115,7 @@ Result: PASS
 Output:
 
 ```text
-/nix/store/hrpwjpm0p8m8p2h9cbi65fk1gl4gvmps-nixos-system-axiom-25.11.20260203.e576e3c
+/nix/store/ffyd1nisyp3h13yxfz8wnfgfxxwkipja-nixos-system-axiom-25.11.20260203.e576e3c
 ```
 
 Why: proves the host configuration containing the new Steam compatibility package still builds.
@@ -137,4 +137,5 @@ Why: catches common whitespace mistakes before commit.
 ## Non-blocking Notes
 
 - `nix flake lock --update-input dwproton` hit GitHub's unauthenticated API rate limit and used Nix's cached version. The resulting lock entry matches the expected upstream revision `70f6c85a85337e4b4030937f3963142ae232dc23` with nar hash `sha256-Z7hBU8Vc0j0XxUNFHEA1wdtzcAtGx+nJwFaskiQ5rok=`.
+- The branch was rebased onto updated `origin/master` at `6bc05c7c` before push; the core eval/build commands were rerun after the rebase and remained PASS.
 - A live Steam UI check is intentionally deferred until after `hey sync --host axiom switch` and Steam restart, per the task non-goals.
