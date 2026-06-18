@@ -145,14 +145,8 @@ with builtins;
   config = { config, pkgs, ... }:
     let
       userName = config.user.name;
-      userHome = config.user.home;
-      opencode = config.modules.services.opencode-server;
-      opencodeDir = opencode.dir;
-      axiomHdmiAudioCard = "alsa_card.pci-0000_01_00.1";
-      axiomHdmiAudioSink = "alsa_output.pci-0000_01_00.1.hdmi-stereo";
+      opencodeDir = config.modules.services.opencode-server.dir;
       reverseSsh = config.modules.services.reverse-ssh;
-      autosshRemoteHost = reverseSsh.remoteHost;
-      autosshRemotePort = reverseSsh.remotePort;
       autosshRemoteHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAHARUNf8QKGEqfBx2pCtJkBp5HEqoBjp9XyqIos07nA";
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       gatusPort = 8080;
@@ -161,75 +155,6 @@ with builtins;
         environment = "production";
         owner = userName;
       };
-      cloudflaredReadyCheck = ''
-        ${pkgs.curl}/bin/curl --fail --silent --show-error --max-time 5 ${escapeShellArg cloudflaredReadyUrl} >/dev/null
-      '';
-      autosshEndpointKeyCheck = ''
-        remote_host=${escapeShellArg autosshRemoteHost}
-        remote_port=${toString autosshRemotePort}
-        expected_key_file=/etc/ssh/ssh_host_ed25519_key.pub
-
-        if [ ! -r "$expected_key_file" ]; then
-          printf 'autossh healthcheck: missing local SSH host key %s\n' "$expected_key_file" >&2
-          exit 1
-        fi
-
-        expected_key="$(${pkgs.coreutils}/bin/cut -d ' ' -f 1,2 "$expected_key_file")"
-        remote_scan_cmd="timeout 8 ssh-keyscan -T 5 -p $remote_port 127.0.0.1 2>/dev/null"
-        remote_scan="$(${pkgs.util-linux}/bin/runuser -u ${escapeShellArg userName} -- \
-          ${pkgs.coreutils}/bin/env HOME=${escapeShellArg userHome} \
-          ${pkgs.openssh}/bin/ssh \
-            -o BatchMode=yes \
-            -o ConnectTimeout=8 \
-            -o StrictHostKeyChecking=yes \
-            -o UpdateHostKeys=no \
-            root@"$remote_host" "$remote_scan_cmd" 2>/dev/null || true)"
-        remote_key="$(printf '%s\n' "$remote_scan" \
-          | ${pkgs.gnugrep}/bin/grep -m1 'ssh-ed25519 ' \
-          | ${pkgs.gnused}/bin/sed 's/^[^[:space:]]*[[:space:]]//' || true)"
-
-        if [ "$remote_key" = "$expected_key" ]; then
-          exit 0
-        fi
-
-        listener="$(${pkgs.util-linux}/bin/runuser -u ${escapeShellArg userName} -- \
-          ${pkgs.coreutils}/bin/env HOME=${escapeShellArg userHome} \
-          ${pkgs.openssh}/bin/ssh \
-            -o BatchMode=yes \
-            -o ConnectTimeout=8 \
-            -o StrictHostKeyChecking=yes \
-            -o UpdateHostKeys=no \
-            root@"$remote_host" \
-            "ss -H -ltnp '( sport = :$remote_port )' 2>/dev/null || true" 2>/dev/null || true)"
-
-        if [ -n "$listener" ]; then
-          printf 'remote listener evidence on %s:%s: %s\n' "$remote_host" "$remote_port" "$listener" >&2
-        else
-          printf 'remote listener evidence on %s:%s: none or unreachable\n' "$remote_host" "$remote_port" >&2
-        fi
-
-        exit 1
-      '';
-      clashVergeServiceCheck = ''
-        healthy=false
-        if ${pkgs.systemd}/bin/systemctl is-active --quiet clash-verge.service; then
-          main_pid="$(${pkgs.systemd}/bin/systemctl show -P MainPID clash-verge.service 2>/dev/null || printf '0')"
-          if [ "$main_pid" != "0" ] \
-              && ${pkgs.procps}/bin/pgrep -P "$main_pid" -f 'verge-mihomo|mihomo|clash' >/dev/null 2>&1; then
-            healthy=true
-          fi
-          if ${pkgs.iproute2}/bin/ip link show Mihomo >/dev/null 2>&1 \
-              || ${pkgs.iproute2}/bin/ip link show Meta >/dev/null 2>&1; then
-            healthy=true
-          fi
-        fi
-
-        if [ "$healthy" = true ]; then
-          exit 0
-        fi
-
-        exit 1
-      '';
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
       caelestiaIdleSettings = {
@@ -247,62 +172,6 @@ with builtins;
           }
         ];
       };
-      caelestiaLauncherDataDirs = makeSearchPath "share" (
-        unique (config.users.users.${config.user.name}.packages
-          ++ config.environment.systemPackages)
-      );
-      ensureCaelestiaSettings = pkgs.writeShellScript "axiom-ensure-caelestia-settings" ''
-        set -eu
-
-        config_dir=${escapeShellArg "${config.home.configDir}/caelestia"}
-        config_path="$config_dir/shell.json"
-        launcher_id=${escapeShellArg feishuLauncherId}
-        legacy_desktop_id=${escapeShellArg legacyFeishuDesktopId}
-        idle_json=${escapeShellArg (toJSON caelestiaIdleSettings)}
-
-        ${pkgs.coreutils}/bin/install -d -m 0755 "$config_dir"
-        if [ ! -s "$config_path" ]; then
-          printf '{}\n' > "$config_path"
-        fi
-
-        tmp="$(${pkgs.coreutils}/bin/mktemp "$config_path.XXXXXX")"
-        trap '${pkgs.coreutils}/bin/rm -f "$tmp"' EXIT
-
-        if ! ${pkgs.jq}/bin/jq --arg app "$launcher_id" --arg legacy "$legacy_desktop_id" --argjson idle "$idle_json" '
-          .general = (.general // {})
-          | .general.idle = $idle
-          | .launcher = (.launcher // {})
-          | .launcher.favouriteApps = ((.launcher.favouriteApps // []) as $apps
-              | ($apps | map(select(. != $legacy))) as $normalized
-              | if ($normalized | index($app)) then $normalized else $normalized + [$app] end)
-        ' "$config_path" > "$tmp"; then
-          printf 'axiom-ensure-caelestia-settings: unable to update %s\n' "$config_path" >&2
-          exit 0
-        fi
-
-        if ! ${pkgs.diffutils}/bin/cmp -s "$tmp" "$config_path"; then
-          ${pkgs.coreutils}/bin/install -m 0644 "$tmp" "$config_path"
-        fi
-      '';
-      ensureAxiomHdmiAudio = pkgs.writeShellScript "axiom-ensure-hdmi-audio" ''
-        set -eu
-
-        # A stray real PulseAudio daemon can autospawn and hold hdmi:0 before
-        # PipeWire creates the HDMI sink.
-        ${pkgs.procps}/bin/pkill -x pulseaudio || true
-
-        for _ in $(${pkgs.coreutils}/bin/seq 1 20); do
-          if ${pkgs.pulseaudio}/bin/pactl list short cards \
-              | ${pkgs.gnugrep}/bin/grep -F -q ${escapeShellArg axiomHdmiAudioCard}; then
-            break
-          fi
-          ${pkgs.coreutils}/bin/sleep 0.25
-        done
-
-        ${pkgs.pulseaudio}/bin/pactl set-card-profile ${escapeShellArg axiomHdmiAudioCard} off || true
-        ${pkgs.pulseaudio}/bin/pactl set-card-profile ${escapeShellArg axiomHdmiAudioCard} output:hdmi-stereo
-        ${pkgs.pulseaudio}/bin/pactl set-default-sink ${escapeShellArg axiomHdmiAudioSink}
-      '';
     in {
     modules.desktop.input.fcitx5.theme = {
       enable = true;
@@ -314,12 +183,30 @@ with builtins;
         general.idle = caelestiaIdleSettings;
         launcher.favouriteApps = [ feishuLauncherId ];
       };
+      mutableConfig = {
+        enable = true;
+        settings.general.idle = caelestiaIdleSettings;
+        launcher = {
+          favouriteApps = [ feishuLauncherId ];
+          removeFavouriteApps = [ legacyFeishuDesktopId ];
+        };
+      };
+      localControls.polkit.enable = true;
       session = {
         extraPath = [ opencodeDir ];
-        preStart = [ "${ensureCaelestiaSettings}" ];
-        xdgDataDirs = caelestiaLauncherDataDirs;
+        includePackageDataDirs = true;
       };
     };
+
+    modules.desktop.audio.hdmi = {
+      enable = true;
+      card = "alsa_card.pci-0000_01_00.1";
+      sink = "alsa_output.pci-0000_01_00.1.hdmi-stereo";
+      lowPrioritySinks = [ "alsa_output.pci-0000_11_00.6.iec958-stereo" ];
+    };
+
+    modules.services.todesk.enable = true;
+    modules.virt.libvirt.enable = true;
 
     user.packages = with pkgs; [
       unstable.antigravity-fhs
@@ -331,70 +218,8 @@ with builtins;
       kubectl
       nvtopPackages.nvidia
       sops
-      todesk
       uv
     ];
-
-    user.extraGroups = [ "kvm" "libvirtd" ];
-
-    environment.systemPackages = with pkgs; [
-      virt-viewer
-      virtio-win
-    ];
-
-    programs.virt-manager.enable = true;
-
-    virtualisation.libvirtd = {
-      enable = true;
-      qemu.swtpm.enable = true;
-    };
-
-    systemd.tmpfiles.rules = [
-      "d /var/lib/todesk 0700 ${userName} ${config.user.group} - -"
-    ];
-
-    systemd.services.todesk = {
-      description = "ToDesk background service";
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "simple";
-        User = userName;
-        WorkingDirectory = userHome;
-        ExecStart = "${pkgs.todesk}/bin/todesk service";
-        Restart = "on-failure";
-        RestartSec = "5s";
-      };
-    };
-
-    security.polkit.extraConfig = ''
-      polkit.addRule(function(action, subject) {
-        var login1PowerActions = {
-          "org.freedesktop.login1.hibernate": true,
-          "org.freedesktop.login1.hibernate-multiple-sessions": true,
-          "org.freedesktop.login1.power-off": true,
-          "org.freedesktop.login1.power-off-multiple-sessions": true,
-          "org.freedesktop.login1.reboot": true,
-          "org.freedesktop.login1.reboot-multiple-sessions": true,
-          "org.freedesktop.login1.suspend": true,
-          "org.freedesktop.login1.suspend-multiple-sessions": true
-        };
-        var networkManagerActions = {
-          "org.freedesktop.NetworkManager.enable-disable-network": true,
-          "org.freedesktop.NetworkManager.enable-disable-wifi": true,
-          "org.freedesktop.NetworkManager.network-control": true,
-          "org.freedesktop.NetworkManager.settings.modify.own": true,
-          "org.freedesktop.NetworkManager.settings.modify.system": true,
-          "org.freedesktop.NetworkManager.wifi.scan": true
-        };
-
-        if (subject.local == true && subject.user == "${config.user.name}"
-            && (login1PowerActions[action.id] || networkManagerActions[action.id])) {
-          return polkit.Result.YES;
-        }
-      });
-    '';
 
     # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
     services.logrotate.checkConfig = false;
@@ -405,56 +230,6 @@ with builtins;
       memoryPercent = 20;
       memoryMax = 8589934592;
       priority = 100;
-    };
-
-    services.pipewire.wireplumber.extraConfig."51-axiom-audio-priority" = {
-      "monitor.alsa.rules" = [
-        {
-          matches = [{
-            "node.name" = axiomHdmiAudioSink;
-          }];
-          actions.update-props = {
-            "priority.driver" = 1100;
-            "priority.session" = 1100;
-          };
-        }
-        {
-          matches = [{
-            "node.name" = "alsa_output.pci-0000_11_00.6.iec958-stereo";
-          }];
-          actions.update-props = {
-            "priority.driver" = 100;
-            "priority.session" = 100;
-          };
-        }
-      ];
-    };
-
-    home.configFile."pulse/client.conf" = {
-      force = true;
-      text = ''
-        autospawn = no
-      '';
-    };
-
-    systemd.user.services.axiom-hdmi-audio = {
-      wantedBy = [ "graphical-session.target" ];
-      unitConfig = {
-        Description = "Ensure axiom HDMI audio output exists";
-        After = [ "pipewire.service" "pipewire-pulse.service" "wireplumber.service" ];
-        Wants = [ "pipewire.service" "pipewire-pulse.service" "wireplumber.service" ];
-        Before = [ "easyeffects.service" ];
-        PartOf = [ "graphical-session.target" ];
-      };
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${ensureAxiomHdmiAudio}";
-      };
-    };
-
-    systemd.user.services.easyeffects.unitConfig = {
-      After = mkAfter [ "axiom-hdmi-audio.service" ];
-      Wants = mkAfter [ "axiom-hdmi-audio.service" ];
     };
 
     systemd.user.services."app-clash\\x2dverge@autostart" = {
@@ -572,7 +347,7 @@ with builtins;
         after = [ "cloudflared.service" ];
         wants = [ "cloudflared.service" ];
         onUnitActiveSec = "45s";
-        check = cloudflaredReadyCheck;
+        http.url = cloudflaredReadyUrl;
       };
 
       autossh-reverse-ssh-healthcheck = {
@@ -584,7 +359,11 @@ with builtins;
         restartUnit = "autossh-reverse-ssh.service";
         after = [ "network-online.target" "autossh-reverse-ssh.service" ];
         wants = [ "network-online.target" "autossh-reverse-ssh.service" ];
-        check = autosshEndpointKeyCheck;
+        autosshEndpointKey = {
+          enable = true;
+          remoteHost = reverseSsh.remoteHost;
+          remotePort = reverseSsh.remotePort;
+        };
       };
 
       clash-verge-healthcheck = {
@@ -596,7 +375,12 @@ with builtins;
         restartUnit = "clash-verge.service";
         after = [ "clash-verge.service" ];
         wants = [ "clash-verge.service" ];
-        check = clashVergeServiceCheck;
+        serviceCore = {
+          enable = true;
+          service = "clash-verge.service";
+          childPattern = "verge-mihomo|mihomo|clash";
+          interfaces = [ "Mihomo" "Meta" ];
+        };
       };
     };
 

@@ -15,6 +15,7 @@
 - [Axiom Autossh Reverse SSH Tunnel](tasks/axiom-autossh-reverse-ssh-tunnel.md)
 - [Axiom Critical Network Resilience](tasks/axiom-critical-network-resilience.md)
 - [Axiom Default Modularization](tasks/axiom-default-modularization.md)
+- [Axiom Host Script Extraction](tasks/axiom-host-script-extraction.md)
 - [Axiom Dynamic Monitor Hotplug](tasks/axiom-dynamic-monitor-hotplug.md)
 - [Axiom Clash Verge Proxy Switch](tasks/axiom-clash-verge-proxy-switch.md)
 - [Axiom Caelestia Keybind Fix](tasks/axiom-caelestia-keybind-fix.md)
