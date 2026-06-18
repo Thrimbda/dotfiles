@@ -189,3 +189,5 @@
 - Added task summary for `axiom-host-policy-extraction`.
 - Updated host service modularization patterns and maintenance with typed status endpoints, service resource policy ownership, workstation policy extraction, and LAN firewall helper validation.
 - Updated current decisions for Axiom critical service resource policy ownership and Gatus endpoint helper ownership.
+- Added task summary for `axiom-second-monitor-workspaces`.
+- Updated current Axiom workspace/keybind decision with primary workspace 1..10 and second-monitor workspace 11..20 shortcut split.

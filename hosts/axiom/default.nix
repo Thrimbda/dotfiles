@@ -84,6 +84,7 @@ with builtins;
             scale = 1.5;
           };
         };
+        workspaces.secondary.enable = true;
       };
       apps = {
         clash-verge.enable = true;
