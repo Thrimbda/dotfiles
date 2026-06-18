@@ -108,6 +108,8 @@ Do not reuse an existing remote port while its host tunnel remains active, and d
 
 On `axiom`, critical network services are protected as a tiered survival path. `sshd.service` and `autossh-reverse-ssh.service` use `OOMScoreAdjust=-900`; `cloudflared.service` and `clash-verge.service` use `OOMScoreAdjust=-850`; the Clash GUI autostart drop-in normalizes to `OOMScoreAdjust=0` with `MemoryLow=256M`. The system services also use `MemoryMin`/`MemoryLow` and restart policy tuned for recovery.
 
+Those Axiom survival/resource policies are now expressed through owning module options rather than host-level `systemd.services.*` blocks: SSHD through `modules.services.ssh.serviceConfig`, Cloudflared through `modules.services.cloudflared.servicePolicy`, Clash through `modules.desktop.apps.clash-verge.servicePolicy`, Clash GUI autostart through `modules.desktop.apps.clash-verge.guiAutostart`, and the user manager through `modules.profiles.workstation.userManager`.
+
 `axiom` autossh health should prove endpoint identity, not only listener existence. The durable check is: from `8.159.128.125`, scan `127.0.0.1:2223` and compare the exposed ED25519 host key with `axiom`'s `/etc/ssh/ssh_host_ed25519_key.pub`. Timer-driven healthchecks must not kill remote `sshd` processes; stale remote listeners are detected/logged and remain manual cleanup unless a future task explicitly designs safe remote cleanup.
 
 ## Opencode Cloudflare Exposure
@@ -139,6 +141,8 @@ For axiom terminal-driven Clash Verge node switching, use the local Clash/Mihomo
 ## Status Page And Black-Box Monitoring
 
 Gatus is the repo-managed status page and black-box monitoring entrypoint for `axiom`, using NixOS-native `modules.services.gatus` with host-local endpoint inventory. It should stay NixOS-native, not Docker Compose, unless a future task explicitly changes deployment style.
+
+Reusable Gatus endpoint inventory should be represented through `modules.services.gatus` helpers: common labels, public endpoint entries, the self status-page endpoint, and optional Cloudflared ingress contribution. Hosts should pass endpoint facts such as name, URL, service label, and public hostname instead of maintaining full endpoint boilerplate.
 
 The public hostname is `status-axiom.0xc1.space` through the existing `home-axiom` cloudflared tunnel to local `127.0.0.1:8080`. Cloudflare Access is the authentication boundary; cloudflared is only transport. Create or modify the public DNS/tunnel route only after the `status-axiom.0xc1.space` Access app/policy has been verified.
 

@@ -77,7 +77,7 @@ in {
         url = publicUrl;
         interval = cfg.gatus.interval;
         conditions = cfg.gatus.conditions;
-        extra-labels = cfg.gatus.labels;
+        extra-labels = config.modules.services.gatus.labels // cfg.gatus.labels;
       }];
     })
 

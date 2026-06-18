@@ -150,11 +150,6 @@ with builtins;
       autosshRemoteHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAHARUNf8QKGEqfBx2pCtJkBp5HEqoBjp9XyqIos07nA";
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       gatusPort = 8080;
-      statusLabels = service: {
-        inherit service;
-        environment = "production";
-        owner = userName;
-      };
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
       caelestiaIdleSettings = {
@@ -207,6 +202,17 @@ with builtins;
 
     modules.services.todesk.enable = true;
     modules.virt.libvirt.enable = true;
+    modules.profiles.workstation = {
+      logrotate.disableConfigCheck = true;
+      userManager.oomScoreAdjust = 0;
+      networkManager.ethernetInterfaces = [ "enp14s0" ];
+      zram.enable = true;
+    };
+    modules.system.firewall.lanTcpAllows = [{
+      source = "192.168.50.0/24";
+      ports = [ 5173 8765 ];
+      comment = "Allow the local research workbench only from the home LAN.";
+    }];
 
     user.packages = with pkgs; [
       unstable.antigravity-fhs
@@ -221,25 +227,18 @@ with builtins;
       uv
     ];
 
-    # ISSUE: https://discourse.nixos.org/t/logrotate-config-fails-due-to-missing-group-30000/28501
-    services.logrotate.checkConfig = false;
-
-    zramSwap = {
-      enable = true;
-      algorithm = "zstd";
-      memoryPercent = 20;
-      memoryMax = 8589934592;
-      priority = 100;
-    };
-
-    systemd.user.services."app-clash\\x2dverge@autostart" = {
-      overrideStrategy = "asDropin";
-      serviceConfig = {
-        Restart = "on-failure";
-        RestartSec = "5s";
-        MemoryAccounting = true;
-        MemoryLow = "256M";
-        OOMScoreAdjust = 0;
+    modules.desktop.apps.clash-verge = {
+      servicePolicy = {
+        enable = true;
+        memoryMin = "256M";
+        memoryLow = "1G";
+        oomPolicy = "stop";
+        oomScoreAdjust = -850;
+      };
+      guiAutostart = {
+        enable = true;
+        memoryLow = "256M";
+        oomScoreAdjust = 0;
       };
     };
 
@@ -261,7 +260,7 @@ with builtins;
       gatus = {
         enable = true;
         name = "opencode-axiom";
-        labels = statusLabels "opencode";
+        labels.service = "opencode";
       };
       cloudflared.enable = true;
     };
@@ -269,71 +268,27 @@ with builtins;
     modules.services.gatus = {
       enable = true;
       port = gatusPort;
+      publicHostname = "status-axiom.0xc1.space";
+      labels = {
+        environment = "production";
+        owner = userName;
+      };
       prometheusScrape.enable = true;
-
-      endpoints = [
-        {
-          name = "vaultwarden-web";
-          group = "public";
-          url = "https://vault.0xc1.space";
-          interval = "1m";
-          conditions = [
-            "[STATUS] == 200"
-            "[CERTIFICATE_EXPIRATION] > 336h"
-            "[RESPONSE_TIME] < 2000"
-          ];
-          extra-labels = statusLabels "vaultwarden";
-        }
-        {
-          name = "status-page";
-          group = "infra";
-          url = "http://127.0.0.1:${toString gatusPort}";
-          interval = "1m";
-          conditions = [
-            "[STATUS] == 200"
-            "[RESPONSE_TIME] < 500"
-          ];
-          extra-labels = statusLabels "gatus";
-        }
-      ];
+      cloudflared.enable = true;
+      publicEndpoints = [{
+        name = "vaultwarden-web";
+        service = "vaultwarden";
+        url = "https://vault.0xc1.space";
+      }];
+      selfEndpoint.enable = true;
     };
 
-    systemd.services.sshd.serviceConfig = {
+    modules.services.ssh.serviceConfig = {
       MemoryAccounting = true;
       MemoryMin = "32M";
       MemoryLow = "128M";
       OOMPolicy = "continue";
       OOMScoreAdjust = -900;
-    };
-
-    systemd.services."user@${toString config.users.users.${userName}.uid}" = {
-      overrideStrategy = "asDropin";
-      serviceConfig.OOMScoreAdjust = mkForce 0;
-    };
-
-    systemd.services.cloudflared = {
-      unitConfig.StartLimitIntervalSec = 0;
-      serviceConfig = {
-        Restart = mkForce "always";
-        RestartSec = mkForce "5s";
-        MemoryAccounting = true;
-        MemoryMin = "128M";
-        MemoryLow = "512M";
-        OOMPolicy = "stop";
-        OOMScoreAdjust = -850;
-      };
-    };
-
-    systemd.services.clash-verge = {
-      serviceConfig = {
-        Restart = mkForce "on-failure";
-        RestartSec = "5s";
-        MemoryAccounting = true;
-        MemoryMin = "256M";
-        MemoryLow = "1G";
-        OOMPolicy = "stop";
-        OOMScoreAdjust = -850;
-      };
     };
 
     modules.services.healthchecks.checks = {
@@ -394,45 +349,26 @@ with builtins;
         protocol = "http2";
         tunnelName = "home-axiom";
       };
-      ingress = [
-        {
-          hostname = "status-axiom.0xc1.space";
-          service = "http://127.0.0.1:${toString gatusPort}";
-        }
-        { service = "http_status:404"; }
-      ];
+      ingress = [{ service = "http_status:404"; }];
+      servicePolicy = {
+        startLimitIntervalSec = 0;
+        restart = "always";
+        restartSec = "5s";
+        memoryAccounting = true;
+        memoryMin = "128M";
+        memoryLow = "512M";
+        oomPolicy = "stop";
+        oomScoreAdjust = -850;
+      };
     };
 
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
-      extraCommands = ''
-        # Allow the local research workbench only from the home LAN.
-        iptables -w -A nixos-fw -s 192.168.50.0/24 -p tcp -m multiport --dports 5173,8765 -j nixos-fw-accept
-      '';
     };
   };
 
   ## Hardware
   hardware = { ... }: {
-    networking = {
-      dhcpcd.enable = mkForce false;
-      networkmanager = {
-        ensureProfiles.profiles.enp14s0 = {
-          connection = {
-            id = "enp14s0";
-            type = "ethernet";
-            interface-name = "enp14s0";
-            autoconnect = true;
-          };
-          ipv4.method = "auto";
-          ipv6 = {
-            method = "auto";
-            addr-gen-mode = "stable-privacy";
-          };
-        };
-      };
-    };
-
     boot.supportedFilesystems = [ "ntfs" ];
 
     fileSystems."/" = {

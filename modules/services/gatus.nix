@@ -12,6 +12,32 @@ let
   isLinux = hasSuffix "-linux" system;
   prometheusCfg = config.modules.services.prometheus;
   gatusUrl = "http://127.0.0.1:${toString cfg.port}";
+  publicEndpointConditions = [
+    "[STATUS] == 200"
+    "[CERTIFICATE_EXPIRATION] > 336h"
+    "[RESPONSE_TIME] < 2000"
+  ];
+  selfEndpointConditions = [
+    "[STATUS] == 200"
+    "[RESPONSE_TIME] < 500"
+  ];
+  endpointLabels = service: extra: cfg.labels // { inherit service; } // extra;
+  publicEndpoints = map (endpoint: {
+    name = endpoint.name;
+    group = endpoint.group;
+    url = endpoint.url;
+    interval = endpoint.interval;
+    conditions = endpoint.conditions;
+    extra-labels = endpointLabels endpoint.service endpoint.labels;
+  }) cfg.publicEndpoints;
+  selfEndpoints = optional cfg.selfEndpoint.enable {
+    name = cfg.selfEndpoint.name;
+    group = cfg.selfEndpoint.group;
+    url = gatusUrl;
+    interval = cfg.selfEndpoint.interval;
+    conditions = cfg.selfEndpoint.conditions;
+    extra-labels = endpointLabels cfg.selfEndpoint.service cfg.selfEndpoint.labels;
+  };
   settings = recursiveUpdate {
     metrics = true;
     storage = {
@@ -24,7 +50,7 @@ let
       address = "127.0.0.1";
       port = cfg.port;
     };
-    endpoints = cfg.endpoints;
+    endpoints = cfg.endpoints ++ publicEndpoints ++ selfEndpoints;
   } cfg.extraSettings;
 in {
   options.modules.services.gatus = with types; {
@@ -32,7 +58,30 @@ in {
     package = mkOpt package pkgs.gatus;
     port = mkOpt (ints.between 1 65535) 8080;
     domain = mkOpt (nullOr str) null;
+    publicHostname = mkOpt (nullOr str) null;
+    labels = mkOpt attrs {};
     endpoints = mkOpt (listOf attrs) [];
+    publicEndpoints = mkOpt (listOf (submodule {
+      options = {
+        name = mkOpt str "";
+        service = mkOpt str "";
+        group = mkOpt str "public";
+        url = mkOpt str "";
+        interval = mkOpt str "1m";
+        conditions = mkOpt (listOf str) publicEndpointConditions;
+        labels = mkOpt attrs {};
+      };
+    })) [];
+    selfEndpoint = {
+      enable = mkBoolOpt false;
+      name = mkOpt str "status-page";
+      service = mkOpt str "gatus";
+      group = mkOpt str "infra";
+      interval = mkOpt str "1m";
+      conditions = mkOpt (listOf str) selfEndpointConditions;
+      labels = mkOpt attrs {};
+    };
+    cloudflared.enable = mkBoolOpt false;
     extraSettings = mkOpt attrs {};
 
     prometheusScrape = {
@@ -63,6 +112,13 @@ in {
           };
         };
       };
+    })
+
+    (mkIf (cfg.publicHostname != null && cfg.cloudflared.enable) {
+      modules.services.cloudflared.ingress = [{
+        hostname = cfg.publicHostname;
+        service = gatusUrl;
+      }];
     })
 
     (mkIf (cfg.prometheusScrape.enable && prometheusCfg.enable) {

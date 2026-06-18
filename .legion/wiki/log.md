@@ -186,3 +186,6 @@
 - Added post-deploy Axiom service smoke and desktop architecture follow-up after Axiom host/service modularization.
 - Added task summary for `axiom-host-script-extraction`.
 - Updated host modularization, Caelestia mutable config, healthcheck predicate, ToDesk, and libvirt current truth after extracting remaining Axiom host inline scripts/policy into modules.
+- Added task summary for `axiom-host-policy-extraction`.
+- Updated host service modularization patterns and maintenance with typed status endpoints, service resource policy ownership, workstation policy extraction, and LAN firewall helper validation.
+- Updated current decisions for Axiom critical service resource policy ownership and Gatus endpoint helper ownership.
