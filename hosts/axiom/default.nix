@@ -90,7 +90,10 @@ with builtins;
         clash-verge.enable = true;
         discord.enable = true;
         sidra.enable = true;
-        steam.enable = true;
+        steam = {
+          enable = true;
+          dwproton.enable = true;
+        };
         thunar.enable = true;
       };
       input = {

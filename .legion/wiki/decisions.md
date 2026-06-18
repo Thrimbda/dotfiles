@@ -58,6 +58,8 @@ Current Axiom `Super+Space` opens the Caelestia launcher drawer. Default-visible
 
 Axiom Steam on fractional-scale Hyprland should treat jagged or low-resolution Steam UI first as an XWayland/HiDPI integration issue: enable XWayland self-scaling for scaled monitor configs and pass Steam an explicit desktop UI scale. Do not expand this into per-game Proton or GPU runtime debugging without live evidence.
 
+Axiom Steam may opt into DWProton through `modules.desktop.apps.steam.dwproton.enable`, which appends the pinned `imaviso/dwproton-flake` package to `programs.steam.extraCompatPackages`. Keep DWProton opt-in per host; do not enable it globally for every Steam host or change Steam runtime, Gamescope, MangoHud, Proton-GE, or per-game launch options without a new scoped task.
+
 Axiom notification center 的第一个实现切片采用 session-local Quickshell panel：使用 `NotificationServer.trackedNotifications` 管理当前会话通知，dock button 负责打开 panel，通知内容不持久化。后续不得在没有 retention、clear、disable 和 privacy policy 的情况下把 notification history 或 clipboard history 落盘。
 
 Axiom Stage 2 search/actions 采用 Quickshell-owned panel，而不是恢复 Rofi/DMS primary path 或导入上游 launcher framework。`APP` dock entry 和 primary launcher binding should open Quickshell search first, while Fuzzel remains installed and directly reachable as fallback. Search providers must execute through fixed verbs, reviewed argv arrays, or repository-owned helper subcommands; user query text must not become shell script.

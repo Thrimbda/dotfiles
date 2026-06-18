@@ -9,9 +9,11 @@ let cfg = config.modules.desktop.apps.steam;
     fallbackMonitor = if hyprlandMonitors == [] then {} else head hyprlandMonitors;
     steamMonitor = findFirst (monitor: monitor.primary or false) fallbackMonitor hyprlandMonitors;
     steamDesktopScale = toString (steamMonitor.scale or 1);
+    dwprotonPackage = hey.inputs.dwproton.packages.${pkgs.stdenv.hostPlatform.system}.dw-proton;
 in {
   options.modules.desktop.apps.steam = with types; {
     enable = mkBoolOpt false;
+    dwproton.enable = mkBoolOpt false;
     mangohud.enable = mkBoolOpt true;
     libraryDir = mkOpt str "";
   };
@@ -22,6 +24,7 @@ in {
         enable = true;
         remotePlay.openFirewall = true;
         gamescopeSession.enable = true;
+        extraCompatPackages = optional cfg.dwproton.enable dwprotonPackage;
       };
       gamescope.enable = true;
       # Makes gamemoderun available, but it must be selectively enabled for

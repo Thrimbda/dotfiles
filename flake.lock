@@ -154,6 +154,26 @@
         "type": "github"
       }
     },
+    "dwproton": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781246061,
+        "narHash": "sha256-Z7hBU8Vc0j0XxUNFHEA1wdtzcAtGx+nJwFaskiQ5rok=",
+        "owner": "imaviso",
+        "repo": "dwproton-flake",
+        "rev": "70f6c85a85337e4b4030937f3963142ae232dc23",
+        "type": "github"
+      },
+      "original": {
+        "owner": "imaviso",
+        "repo": "dwproton-flake",
+        "type": "github"
+      }
+    },
     "emacs-overlay": {
       "inputs": {
         "nixpkgs": [
@@ -434,6 +454,7 @@
         "caelestia-shell": "caelestia-shell",
         "darwin": "darwin_2",
         "disko": "disko",
+        "dwproton": "dwproton",
         "emacs-overlay": "emacs-overlay",
         "home-manager": "home-manager_2",
         "nix-ld": "nix-ld",
