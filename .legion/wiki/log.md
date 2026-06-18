@@ -184,3 +184,5 @@
 - Added task summary for `axiom-default-modularization`.
 - Added host service modularization pattern for focused NixOS modules, Cloudflared ingress data, public loopback service glue, and shared healthcheck mechanics.
 - Added post-deploy Axiom service smoke and desktop architecture follow-up after Axiom host/service modularization.
+- Added task summary for `axiom-host-script-extraction`.
+- Updated host modularization, Caelestia mutable config, healthcheck predicate, ToDesk, and libvirt current truth after extracting remaining Axiom host inline scripts/policy into modules.

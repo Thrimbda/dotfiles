@@ -28,6 +28,8 @@ For Axiom Caelestia/Quickshell controls that need NetworkManager or logind autho
 
 Axiom graphical sessions must export a deterministic command PATH from generated `uwsm/env` and import `PATH` into the systemd user manager before starting `hyprland-session.target`. Caelestia Shell remains a launcher/app2unit parent with explicit session runner PATH ownership, and that path must include Caelestia helpers, user packages, and generated system packages so GUI-launched terminals and apps can resolve system-profile commands such as `git`, `gawk`, `steam`, and `steam-run`.
 
+Mutable Axiom Caelestia `shell.json` ownership is now part of `modules.desktop.caelestia`: defaults still stay minimal, but durable migrations for Axiom idle defaults, launcher favourites, legacy favourite removal, and Nix package `XDG_DATA_DIRS` discovery belong in the Caelestia module rather than host-local pre-start scripts.
+
 Caelestia Shell launcher children must also inherit the active display/session variables needed by both Wayland and X11/XWayland clients. The generated `caelestia-session` runner should use the systemd user manager as the post-Hyprland-import source of truth and hydrate only missing allowlisted variables such as `DISPLAY`, `WAYLAND_DISPLAY`, `XAUTHORITY`, desktop/session identifiers, and `HYPRLAND_INSTANCE_SIGNATURE` before starting Quickshell.
 
 Axiom user-installed opencode is exposed through explicit zsh startup and generated UWSM/Hyprland session PATH entries for `$HOME/.opencode/bin`; do not rely on literal host-level `environment.variables.PATH = "$HOME/.opencode/bin:$PATH"` as evidence that interactive shells or GUI-launched commands can resolve opencode.
@@ -64,7 +66,7 @@ Axiom Stage 3 quick controls and OSD use a Quickshell-owned panel plus fixed-ver
 
 Axiom monitor-headphone audio should treat the NVIDIA DP/HDMI sink `alsa_output.pci-0000_01_00.1.hdmi-stereo` as the real output source of truth. EasyEffects may remain as optional processing, but graphical-session startup must first create/prefer the real HDMI sink and then let EasyEffects bind to it; do not let the EasyEffects virtual sink become the only available sink for Zen/Sidra browser streams. Axiom uses PipeWire's PulseAudio-compatible server; a real `pulseaudio --start` daemon should not run or autospawn because it can hold `hdmi:0` before PipeWire creates the HDMI sink.
 
-Axiom's first Windows 11 virtualization stack is host-local libvirt/QEMU, swtpm, and virt-manager configuration in `hosts/axiom/default.nix`, not a broadening of `modules.virt.qemu.enable`. Keep the shared QEMU module semantics unchanged unless a separate cross-host task introduces explicit sub-options. The initial Windows 11 VM shape should be a normal system libvirt VM with Q35, UEFI/Secure Boot capable firmware, emulated TPM 2.0, VirtIO storage/network, SPICE display, and no PCI GPU passthrough.
+Axiom's desktop virtualization stack is now expressed through `modules.virt.libvirt`, which owns libvirt/QEMU service enablement, swtpm, virt-manager, VM packages, and `kvm`/`libvirtd` group membership. Keep `modules.virt.qemu.enable` semantics unchanged unless a separate cross-host task introduces explicit sub-options. The initial Windows 11 VM shape should be a normal system libvirt VM with Q35, UEFI/Secure Boot capable firmware, emulated TPM 2.0, VirtIO storage/network, SPICE display, and no PCI GPU passthrough.
 
 Axiom OSD feedback should prefer Quickshell IPC for volume/brightness/media display while preserving existing state-changing commands. Volume and brightness continue through `hey .osd` wrappers, and media keys may route through `axiom-control-helper media ...`; if Quickshell IPC is unavailable, notify/direct command fallback must keep the key behavior operational.
 
@@ -122,7 +124,7 @@ For cloudflared age secrets, Linux hosts should use group `users`; Darwin hosts 
 
 ## Axiom ToDesk Runtime
 
-On `axiom`, ToDesk is a host-local desktop remote-access integration. The package remains installed through `user.packages`, while runtime connectivity is owned by a systemd service running `${pkgs.todesk}/bin/todesk service` as `c1` after `network-online.target`.
+On `axiom`, ToDesk is a desktop remote-access integration owned by `modules.services.todesk`. The module installs the package and owns runtime connectivity through a systemd service running `${pkgs.todesk}/bin/todesk service` as `c1` after `network-online.target`.
 
 ToDesk state lives in `/var/lib/todesk` and should be created declaratively with `0700 c1 users`, because the vendor binaries write auth/private state there and both GUI and service run as `c1`. Do not add inbound firewall allowances for ToDesk without a separate scoped security review.
 

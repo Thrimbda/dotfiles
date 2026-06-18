@@ -9,6 +9,24 @@ let cfg = config.modules.desktop.caelestia;
     defaultWallpaperPath = themeWallpaper.path or null;
     qtPlatform = "wayland;xcb";
     qtPlatformTheme = "qtengine";
+    defaultLogin1PolkitActions = [
+      "org.freedesktop.login1.hibernate"
+      "org.freedesktop.login1.hibernate-multiple-sessions"
+      "org.freedesktop.login1.power-off"
+      "org.freedesktop.login1.power-off-multiple-sessions"
+      "org.freedesktop.login1.reboot"
+      "org.freedesktop.login1.reboot-multiple-sessions"
+      "org.freedesktop.login1.suspend"
+      "org.freedesktop.login1.suspend-multiple-sessions"
+    ];
+    defaultNetworkManagerPolkitActions = [
+      "org.freedesktop.NetworkManager.enable-disable-network"
+      "org.freedesktop.NetworkManager.enable-disable-wifi"
+      "org.freedesktop.NetworkManager.network-control"
+      "org.freedesktop.NetworkManager.settings.modify.own"
+      "org.freedesktop.NetworkManager.settings.modify.system"
+      "org.freedesktop.NetworkManager.wifi.scan"
+    ];
     caelestiaFontFamilies = {
       clock = "Rubik";
       material = "Material Symbols Rounded";
@@ -109,6 +127,62 @@ let cfg = config.modules.desktop.caelestia;
         trap - EXIT
       fi
     '';
+    packageDataDirs = makeSearchPath "share" (
+      unique (config.users.users.${config.user.name}.packages
+        ++ config.environment.systemPackages)
+    );
+    sessionXdgDataDirs = if cfg.session.includePackageDataDirs then packageDataDirs else cfg.session.xdgDataDirs;
+    mutableSettingsFile = pkgs.writeText "caelestia-mutable-settings.json" (builtins.toJSON cfg.mutableConfig.settings);
+    mutableFavouriteAppsFile = pkgs.writeText "caelestia-mutable-favourite-apps.json" (builtins.toJSON cfg.mutableConfig.launcher.favouriteApps);
+    mutableRemoveFavouriteAppsFile = pkgs.writeText "caelestia-mutable-remove-favourite-apps.json" (builtins.toJSON cfg.mutableConfig.launcher.removeFavouriteApps);
+    localControlPolkitUser = if cfg.localControls.polkit.user != "" then cfg.localControls.polkit.user else config.user.name;
+    localControlPolkitActions = unique (cfg.localControls.polkit.login1Actions ++ cfg.localControls.polkit.networkManagerActions);
+    patchMutableConfigScript = pkgs.writeShellScript "caelestia-patch-mutable-config" ''
+      set -eu
+
+      config_dir=${escapeShellArg shellConfigDir}
+      config_path=${escapeShellArg shellConfigPath}
+      settings_file=${escapeShellArg "${mutableSettingsFile}"}
+      favourites_file=${escapeShellArg "${mutableFavouriteAppsFile}"}
+      remove_file=${escapeShellArg "${mutableRemoveFavouriteAppsFile}"}
+
+      ${pkgs.coreutils}/bin/install -d -m 0755 "$config_dir"
+      if [ ! -s "$config_path" ]; then
+        printf '{}\n' > "$config_path"
+      fi
+
+      settings_json="$(${pkgs.coreutils}/bin/cat "$settings_file")"
+      favourites_json="$(${pkgs.coreutils}/bin/cat "$favourites_file")"
+      remove_json="$(${pkgs.coreutils}/bin/cat "$remove_file")"
+
+      tmp="$(${pkgs.coreutils}/bin/mktemp "$config_path.XXXXXX")"
+      trap '${pkgs.coreutils}/bin/rm -f "$tmp"' EXIT
+
+      if ! ${pkgs.jq}/bin/jq \
+          --argjson settings "$settings_json" \
+          --argjson favourites "$favourites_json" \
+          --argjson remove "$remove_json" '
+        def deepmerge($a; $b):
+          reduce ($b | keys_unsorted[]) as $key ($a;
+            .[$key] = if (($a[$key] | type) == "object" and ($b[$key] | type) == "object")
+              then deepmerge($a[$key]; $b[$key])
+              else $b[$key]
+              end);
+
+        deepmerge(. // {}; $settings)
+        | .launcher = (.launcher // {})
+        | .launcher.favouriteApps = ((.launcher.favouriteApps // []) as $apps
+            | ($apps | map(select(. as $candidate | ($remove | index($candidate) | not)))) as $normalized
+            | reduce $favourites[] as $app ($normalized; if index($app) then . else . + [$app] end))
+      ' "$config_path" > "$tmp"; then
+        printf 'caelestia-patch-mutable-config: unable to update %s\n' "$config_path" >&2
+        exit 0
+      fi
+
+      if ! ${pkgs.diffutils}/bin/cmp -s "$tmp" "$config_path"; then
+        ${pkgs.coreutils}/bin/install -m 0644 "$tmp" "$config_path"
+      fi
+    '';
     caelestiaSessionPath = makeBinPath ([
       cfg.cliPackage
       pkgs.unstable.app2unit
@@ -118,7 +192,8 @@ let cfg = config.modules.desktop.caelestia;
       ++ config.environment.systemPackages);
     caelestiaPreStartCommands = concatStringsSep "\n" ([
       "${seedShellConfigScript}"
-    ] ++ optional (cfg.wallpaper.enable && cfg.wallpaper.path != null) "${seedWallpaperScript}"
+    ] ++ optional cfg.mutableConfig.enable "${patchMutableConfigScript}"
+      ++ optional (cfg.wallpaper.enable && cfg.wallpaper.path != null) "${seedWallpaperScript}"
       ++ cfg.session.preStart);
     caelestiaSessionControl = pkgs.writeShellScriptBin "caelestia-session" ''
       set -euo pipefail
@@ -153,11 +228,11 @@ let cfg = config.modules.desktop.caelestia;
           export PATH=${escapeShellArg caelestiaSessionPath}
         fi
 
-        ${optionalString (cfg.session.xdgDataDirs != "") ''
+        ${optionalString (sessionXdgDataDirs != "") ''
           if [ -n "''${XDG_DATA_DIRS:-}" ]; then
-            export XDG_DATA_DIRS=${escapeShellArg cfg.session.xdgDataDirs}:$XDG_DATA_DIRS
+            export XDG_DATA_DIRS=${escapeShellArg sessionXdgDataDirs}:$XDG_DATA_DIRS
           else
-            export XDG_DATA_DIRS=${escapeShellArg cfg.session.xdgDataDirs}
+            export XDG_DATA_DIRS=${escapeShellArg sessionXdgDataDirs}
           fi
         ''}
 
@@ -288,7 +363,22 @@ in {
       extraPath = mkOpt (listOf (oneOf [ package str ])) [];
       preStart = mkOpt (listOf str) [];
       xdgDataDirs = mkOpt str "";
+      includePackageDataDirs = mkBoolOpt false;
       controlCommand = mkOpt str "";
+    };
+    mutableConfig = {
+      enable = mkBoolOpt false;
+      settings = mkOpt attrs {};
+      launcher = {
+        favouriteApps = mkOpt (listOf str) [];
+        removeFavouriteApps = mkOpt (listOf str) [];
+      };
+    };
+    localControls.polkit = {
+      enable = mkBoolOpt false;
+      user = mkOpt str "";
+      login1Actions = mkOpt (listOf str) defaultLogin1PolkitActions;
+      networkManagerActions = mkOpt (listOf str) defaultNetworkManagerPolkitActions;
     };
     wallpaper = {
       enable = mkBoolOpt false;
@@ -355,6 +445,16 @@ in {
       ];
 
       modules.desktop.caelestia.session.controlCommand = "${caelestiaSessionControl}/bin/caelestia-session";
+
+      security.polkit.extraConfig = mkIf cfg.localControls.polkit.enable ''
+        polkit.addRule(function(action, subject) {
+          var actions = ${builtins.toJSON localControlPolkitActions};
+          if (subject.local == true && subject.user == "${localControlPolkitUser}"
+              && actions.indexOf(action.id) >= 0) {
+            return polkit.Result.YES;
+          }
+        });
+      '';
 
       hey.hooks.startup."06-caelestia-shell" = ''
         hey.do ${caelestiaSessionControl}/bin/caelestia-session start
