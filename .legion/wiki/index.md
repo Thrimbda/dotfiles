@@ -16,6 +16,7 @@
 - [Axiom Critical Network Resilience](tasks/axiom-critical-network-resilience.md)
 - [Axiom Default Modularization](tasks/axiom-default-modularization.md)
 - [Axiom Host Script Extraction](tasks/axiom-host-script-extraction.md)
+- [Axiom Host Policy Extraction](tasks/axiom-host-policy-extraction.md)
 - [Axiom Dynamic Monitor Hotplug](tasks/axiom-dynamic-monitor-hotplug.md)
 - [Axiom Clash Verge Proxy Switch](tasks/axiom-clash-verge-proxy-switch.md)
 - [Axiom Caelestia Keybind Fix](tasks/axiom-caelestia-keybind-fix.md)

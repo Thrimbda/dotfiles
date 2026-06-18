@@ -6,8 +6,37 @@
 
 with lib;
 with hey.lib;
-mkIf (config.modules.profiles.role == "workstation") (mkMerge [
-  {
+let
+  cfg = config.modules.profiles.workstation;
+  mkEthernetProfile = interface: {
+    connection = {
+      id = interface;
+      type = "ethernet";
+      interface-name = interface;
+      autoconnect = true;
+    };
+    ipv4.method = "auto";
+    ipv6 = {
+      method = "auto";
+      addr-gen-mode = "stable-privacy";
+    };
+  };
+in {
+  options.modules.profiles.workstation = with types; {
+    logrotate.disableConfigCheck = mkBoolOpt false;
+    zram = {
+      enable = mkBoolOpt false;
+      algorithm = mkOpt str "zstd";
+      memoryPercent = mkOpt int 20;
+      memoryMax = mkOpt int 8589934592;
+      priority = mkOpt int 100;
+    };
+    userManager.oomScoreAdjust = mkOpt (nullOr int) null;
+    networkManager.ethernetInterfaces = mkOpt (listOf str) [];
+  };
+
+  config = mkIf (config.modules.profiles.role == "workstation") (mkMerge [
+    {
     boot = {
       # HACK I used to disable mitigations for spectre, meltdown, L1TF,
       #   retbleed, and other CPU vulnerabilities for a marginal performance
@@ -103,12 +132,41 @@ mkIf (config.modules.profiles.role == "workstation") (mkMerge [
 
     # See systemd/systemd#10579
     services.resolved.dnssec = "false";
-  }
+    }
 
-  (mkIf config.modules.services.ssh.enable {
+    (mkIf cfg.logrotate.disableConfigCheck {
+      services.logrotate.checkConfig = false;
+    })
+
+    (mkIf cfg.zram.enable {
+      zramSwap = {
+        enable = true;
+        algorithm = cfg.zram.algorithm;
+        memoryPercent = cfg.zram.memoryPercent;
+        memoryMax = cfg.zram.memoryMax;
+        priority = cfg.zram.priority;
+      };
+    })
+
+    (mkIf (cfg.userManager.oomScoreAdjust != null) {
+      systemd.services."user@${toString config.users.users.${config.user.name}.uid}" = {
+        overrideStrategy = "asDropin";
+        serviceConfig.OOMScoreAdjust = mkForce cfg.userManager.oomScoreAdjust;
+      };
+    })
+
+    (mkIf (cfg.networkManager.ethernetInterfaces != []) {
+      networking = {
+        dhcpcd.enable = mkForce false;
+        networkmanager.ensureProfiles.profiles = genAttrs cfg.networkManager.ethernetInterfaces mkEthernetProfile;
+      };
+    })
+
+    (mkIf config.modules.services.ssh.enable {
     programs.ssh.startAgent = true;
     services.openssh.startWhenNeeded = true;
-  })
+    })
 
-  # ...
-])
+    # ...
+  ]);
+}

@@ -7,8 +7,9 @@ let cfg = config.modules.services.ssh;
     isLinux = hasSuffix "-linux" system;
 in
 {
-  options.modules.services.ssh = {
+  options.modules.services.ssh = with types; {
     enable = mkBoolOpt false;
+    serviceConfig = mkOpt attrs {};
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -49,6 +50,8 @@ in
     (mkIf isLinux {
       # Ensure this directory exists and has correct permissions.
       systemd.user.tmpfiles.rules = [ "d %h/.config/ssh 700 - - - -" ];
+
+      systemd.services.sshd.serviceConfig = cfg.serviceConfig;
     })
   ]);
 }

@@ -70,6 +70,10 @@ For healthchecks, prefer typed predicates over host-owned shell bodies when the 
 
 For permission policy moved out of hosts, default the module option to disabled and require explicit host enablement. Preserve fixed action allowlists and local subject/user checks; do not turn a host-local polkit rule into group membership, prefix grants, sudo wrappers, or broader default module behavior.
 
+For host policy extraction after scripts are gone, keep moving ownership to the closest domain module rather than adding a generic catch-all policy module. Status-page endpoint inventory belongs in the status/Gatus module; service restart/OOM policy belongs in the owning service/app module; workstation zram/logrotate/user-manager defaults belong in the workstation profile; LAN-only firewall rules belong behind typed firewall helpers. Hosts should keep facts such as hostnames, endpoint names, CIDRs, ports, interface names, and memory thresholds.
+
+When moving firewall or resource policy, validate the effective generated config rather than only checking build success. For firewall, prove source CIDR, protocol, and ports. For service survival policy, prove `OOMScoreAdjust`, `MemoryMin`, `MemoryLow`, restart policy, and any `StartLimitIntervalSec` on the generated systemd unit.
+
 ## Runtime Entry Validation
 
 For display-manager runtime regressions, validate the effective NixOS session data rather than guessing desktop entry names. Check `services.displayManager.sessionData.sessionNames`, the generated `share/wayland-sessions/*.desktop` entries, and the consumer command that references them.

@@ -140,6 +140,17 @@ in {
     };
 
     package = mkOpt package pkgs.cloudflared;
+
+    servicePolicy = {
+      startLimitIntervalSec = mkOpt (nullOr (oneOf [ int str ])) null;
+      restart = mkOpt str "on-failure";
+      restartSec = mkOpt str "10s";
+      memoryAccounting = mkBoolOpt false;
+      memoryMin = mkOpt (nullOr str) null;
+      memoryLow = mkOpt (nullOr str) null;
+      oomPolicy = mkOpt (nullOr str) null;
+      oomScoreAdjust = mkOpt (nullOr int) null;
+    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -183,14 +194,17 @@ in {
           after = [ "network.target" "age-secrets-cloudflared-credentials.service" ];
           wants = [ "age-secrets-cloudflared-credentials.service" ];
           wantedBy = [ "multi-user.target" ];
+          unitConfig = optionalAttrs (cfg.servicePolicy.startLimitIntervalSec != null) {
+            StartLimitIntervalSec = cfg.servicePolicy.startLimitIntervalSec;
+          };
 
           serviceConfig = {
             Type = "simple";
             User = user;
             Group = "users";
             ExecStart = "${cfg.package}/bin/cloudflared --config ${configFile} tunnel run";
-            Restart = "on-failure";
-            RestartSec = "10s";
+            Restart = cfg.servicePolicy.restart;
+            RestartSec = cfg.servicePolicy.restartSec;
             LimitNOFILE = 100000;
             # Protect sensitive credentials
             ReadWritePaths = configDir;
@@ -198,6 +212,16 @@ in {
             NoNewPrivileges = true;
             ProtectSystem = "strict";
             ProtectHome = "read-only";
+          } // optionalAttrs cfg.servicePolicy.memoryAccounting {
+            MemoryAccounting = true;
+          } // optionalAttrs (cfg.servicePolicy.memoryMin != null) {
+            MemoryMin = cfg.servicePolicy.memoryMin;
+          } // optionalAttrs (cfg.servicePolicy.memoryLow != null) {
+            MemoryLow = cfg.servicePolicy.memoryLow;
+          } // optionalAttrs (cfg.servicePolicy.oomPolicy != null) {
+            OOMPolicy = cfg.servicePolicy.oomPolicy;
+          } // optionalAttrs (cfg.servicePolicy.oomScoreAdjust != null) {
+            OOMScoreAdjust = cfg.servicePolicy.oomScoreAdjust;
           };
 
           environment = {
