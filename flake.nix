@@ -55,6 +55,9 @@
 
       sidra.url = "github:wimpysworld/sidra";
       sidra.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+      dwproton.url = "github:imaviso/dwproton-flake";
+      dwproton.inputs.nixpkgs.follows = "nixpkgs";
     };
 
   outputs = inputs @ { self, nixpkgs, nixpkgs-unstable, nixos-hardware, ... }:

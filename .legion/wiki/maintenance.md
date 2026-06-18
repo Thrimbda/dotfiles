@@ -27,6 +27,7 @@
 ## Axiom Steam / opencode Follow-Up
 
 - After deploying `axiom-desktop-polish-followup`, confirm Steam renders crisply on the 4K fractional-scale monitor and that games still choose expected render resolutions. If only individual games remain blurry, split a Steam game/runtime task with logs instead of broadening the desktop integration fix.
+- After deploying `axiom-steam-dwproton`, run `hey sync --host axiom switch` from a local interactive terminal, restart Steam, and confirm DWProton appears in Steam's compatibility tool selector. Do not claim any specific game compatibility from the repository-only build/eval evidence.
 - In a fresh Axiom interactive shell and desktop-launched terminal, confirm `command -v opencode` resolves to `$HOME/.opencode/bin/opencode`.
 
 ## Axiom Power Follow-Up

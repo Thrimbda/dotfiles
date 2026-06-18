@@ -59,6 +59,7 @@
 - [Axiom No-Sleep Power Mode](tasks/axiom-no-sleep-power-mode.md)
 - [Axiom Playwright CLI Runtime](tasks/axiom-playwright-cli-runtime.md)
 - [Axiom Sidra Apple Music](tasks/axiom-sidra-apple-music.md)
+- [Axiom Steam DWProton](tasks/axiom-steam-dwproton.md)
 - [Axiom Thunar Caelestia Theme Contrast](tasks/axiom-thunar-caelestia-theme-contrast.md)
 - [Axiom Thunar Contrast Regression](tasks/axiom-thunar-contrast-regression.md)
 - [Axiom VSCode Data Wrangler Jupyter Extension Fix](tasks/axiom-vscode-datawrangler-jupyter-extension-fix.md)
