@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FRP Agenix Deploy | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.015 104);
+      --surface: oklch(98% 0.008 104);
+      --ink: oklch(23% 0.028 145);
+      --muted: oklch(48% 0.031 145);
+      --line: oklch(82% 0.023 118);
+      --accent: oklch(45% 0.12 154);
+      --accent-soft: oklch(92% 0.055 149);
+      --warn-soft: oklch(92% 0.06 78);
+      --code: oklch(94% 0.018 116);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.64;
+    }
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    code { background: var(--code); border-radius: 0.35rem; padding: 0.08rem 0.28rem; font-size: 0.92em; }
+    main { width: min(1180px, calc(100vw - 36px)); margin: 0 auto; padding: 48px 0 72px; }
+    header.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 32px; align-items: end; margin-bottom: 34px; }
+    .kicker { color: var(--muted); font-weight: 760; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { font-size: clamp(2.2rem, 5vw, 4.7rem); line-height: 0.96; margin: 0.18em 0; max-width: 10ch; }
+    h2 { margin-top: 0; font-size: 1.35rem; }
+    h3 { margin-bottom: 0.35rem; font-size: 1rem; }
+    p, li { max-width: 74ch; }
+    .lead { color: var(--muted); font-size: 1.08rem; max-width: 68ch; }
+    .status, section, nav { border: 1px solid var(--line); border-radius: 24px; background: var(--surface); }
+    .status { padding: 24px; }
+    .status p { margin: 0 0 0.72rem; display: flex; justify-content: space-between; gap: 16px; }
+    .pill { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); padding: 0.12rem 0.64rem; font-weight: 760; white-space: nowrap; }
+    .pill.pending { background: var(--warn-soft); }
+    .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 28px; align-items: start; }
+    nav { position: sticky; top: 20px; padding: 18px; }
+    nav a { display: block; color: var(--ink); margin: 0.3rem 0; text-decoration: none; }
+    section { padding: 28px; margin-bottom: 24px; }
+    .split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+    .note { background: var(--accent-soft); border-radius: 18px; padding: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 12px; }
+    th { color: var(--muted); font-size: 0.86rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    ul { padding-left: 1.2rem; }
+    .checklist li { margin-bottom: 0.35rem; }
+    @media (max-width: 900px) {
+      header.hero, .layout, .split { grid-template-columns: 1fr; }
+      nav { position: static; }
+      h1 { max-width: 12ch; }
+    }
+    @media print {
+      body { background: var(--surface); }
+      main { width: auto; padding: 0; }
+      nav { display: none; }
+      section, .status { break-inside: avoid; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">implementation walkthrough</p>
+        <h1>FRP Agenix Deploy</h1>
+        <p class="lead">新增声明式 frps/frpc 部署，并用 agenix token 认证连接 aliyun-acorn 与 axiom。此页帮助 reviewer 快速判断 scope、验证证据和剩余风险。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <p><span>Profile</span> <span class="pill">implementation</span></p>
+        <p><span>Design Review</span> <span class="pill">PASS</span></p>
+        <p><span>Change Review</span> <span class="pill">PASS</span></p>
+        <p><span>PR Lifecycle</span> <span class="pill pending">pending</span></p>
+        <p><span>Render</span> <span class="pill pending">artifact-only</span></p>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <ul>
+            <li>新增 <code>modules.services.frp</code>，支持 Linux 上的 <code>frps</code> 和 <code>frpc</code> systemd service。</li>
+            <li><code>aliyun-acorn</code> 运行 <code>frps</code> 并开放 TCP <code>7000</code> 与 <code>2225</code>。</li>
+            <li><code>axiom</code> 运行 <code>frpc</code>，连接 <code>8.159.128.125:7000</code>，将本机 SSH 暴露为远端 <code>2225</code>。</li>
+            <li>token 只在运行时从 <code>/run/agenix/frp-token</code> 注入，Nix store 模板只包含 <code>@FRP_TOKEN@</code>。</li>
+          </ul>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <div class="split">
+            <div>
+              <h3>In scope</h3>
+              <ul>
+                <li><code>modules/services/frp.nix</code></li>
+                <li><code>hosts/aliyun-acorn/default.nix</code></li>
+                <li><code>hosts/axiom/default.nix</code></li>
+                <li>两台 host 的 <code>frp-token.age</code> 和 <code>secrets.nix</code></li>
+                <li><code>.gitattributes</code> 标记 <code>*.age</code> 为 binary</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Out of scope</h3>
+              <ul>
+                <li>不替换现有 autossh reverse SSH。</li>
+                <li>不新增 frp dashboard、metrics、TLS 或多 proxy 拓扑。</li>
+                <li>不修改 Cloudflare、Gatus 或 opencode-server。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>契约与 scope 稳定</td><td><code>plan.md</code></td><td>PASS</td></tr>
+              <tr><td>设计可实现、可验证、可回滚</td><td><code>docs/rfc.md</code>, <code>docs/review-rfc.md</code></td><td>PASS</td></tr>
+              <tr><td>两台 host eval 与 dry-run build 通过</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>frp TOML 语法通过 upstream verify</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>token 不进入 Nix store 输出</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>age 密文按 binary 处理，Git whitespace check 不误报</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>实现和安全边界 review 通过</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <ol>
+            <li>创建 Legion contract 和 design-lite RFC。</li>
+            <li>在 <code>.worktrees/frp-agenix-deploy</code> 从 <code>origin/master</code> 实现变更。</li>
+            <li>生成 host-local age token secret，并验证两份密文解密内容一致。</li>
+            <li>完成 eval、dry-run、render-script inspection、frp verify 和 review。</li>
+            <li>下一步是 PR 创建、render handoff、checks/review 跟进和最终 cleanup。</li>
+          </ol>
+        </section>
+
+        <section id="decisions">
+          <h2>What Changed / What Was Decided</h2>
+          <p>frp module 使用 TOML 模板和运行时渲染，而不是把 token 写进 Nix 配置。review 后移除了无效的 <code>age-secrets-frp-token.service</code> 依赖，当前服务只排序在 <code>network-online.target</code> 之后。</p>
+          <p class="note">保留 autossh reverse SSH 是显式 non-goal，frp 是新增部署路径，不是替代迁移。</p>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li>Secret consistency: PASS，两个 age 文件解密为同一个 96 位 hex token，未打印明文。</li>
+            <li>Nix eval: PASS，<code>axiom</code> 和 <code>aliyun-acorn</code> 均生成 toplevel drv path。</li>
+            <li>Dry-run build: PASS，两台 host 均完成。</li>
+            <li>frp verify: PASS，<code>frpc</code> 和 <code>frps</code> 模板均 syntax ok。</li>
+            <li>Review-change: PASS，security lens 已应用，无 blocking finding。</li>
+          </ul>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <ul>
+            <li>公网暴露 <code>7000</code> 和 <code>2225</code> 是有意范围，安全边界依赖 token 与 SSH key-only auth。</li>
+            <li>本地无法读取 axiom host 私钥，因此未直接用该私钥解密；recipient 已写入。</li>
+            <li>真实网络连通性和 systemd runtime health 需要部署后在目标机确认。</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul class="checklist">
+            <li>确认公网端口 <code>7000</code> 和 <code>2225</code> 符合预期。</li>
+            <li>确认 token runtime rendering 方案足以避免 Nix store 明文泄露。</li>
+            <li>确认保留 autossh reverse SSH 符合当前迁移策略。</li>
+            <li>确认验证证据覆盖 eval、dry-run、frp 模板和 secret 一致性。</li>
+          </ul>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>PR-backed HTML artifact 已生成，当前状态为 artifact-only/blocker。仓库当前没有现成 Pages PR preview 配置，新增 preview workflow 会扩大本任务 scope；reviewer 可直接查看 PR 中的 <code>docs/report-walkthrough.html</code> artifact。PR body 只是创建 PR 的输入，不表示 checks、review、merge、cleanup 或主工作区 refresh 已完成。</p>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>实现、验证和 review 已完成。下一阶段是 wiki writeback、PR 创建、auto-merge 尝试、checks/review 跟进、PR 终态、worktree cleanup 和主工作区 baseline refresh。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

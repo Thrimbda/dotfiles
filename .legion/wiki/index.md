@@ -92,4 +92,5 @@
 - [Dotfiles Wayland Runtime Follow-up](tasks/dotfiles-wayland-runtime-followup.md)
 - [Dotfiles Wayland Visible Shell](tasks/dotfiles-wayland-visible-shell.md)
 - [Foot Tmux Hotkey](tasks/foot-tmux-hotkey.md)
+- [FRP Agenix Deploy](tasks/frp-agenix-deploy.md)
 - [SSH Foot Term Compatibility](tasks/ssh-foot-term-compat.md)
