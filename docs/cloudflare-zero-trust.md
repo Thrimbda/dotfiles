@@ -195,7 +195,7 @@ launchctl list | grep cloudflared
 2. Hostname 填对应的 opencode hostname。
 3. 将应用的 identity provider 限制为 Google，并启用单 IdP 自动跳转。
 4. Policy 选择 allow，并要求 Google login method。当前 allowlist：
-   - `opencode-axiom.0xc1.space`: `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`
+   - `opencode-axiom.0xc1.space`: `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`, `wangpeiguangwpg@gmail.com`
    - `opencode-charlie.0xc1.space`: `c1@ntnl.io`, `siyuan.arc@gmail.com`
 5. 用对应授权邮箱验证可访问，再用未授权账号验证会被拒绝，并保留审计记录。
 
