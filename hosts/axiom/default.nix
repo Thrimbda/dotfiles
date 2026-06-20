@@ -156,69 +156,7 @@ with builtins;
       gatusPort = 8080;
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
-      axiomCliTarget = "axiom-cli.target";
-      axiomMode = pkgs.writeShellScriptBin "axiom-mode" ''
-        set -eu
-
-        systemctl=${pkgs.systemd}/bin/systemctl
-        id=${pkgs.coreutils}/bin/id
-        printf=${pkgs.coreutils}/bin/printf
-        sudo=/run/wrappers/bin/sudo
-
-        usage() {
-          $printf 'Usage: axiom-mode {cli|desktop|status}\n'
-          $printf '\n'
-          $printf '  cli      Persist and switch to SSH-friendly TTY mode.\n'
-          $printf '  desktop  Persist and switch to graphical Hyprland mode.\n'
-          $printf '  status   Show the default target and key unit states.\n'
-        }
-
-        as_root() {
-          if [ "$($id -u)" -ne 0 ]; then
-            if [ ! -x "$sudo" ]; then
-              $printf 'axiom-mode: root privileges required and sudo is unavailable\n' >&2
-              exit 1
-            fi
-            exec "$sudo" "$0" "$@"
-          fi
-        }
-
-        mode="''${1:-status}"
-        case "$mode" in
-          cli|headless|tty)
-            as_root "$@"
-            "$systemctl" set-default ${axiomCliTarget}
-            "$systemctl" isolate ${axiomCliTarget}
-            ;;
-          desktop|graphical|gui)
-            as_root "$@"
-            "$systemctl" set-default graphical.target
-            "$systemctl" isolate graphical.target
-            ;;
-          status)
-            $printf 'default: '
-            "$systemctl" get-default
-            $printf '\nkey units:\n'
-            "$systemctl" --no-pager --plain list-units --all \
-              ${axiomCliTarget} \
-              graphical.target \
-              multi-user.target \
-              getty@tty1.service \
-              greetd.service \
-              sshd.service \
-              autossh-reverse-ssh.service \
-              cloudflared.service \
-              opencode-server.service
-            ;;
-          -h|--help|help)
-            usage
-            ;;
-          *)
-            usage >&2
-            exit 2
-            ;;
-        esac
-      '';
+      axiomMode = pkgs.callPackage ../../packages/axiom-mode {};
       caelestiaIdleSettings = {
         lockBeforeSleep = true;
         inhibitWhenAudio = true;

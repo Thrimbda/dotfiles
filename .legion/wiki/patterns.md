@@ -96,6 +96,8 @@ For workstation desktop/CLI mode switches, prefer a custom systemd target over d
 
 For frp token-auth tunnels, keep credential material out of Nix store by generating checked-in templates with a placeholder and rendering the final TOML under `/run/<service>` from an agenix path at service start. Validate the target host evals, dry-run builds, generated proxy port, firewall allow-list, render script contents, frp's own `verify` command, and encrypted token consistency without printing the token.
 
+If a host-local privileged CLI grows beyond a trivial package list entry, make it a real package rather than a large inline `writeShellScriptBin` in the host. For `axiom-mode`, the durable shape is a no-dependency Rust crate under `packages/axiom-mode`, with Nix injecting the `systemctl` store path and the binary restricting mode selection to fixed enum branches.
+
 For XDG SSH wrapper regressions, build and inspect the generated wrapped `ssh` script. The wrapper must expand `XDG_CONFIG_HOME` at runtime, fall back to `$HOME/.config`, pass `-F "$cfg"` as argv elements rather than as a literal `$XDG_CONFIG_HOME/ssh/config` string, and set a portable `TERM` such as `xterm-256color` when local terminals like Foot would otherwise leak terminfo names many remote hosts lack.
 
 For opencode over cloudflared, keep the app server bound to `127.0.0.1`, route the public hostname through cloudflared ingress, and treat Cloudflare Access policy verification as a separate上线前置条件. DNS route creation proves the tunnel hostname exists; it does not prove Access policy or app authorization.

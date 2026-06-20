@@ -199,3 +199,5 @@
 - Updated current Axiom power/session decisions, runtime validation patterns, and maintenance with the standalone `axiom-mode` systemd target switch for SSH-only CLI operation.
 - Added task summary for `frp-agenix-deploy`.
 - Added current FRP tunnel decision and validation pattern for agenix-backed runtime token rendering, `aliyun-acorn` frps, and `axiom` frpc on remote TCP `2225`.
+- Added task summary for `axiom-mode-clean-cli`.
+- Updated current Axiom mode-switch decisions and patterns so `axiom-mode` is a standalone Rust package instead of an inline host shell script.
