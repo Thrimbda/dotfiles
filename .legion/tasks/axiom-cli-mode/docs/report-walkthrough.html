@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Axiom CLI Mode | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.014 92);
+      --surface: oklch(99% 0.006 95);
+      --surface-2: oklch(93% 0.018 105);
+      --ink: oklch(24% 0.022 132);
+      --muted: oklch(48% 0.028 132);
+      --line: oklch(82% 0.018 105);
+      --accent: oklch(45% 0.12 153);
+      --accent-soft: oklch(90% 0.055 153);
+      --warn: oklch(91% 0.07 82);
+      --shadow: oklch(28% 0.03 132 / 0.11);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.66;
+    }
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    main { width: min(1180px, calc(100vw - 36px)); margin: 0 auto; padding: 48px 0 72px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 370px); gap: 34px; align-items: end; margin-bottom: 34px; }
+    .kicker { color: var(--accent); font-weight: 760; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { max-width: 12ch; margin: 0 0 18px; font-size: clamp(2.4rem, 7vw, 5.4rem); line-height: 0.92; letter-spacing: -0.06em; }
+    h2 { margin: 0 0 16px; font-size: clamp(1.35rem, 2.4vw, 1.9rem); line-height: 1.12; letter-spacing: -0.025em; }
+    h3 { margin: 22px 0 8px; font-size: 1rem; }
+    p { max-width: 72ch; margin: 0 0 14px; }
+    ul, ol { max-width: 74ch; padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    code { background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.06rem 0.28rem; font-size: 0.92em; }
+    .lede { font-size: 1.12rem; color: var(--muted); }
+    .status { border: 1px solid var(--line); border-radius: 26px; background: var(--surface); padding: 24px; box-shadow: 0 18px 48px var(--shadow); }
+    .status h2 { font-size: 1rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .status-row { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-top: 1px solid var(--line); padding: 13px 0; }
+    .status-row:first-of-type { border-top: 0; }
+    .pill { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); padding: 0.12rem 0.64rem; font-weight: 760; white-space: nowrap; }
+    .pill.warn { background: var(--warn); }
+    .layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 30px; align-items: start; }
+    nav { position: sticky; top: 18px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); padding: 14px; }
+    nav a { display: block; padding: 9px 10px; border-radius: 12px; color: var(--ink); text-decoration: none; }
+    nav a:hover { background: var(--surface-2); }
+    section { border: 1px solid var(--line); border-radius: 26px; background: var(--surface); padding: clamp(20px, 4vw, 32px); margin-bottom: 24px; box-shadow: 0 12px 34px var(--shadow); }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .note { background: var(--surface-2); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 12px; }
+    th { color: var(--muted); font-size: 0.84rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .checklist li::before { content: "[ ]"; color: var(--accent); font-weight: 760; margin-right: 0.6rem; }
+
+    @media (max-width: 900px) {
+      main { width: min(100vw - 24px, 720px); padding-top: 28px; }
+      .hero, .layout, .split { grid-template-columns: 1fr; }
+      nav { position: static; }
+      h1 { max-width: 100%; }
+      table { display: block; overflow-x: auto; }
+    }
+
+    @media print {
+      body { background: var(--surface); }
+      main { width: auto; padding: 0; }
+      nav { display: none; }
+      section, .status { box-shadow: none; break-inside: avoid; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">Implementation Walkthrough</p>
+        <h1>Axiom CLI Mode</h1>
+        <p class="lede">为 `axiom` 增加一个不依赖 `hey` 的模式切换命令，使机器在 SSH-only 使用时可以停在 TTY 和 `multi-user.target` 服务路径上。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <h2>交付状态</h2>
+        <div class="status-row"><span>Profile</span><span class="pill">implementation</span></div>
+        <div class="status-row"><span>Verification</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Review</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>PR</span><span class="pill warn">pending lifecycle</span></div>
+        <div class="status-row"><span>Render</span><span class="pill warn">pending PR render</span></div>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#decisions">改动</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <ul>
+            <li>`axiom-mode cli` 持久切换到 SSH-friendly CLI 模式，并立即 isolate 到 `axiom-cli.target`。</li>
+            <li>`axiom-mode desktop` 持久切回 `graphical.target`，让 greetd/UWSM 恢复 Hyprland 桌面。</li>
+            <li>关键远程访问服务仍挂在 `multi-user.target`，包括 `sshd`、reverse SSH、cloudflared 和 opencode。</li>
+            <li>实现是 `pkgs.writeShellScriptBin` 生成的普通系统命令，不调用 `hey`。</li>
+          </ul>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <div class="split">
+            <div class="note">
+              <h3>In scope</h3>
+              <ul>
+                <li>`hosts/axiom/default.nix` 增加 `axiom-mode` 和 `axiom-cli.target`。</li>
+                <li>`hosts/axiom/README.org` 增加模式切换说明。</li>
+                <li>Legion task docs 记录 contract、验证、review 和交付说明。</li>
+              </ul>
+            </div>
+            <div class="note">
+              <h3>Out of scope</h3>
+              <ul>
+                <li>NVIDIA 深度省电调优。</li>
+                <li>CPU governor、suspend、风扇、DDC 或显示器电源控制。</li>
+                <li>第二套 host 配置、specialisation 或远程访问拓扑调整。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>任务范围和 non-goals 已稳定</td><td><code>.legion/tasks/axiom-cli-mode/plan.md</code></td><td>PASS</td></tr>
+              <tr><td>`axiom-mode` 进入系统包且不依赖 `hey`</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>CLI target 保留远程访问服务路径</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>diff 没有 scope 外服务拓扑调整</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+              <tr><td>sudo/systemctl 权限路径已检查</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <ol>
+            <li>Brainstorm materialized `axiom-cli-mode` task contract.</li>
+            <li>Engineer implemented the smallest host-local target and command change.</li>
+            <li>Verify-change produced `docs/test-report.md` with targeted Nix eval, script build and syntax check, and Axiom dry-run.</li>
+            <li>Review-change produced PASS with a security lens for sudo/systemctl usage.</li>
+            <li>This walkthrough and `docs/pr-body.md` are PR creation inputs, not PR lifecycle completion evidence.</li>
+          </ol>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>PR-backed HTML render is pending until the PR exists. The source artifact is <code>.legion/tasks/axiom-cli-mode/docs/report-walkthrough.html</code>. After PR creation, render handling should produce a preview URL or record an explicit blocker.</p>
+        </section>
+
+        <section id="decisions">
+          <h2>What Changed / What Was Decided</h2>
+          <p>`axiom-cli.target` is the explicit non-graphical mode. It requires `multi-user.target`, wants `getty@tty1.service`, conflicts with `graphical.target`, and allows isolation.</p>
+          <p>`axiom-mode` wraps only fixed `systemctl` operations: set default target, isolate target, and show status. The command dispatch uses fixed case branches rather than user-controlled target names.</p>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li>Nix eval confirms `axiom-mode` is in `environment.systemPackages`.</li>
+            <li>Nix eval confirms `greetd` remains under `graphical.target` and remote services remain under `multi-user.target`.</li>
+            <li>Generated script builds and passes `bash -n`.</li>
+            <li>Axiom top-level system build dry-run evaluates successfully.</li>
+            <li>Review-change decision: PASS, no blocking findings.</li>
+          </ul>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <ul>
+            <li>`systemctl isolate` terminates the graphical session immediately, so desktop work should be saved first.</li>
+            <li>Runtime isolate and power draw checks were not run in this environment because it is not live `axiom`.</li>
+            <li>Actual power savings depend on RTX 5090 idle behavior and display state after deployment.</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul class="checklist">
+            <li>`axiom-mode` is sufficiently independent from `hey`.</li>
+            <li>`axiom-cli.target` preserves the intended remote access path.</li>
+            <li>README explains persistent CLI and desktop mode semantics clearly.</li>
+            <li>Deferred live runtime and power checks are acceptable for this PR scope.</li>
+          </ul>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>Implementation evidence is ready for PR creation. Remaining lifecycle work is GitHub PR creation, render handoff, checks/review follow-up, auto-merge attempt, cleanup, and main workspace refresh.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
