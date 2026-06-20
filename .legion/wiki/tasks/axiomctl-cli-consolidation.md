@@ -3,25 +3,25 @@
 ## Metadata
 
 - `task-id`: `axiomctl-cli-consolidation`
-- `status`: `active`
+- `status`: `historical`
 - `risk`: `medium`
 - `schema-version`: `2026-06-legion-wiki`
-- `historical`: `false`
+- `historical`: `true`
 - `supersedes`: `axiom-mode-clean-cli`
-- `superseded-by`: `(none)`
+- `superseded-by`: `c1ctl-hey-rust-migration`
 
 ## Outcome Summary
 
-This task renames the Axiom host-local Rust CLI from `axiom-mode` to `axiomctl` and keeps the command surface intentionally narrow. The current durable entrypoint is `axiomctl mode cli`, `axiomctl mode desktop`, and `axiomctl mode status`, with top-level aliases for the common mode verbs. `axiomctl reload` is a fixed-argv bridge to the existing `hey reload` hook path, not a Rust replacement for `hey` dispatch.
+This historical task renamed the Axiom host-local Rust CLI from `axiom-mode` to `axiomctl` and intentionally kept the command surface narrow. It has been superseded by `c1ctl-hey-rust-migration`, which makes `c1ctl` the durable Rust control CLI and begins the staged non-Rofi Rust migration of `hey`.
 
-The package now lives under `packages/axiomctl`, and the Axiom host installs it through `pkgs.callPackage ../../packages/axiomctl` with an injected `hey` path for reload. Broad Nix/dotfiles workflows, Rofi-era menus, and Caelestia-owned desktop controls remain outside this CLI.
+The details below are historical context for why the prior narrow `axiomctl` boundary existed. Current package naming and command ownership live in `packages/c1ctl` and the `c1ctl-hey-rust-migration` summary.
 
 ## Reusable Decisions
 
-- Use `axiomctl` as the Axiom host-control CLI name; reserve `hey` for broad dotfiles/Nix workflows and dynamic script dispatch.
+- Historical only: `axiomctl` was the Axiom host-control CLI name before `c1ctl` superseded it.
 - Keep privileged mode switching behind fixed enum branches and fixed systemd target names.
-- Keep `axiomctl reload` as a narrow fixed-argv bridge to `hey reload` unless a future task explicitly redesigns hook ownership.
-- Do not add Rofi-backed or user-script execution surfaces to `axiomctl`.
+- Historical only: `axiomctl reload` was a narrow fixed-argv bridge to `hey reload`.
+- Current Rofi and dynamic dispatch boundaries are defined by `c1ctl-hey-rust-migration`.
 
 ## Related Raw Sources
 
@@ -37,3 +37,4 @@ The package now lives under `packages/axiomctl`, and the Axiom host installs it 
 
 - Live target isolation and graphical reload remain post-deploy Axiom smoke checks.
 - Historical raw docs for `axiom-cli-mode` and `axiom-mode-clean-cli` still mention `axiom-mode` as the prior implementation history.
+- This summary is retained as historical context; do not use it as current CLI truth.

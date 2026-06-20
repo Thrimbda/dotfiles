@@ -208,3 +208,5 @@
 - Updated status page Access notes so future opencode allowlist changes do not implicitly expand `status-axiom` without a scoped task.
 - Added task summary for `axiomctl-cli-consolidation`.
 - Updated current Axiom mode-switch decisions, host-local CLI pattern, and maintenance follow-up so `axiomctl` is the durable Rust host-control CLI while broad workflows remain in `hey`.
+- Added task summary for `c1ctl-hey-rust-migration`.
+- Updated current control-CLI decisions, validation pattern, and maintenance follow-up so `c1ctl` supersedes `axiomctl`, starts the staged non-Rofi Rust migration of `hey`, and keeps `@rofi` delegated to Janet.
