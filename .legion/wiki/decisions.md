@@ -8,6 +8,8 @@ Imported Alibaba Cloud ECS custom images for `aliyun-acorn` must set `BootMode=U
 
 Live Aliyun writes for `aliyun-acorn` remain gated until bucket, same-region OSS object, image-import role, VPC/vSwitch/security group, instance type, SSH source CIDR, cost/dry-run result, and cleanup policy are confirmed. First-boot SSH access should be injected at runtime through cloud-init `UserData` from local public-key material, not committed authorized keys or passwords.
 
+On `aliyun-acorn`, Nix binary substitutions should prefer the TUNA mirror `https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store` before the existing Cachix and official cache fallback. This is a host-local Alibaba Cloud network optimization and does not change global flake inputs or GitHub fetch behavior.
+
 ## Linux Workstation Desktop Baseline
 
 Current Axiom Linux workstation desktop direction is Hyprland + UWSM + NixOS-owned desktop integration, with Zen as the browser baseline, mpv as the scoped media player, Vesktop/Discord as the scoped chat app, Steam Gamescope/Gamemode/Umu tuning, NetworkManager+iwd+resolved for workstation Wi-Fi, and BlueZ/Blueman reliability settings.
