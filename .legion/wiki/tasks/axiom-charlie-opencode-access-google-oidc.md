@@ -12,7 +12,7 @@
 
 ## Outcome Summary
 
-Cloudflare Access protects both opencode tunnel hostnames, `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space`, with Google-only Access applications and exact-email allow policies. `opencode-axiom.0xc1.space` currently allows `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`; `opencode-charlie.0xc1.space` currently allows `c1@ntnl.io` and `siyuan.arc@gmail.com`.
+Cloudflare Access protects both opencode tunnel hostnames, `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space`, with Google-only Access applications and exact-email allow policies. `opencode-axiom.0xc1.space` currently allows `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`, and `wangpeiguangwpg@gmail.com`; `opencode-charlie.0xc1.space` currently allows `c1@ntnl.io` and `siyuan.arc@gmail.com`.
 
 API verification passed for app uniqueness, Google-only `allowed_idps`, required Google `login_method`, exact-email allow rules, and absence of broad/bypass/non-identity allow policies. Manual browser smoke checks with both allowed identities and one denied identity remain recommended.
 
@@ -23,7 +23,7 @@ The canonical API token rotation risk remains tracked in maintenance. The user e
 ## Reusable Decisions
 
 - cloudflared ingress is transport only; Cloudflare Access is the authentication boundary for opencode public hostnames.
-- Opencode Access apps should stay restricted to the Google identity provider and exact-email allow rules. Current axiom allowlist is `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`; current charlie allowlist is `c1@ntnl.io` and `siyuan.arc@gmail.com`. Do not replace these with broader rules without a new security review.
+- Opencode Access apps should stay restricted to the Google identity provider and exact-email allow rules. Current axiom allowlist is `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`, and `wangpeiguangwpg@gmail.com`; current charlie allowlist is `c1@ntnl.io` and `siyuan.arc@gmail.com`. Do not replace these with broader rules without a new security review.
 - Account-level Cloudflare API credentials should use a separate env-style age secret and stay separate from cloudflared tunnel runtime credentials. Avoid duplicate API token secrets; rotate the canonical token when exposure risk changes.
 
 ## Related Raw Sources

@@ -24,7 +24,7 @@ The current safe rule remains: configure and verify Cloudflare Access first, the
 
 - Use `status-axiom.0xc1.space` for the Gatus public hostname; do not use `status.axiom.0xc1.space` or restore `status.0xc1.space` without a new task.
 - Treat Cloudflare Access as the auth boundary for the status page; cloudflared only transports traffic to local `127.0.0.1:8080`.
-- The Access policy must match `opencode-axiom`: Google IdP plus exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`, with no broad domain, everyone, bypass, or non-Google allow.
+- The Access policy was created to match the then-current `opencode-axiom` pattern: Google IdP plus exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`, with no broad domain, everyone, bypass, or non-Google allow. Future `opencode-axiom` allowlist changes should not automatically expand `status-axiom` without a separate scoped Access-policy task.
 - The status DNS/tunnel route was created only after the Access app/policy existed and passed API assertions.
 - `hosts/axiom/secrets/cloudflared-credentials.age` may be decrypted by both the axiom host key and `/home/c1/.ssh/id_ed25519`; it is still only cloudflared tunnel runtime credential material, not an API token.
 

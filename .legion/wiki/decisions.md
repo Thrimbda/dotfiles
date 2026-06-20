@@ -132,7 +132,7 @@ Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the exi
 
 On `axiom`, the `opencode-axiom.0xc1.space` cloudflared connector should pin `protocol = "http2"` in host-level `extraConfig` while the current Clash/Meta fake-ip network path causes cloudflared default QUIC/UDP edge dial timeouts. Keep this as a connector transport override in generated `/etc/cloudflared/config.yml`; do not replace it with a temporary user-level connector as durable state.
 
-Both opencode hostnames are protected by Cloudflare Access self-hosted applications restricted to the Google identity provider. Their allow policies require the same Google login method. `opencode-axiom.0xc1.space` allows exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, and `froggy2818@gmail.com`; `opencode-charlie.0xc1.space` allows exact emails `c1@ntnl.io` and `siyuan.arc@gmail.com`. Do not broaden these apps to a domain, group, everyone rule, bypass rule, or non-identity policy without a new security review.
+Both opencode hostnames are protected by Cloudflare Access self-hosted applications restricted to the Google identity provider. Their allow policies require the same Google login method. `opencode-axiom.0xc1.space` allows exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`, and `wangpeiguangwpg@gmail.com`; `opencode-charlie.0xc1.space` allows exact emails `c1@ntnl.io` and `siyuan.arc@gmail.com`. Do not broaden these apps to a domain, group, everyone rule, bypass rule, or non-identity policy without a new security review.
 
 The hostname `axiom-opencode.0xc1.space` was created by mistake during the axiom task and should not be used.
 

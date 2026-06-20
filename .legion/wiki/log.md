@@ -201,3 +201,6 @@
 - Added current FRP tunnel decision and validation pattern for agenix-backed runtime token rendering, `aliyun-acorn` frps, and `axiom` frpc on remote TCP `2225`.
 - Added task summary for `axiom-mode-clean-cli`.
 - Updated current Axiom mode-switch decisions and patterns so `axiom-mode` is a standalone Rust package instead of an inline host shell script.
+- Added task summary for `axiom-opencode-access-email-wangpeiguang`.
+- Updated opencode Cloudflare Access current truth after adding `wangpeiguangwpg@gmail.com` to the verified `opencode-axiom.0xc1.space` exact-email allow policy.
+- Updated status page Access notes so future opencode allowlist changes do not implicitly expand `status-axiom` without a scoped task.

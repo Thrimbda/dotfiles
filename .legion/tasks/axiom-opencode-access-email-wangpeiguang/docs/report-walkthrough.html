@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Axiom Opencode Access Email Allowlist</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: oklch(0.97 0.012 92);
+      --panel: oklch(0.94 0.018 94);
+      --text: oklch(0.23 0.018 78);
+      --muted: oklch(0.45 0.018 78);
+      --line: oklch(0.82 0.018 88);
+      --accent: oklch(0.56 0.12 154);
+      --warn: oklch(0.64 0.15 66);
+      --ok: oklch(0.54 0.13 154);
+      --code: oklch(0.90 0.018 96);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(0.19 0.018 82);
+        --panel: oklch(0.24 0.018 82);
+        --text: oklch(0.91 0.012 92);
+        --muted: oklch(0.70 0.012 92);
+        --line: oklch(0.36 0.018 82);
+        --accent: oklch(0.72 0.13 154);
+        --warn: oklch(0.76 0.13 70);
+        --ok: oklch(0.75 0.13 154);
+        --code: oklch(0.29 0.018 82);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    header, main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 40px 0 22px; }
+    h1 { margin: 0 0 10px; font-size: clamp(28px, 5vw, 48px); line-height: 1.05; letter-spacing: -0.04em; }
+    h2 { margin: 0 0 14px; font-size: 20px; }
+    p { margin: 0 0 12px; }
+    code { background: var(--code); padding: 2px 5px; border-radius: 6px; }
+    .summary { color: var(--muted); max-width: 820px; font-size: 17px; }
+    .state {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ok);
+      background: var(--panel);
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: var(--panel);
+    }
+    main { display: grid; gap: 18px; padding: 8px 0 48px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: clamp(18px, 3vw, 28px);
+    }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; overflow-wrap: anywhere; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .pass { color: var(--ok); font-weight: 700; }
+    .warn { color: var(--warn); font-weight: 700; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } table { font-size: 14px; } }
+    @media print {
+      body { background: var(--bg); }
+      nav { display: none; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="state">Implementation Profile · PASS</div>
+    <h1>Axiom opencode Cloudflare Access allowlist</h1>
+    <p class="summary">本交付已把 <code>wangpeiguangwpg@gmail.com</code> 加入 <code>opencode-axiom.0xc1.space</code> 的 live Cloudflare Access exact-email allow policy，并同步 repo 与 Legion wiki 当前真源。</p>
+    <nav aria-label="Walkthrough navigation">
+      <a href="#decision">Reviewer Decision</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#scope">Scope</a>
+      <a href="#risk">Risks</a>
+      <a href="#next">Next</a>
+    </nav>
+  </header>
+  <main>
+    <section id="decision">
+      <h2>Reviewer Decision</h2>
+      <p><strong>Recommended decision:</strong> approve the repo diff and Access control-plane update.</p>
+      <p>Cloudflare API readback confirms one self-hosted app, Google-only IdP restriction, one exact-email allow policy containing the four intended accounts, and zero unsafe allow/bypass policies.</p>
+    </section>
+
+    <section id="scope" class="grid">
+      <div>
+        <h2>In Scope</h2>
+        <ul>
+          <li>Append <code>wangpeiguangwpg@gmail.com</code> to <code>opencode-axiom.0xc1.space</code>.</li>
+          <li>Update Cloudflare policy <code>5593f601-c883-4bb8-8e76-1ba02b6c7b4a</code>.</li>
+          <li>Sync docs, task evidence, and wiki truth.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Out Of Scope</h2>
+        <ul>
+          <li>No <code>opencode-charlie</code> allowlist change.</li>
+          <li>No <code>status-axiom</code> live policy change.</li>
+          <li>No DNS, ingress, opencode runtime, token storage, or tunnel credential change.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="evidence">
+      <h2>Evidence Map</h2>
+      <table>
+        <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Axiom allowlist includes the new email</td><td><code>docs/test-report.md</code> repo assertions</td><td class="pass">PASS</td></tr>
+          <tr><td>Live Cloudflare policy has four exact emails</td><td>API update and readback in <code>docs/test-report.md</code></td><td class="pass">PASS</td></tr>
+          <tr><td>Google IdP remains required</td><td>IdP and policy assertions in <code>docs/test-report.md</code></td><td class="pass">PASS</td></tr>
+          <tr><td>No broad or bypass allow policy exists</td><td><code>unsafeAllowOrBypassCount=0</code></td><td class="pass">PASS</td></tr>
+          <tr><td>Charlie and status surfaces were not expanded</td><td>Scope assertions and docs boundary updates</td><td class="pass">PASS</td></tr>
+          <tr><td>Security review completed</td><td><code>docs/review-change.md</code></td><td class="pass">PASS</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Verified Policy Shape</h2>
+      <p class="mono">appCount=1 · appShapeOk=true · exactAllowPolicyCount=1 · unsafeAllowOrBypassCount=0</p>
+      <p>Allowed exact emails: <code>c1@ntnl.io</code>, <code>siyuan.arc@gmail.com</code>, <code>froggy2818@gmail.com</code>, <code>wangpeiguangwpg@gmail.com</code>.</p>
+    </section>
+
+    <section id="risk">
+      <h2>Risks And Limits</h2>
+      <ul>
+        <li><span class="warn">Manual smoke recommended:</span> browser login as <code>wangpeiguangwpg@gmail.com</code> was not run in this environment.</li>
+        <li>The pre-existing Cloudflare API token rotation follow-up remains outside this task.</li>
+        <li><code>status-axiom</code> remains on its own reviewed Access policy and was not expanded.</li>
+      </ul>
+    </section>
+
+    <section id="next">
+      <h2>Next Stage</h2>
+      <p>Render handoff: pending PR preview handling after PR creation. <code>docs/pr-body.md</code> is ready for PR creation.</p>
+      <p>PR lifecycle disclaimer: this artifact does not mean checks, review, merge, cleanup, or main refresh are complete.</p>
+    </section>
+  </main>
+</body>
+</html>
