@@ -206,3 +206,5 @@
 - Added task summary for `axiom-opencode-access-email-wangpeiguang`.
 - Updated opencode Cloudflare Access current truth after adding `wangpeiguangwpg@gmail.com` to the verified `opencode-axiom.0xc1.space` exact-email allow policy.
 - Updated status page Access notes so future opencode allowlist changes do not implicitly expand `status-axiom` without a scoped task.
+- Added task summary for `axiomctl-cli-consolidation`.
+- Updated current Axiom mode-switch decisions, host-local CLI pattern, and maintenance follow-up so `axiomctl` is the durable Rust host-control CLI while broad workflows remain in `hey`.

@@ -102,7 +102,7 @@ For workstation desktop/CLI mode switches, prefer a custom systemd target over d
 
 For frp token-auth tunnels, keep credential material out of Nix store by generating checked-in templates with a placeholder and rendering the final TOML under `/run/<service>` from an agenix path at service start. Validate the target host evals, dry-run builds, generated proxy port, firewall allow-list, render script contents, frp's own `verify` command, and encrypted token consistency without printing the token.
 
-If a host-local privileged CLI grows beyond a trivial package list entry, make it a real package rather than a large inline `writeShellScriptBin` in the host. For `axiom-mode`, the durable shape is a no-dependency Rust crate under `packages/axiom-mode`, with Nix injecting the `systemctl` store path and the binary restricting mode selection to fixed enum branches.
+If a host-local privileged CLI grows beyond a trivial package list entry, make it a real package rather than a large inline `writeShellScriptBin` in the host. For `axiomctl`, the durable shape is a no-dependency Rust crate under `packages/axiomctl`, with Nix injecting the `systemctl` store path and the host injecting the `hey` path only for the bounded reload bridge. Keep command parsing on fixed enum branches; do not turn this into a second dynamic `hey` dispatcher.
 
 For XDG SSH wrapper regressions, build and inspect the generated wrapped `ssh` script. The wrapper must expand `XDG_CONFIG_HOME` at runtime, fall back to `$HOME/.config`, pass `-F "$cfg"` as argv elements rather than as a literal `$XDG_CONFIG_HOME/ssh/config` string, and set a portable `TERM` such as `xterm-256color` when local terminals like Foot would otherwise leak terminfo names many remote hosts lack.
 
