@@ -4,30 +4,36 @@
 * Overview
 Axiom is C1's Ryzen 9950X + RTX 5090 NixOS workstation.
 
-* Host Control CLI
-Axiom provides a host-local ~axiomctl~ command for narrow machine-control tasks.
-It switches between the full Hyprland desktop and an SSH-friendly CLI mode, shows
-the relevant systemd target status, and can trigger the reviewed reload hook.
+* Control CLI
+Axiom installs ~c1ctl~, the Rust successor for host-control and the first
+non-Rofi ~hey~ migration slice. It switches between the full Hyprland desktop
+and an SSH-friendly CLI mode, shows the relevant systemd target status, can
+trigger the reviewed reload hook, and owns the new Rust dispatcher/path
+foundation for future ~hey~ migration.
 
 #+begin_src sh
-axiomctl status
-axiomctl mode cli
-axiomctl mode desktop
-axiomctl reload
+c1ctl status
+c1ctl mode cli
+c1ctl mode desktop
+c1ctl reload
+c1ctl path home
+c1ctl which .backup
 #+end_src
 
-~axiomctl mode cli~ sets the default systemd target to ~axiom-cli.target~ and
+~c1ctl mode cli~ sets the default systemd target to ~axiom-cli.target~ and
 isolates it immediately. That target requires ~multi-user.target~, wants
 ~getty@tty1.service~, and conflicts with ~graphical.target~. SSH, reverse SSH,
 Cloudflare Tunnel, and opencode remain available because they are normal
 ~multi-user.target~ services.
 
-~axiomctl mode desktop~ sets the default target back to ~graphical.target~ and
+~c1ctl mode desktop~ sets the default target back to ~graphical.target~ and
 isolates it immediately, allowing greetd/UWSM to start the Hyprland session.
 
-~axiomctl reload~ delegates to the existing ~hey reload~ hook path. Broader
-dotfiles and Nix workflows such as ~sync~, ~pull~, garbage collection, profile
-management, and dynamic script dispatch remain owned by ~hey~.
+~c1ctl reload~ delegates to the existing ~hey reload~ hook path. In this first
+migration slice, high-impact workflows such as ~sync~, ~pull~, garbage
+collection, profile management, hooks, vars, and Rofi remain delegated to the
+existing Janet ~hey~ implementation while Rust takes over the stable
+dispatcher/path foundation.
 
 * Keep Awake
 Axiom does not enable Caelestia's built-in Keep Awake mode by default when the

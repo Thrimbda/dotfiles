@@ -156,7 +156,7 @@ with builtins;
       gatusPort = 8080;
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
-      axiomctl = pkgs.callPackage ../../packages/axiomctl {
+      c1ctl = pkgs.callPackage ../../packages/c1ctl {
         heyBin = "${hey.binDir}/hey";
       };
       caelestiaIdleSettings = {
@@ -221,7 +221,7 @@ with builtins;
       comment = "Allow the local research workbench only from the home LAN.";
     }];
 
-    environment.systemPackages = [ axiomctl ];
+    environment.systemPackages = [ c1ctl ];
 
     user.packages = with pkgs; [
       unstable.antigravity-fhs

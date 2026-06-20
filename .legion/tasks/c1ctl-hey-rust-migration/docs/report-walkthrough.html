@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>C1ctl Hey Rust Migration | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.014 92);
+      --surface: oklch(98% 0.009 92);
+      --surface-2: oklch(93% 0.018 104);
+      --ink: oklch(24% 0.023 137);
+      --muted: oklch(49% 0.032 137);
+      --line: oklch(82% 0.018 104);
+      --accent: oklch(43% 0.13 153);
+      --accent-soft: oklch(88% 0.055 151);
+      --warn-soft: oklch(90% 0.055 82);
+      --ok-soft: oklch(90% 0.06 145);
+      --code: oklch(28% 0.035 260);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+    main { width: min(1180px, calc(100vw - 36px)); margin: 0 auto; padding: 52px 0 72px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 370px); gap: 34px; align-items: end; margin-bottom: 34px; }
+    .kicker { color: var(--accent); font-weight: 760; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { max-width: 12ch; margin: 0; font-size: clamp(2.5rem, 8vw, 5.8rem); line-height: 0.95; letter-spacing: -0.06em; }
+    h2 { margin: 0 0 14px; font-size: 1.35rem; letter-spacing: -0.02em; }
+    p { margin: 0 0 12px; max-width: 72ch; }
+    code { color: var(--code); background: var(--surface-2); border-radius: 0.4rem; padding: 0.08rem 0.28rem; }
+    .lede { max-width: 68ch; color: var(--muted); font-size: 1.08rem; margin-top: 22px; }
+    .status, section, nav { border: 1px solid var(--line); border-radius: 24px; background: var(--surface); }
+    .status { padding: 24px; }
+    .status h2 { font-size: 1rem; color: var(--muted); }
+    .state-row { display: flex; justify-content: space-between; gap: 18px; padding: 10px 0; border-top: 1px solid var(--line); }
+    .state-row:first-of-type { border-top: 0; }
+    .pill { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--ok-soft); padding: 0.12rem 0.64rem; font-weight: 760; white-space: nowrap; }
+    .pill.warn { background: var(--warn-soft); }
+    .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: start; }
+    nav { position: sticky; top: 20px; padding: 18px; }
+    nav a { display: block; color: var(--ink); text-decoration: none; padding: 8px 10px; border-radius: 12px; }
+    nav a:hover { background: var(--surface-2); }
+    section { padding: 28px; margin-bottom: 24px; }
+    .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    ul { margin: 0; padding-left: 1.15rem; }
+    li { margin: 0.28rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 12px; }
+    th { color: var(--muted); font-weight: 760; }
+    .callout { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin-top: 12px; }
+    .muted { color: var(--muted); }
+    @media (max-width: 900px) {
+      main { width: min(100vw - 24px, 760px); padding-top: 28px; }
+      .hero, .layout, .scope { grid-template-columns: 1fr; }
+      nav { position: static; }
+      h1 { max-width: none; }
+    }
+    @media print {
+      body { background: var(--surface); }
+      main { width: auto; padding: 0; }
+      nav { display: none; }
+      section, .status { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">Implementation walkthrough</p>
+        <h1>C1ctl Hey Rust Migration</h1>
+        <p class="lede">Reviewer 需要判断这个 PR 是否可以把 `axiomctl` 替换为 `c1ctl`，并接受第一批非 Rofi `hey` foundation 行为迁入 Rust。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <h2>交付状态</h2>
+        <div class="state-row"><span>Profile</span><span class="pill">implementation</span></div>
+        <div class="state-row"><span>Verification</span><span class="pill">PASS</span></div>
+        <div class="state-row"><span>Review</span><span class="pill">PASS</span></div>
+        <div class="state-row"><span>PR lifecycle</span><span class="pill warn">pending</span></div>
+        <div class="state-row"><span>Render</span><span class="pill warn">artifact-only</span></div>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#render">渲染</a>
+        <a href="#changes">改动</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#checklist">Checklist</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <ul>
+            <li><code>c1ctl</code> supersedes <code>axiomctl</code> as the durable Rust control CLI.</li>
+            <li>Rust now owns the first non-Rofi <code>hey</code> foundation slice: <code>path</code>, <code>which</code>, <code>help</code>, dynamic resolver, and <code>exec</code>.</li>
+            <li>Mutating command families remain delegated to Janet <code>hey</code>.</li>
+            <li><code>@rofi</code> is an exact delegation boundary; traversal bypasses are rejected and tested.</li>
+          </ul>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <div class="scope">
+            <div>
+              <h3>In scope</h3>
+              <ul>
+                <li><code>packages/c1ctl</code> package rename and implementation.</li>
+                <li>Axiom host wiring and README update.</li>
+                <li>Rust foundation dispatcher/path/help/which/exec behavior.</li>
+                <li>Legion docs and wiki current truth.</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Out of scope</h3>
+              <ul>
+                <li>Deleting Janet <code>hey</code>.</li>
+                <li>Porting Rofi implementation.</li>
+                <li>Rust parity ports for <code>sync</code>, <code>gc</code>, <code>profile</code>, <code>pull</code>, <code>swap</code>, hooks, or vars.</li>
+                <li>Live system mode switching during validation.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Design approved</td><td><code>docs/rfc.md</code>, <code>docs/review-rfc.md</code></td><td>PASS</td></tr>
+              <tr><td><code>c1ctl</code> builds</td><td><code>docs/test-report.md</code> package build</td><td>PASS</td></tr>
+              <tr><td>Axiom installs <code>c1ctl</code> and not <code>axiomctl</code></td><td><code>docs/test-report.md</code> Axiom package eval</td><td>PASS</td></tr>
+              <tr><td>Env contract and delegation are tested</td><td><code>docs/test-report.md</code> CLI behavior section</td><td>PASS</td></tr>
+              <tr><td>Rofi bypass/traversal is blocked</td><td><code>docs/test-report.md</code>, <code>docs/review-change.md</code></td><td>PASS</td></tr>
+              <tr><td>Security review passed</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <p>Base ref is <code>origin/master</code>. Worktree path is <code>.worktrees/c1ctl-hey-rust-migration</code>. Branch is <code>legion/c1ctl-hey-rust-migration-core</code>.</p>
+          <p class="muted">PR lifecycle is not complete yet. Commit, rebase, push, PR creation, checks/review follow-up, merge, cleanup, and main workspace refresh remain separate lifecycle steps.</p>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p><code>docs/report-walkthrough.html</code> is the primary artifact. This task explicitly uses artifact-only/local render and does not add a GitHub Pages PR preview workflow, because Pages preview configuration is outside the CLI migration scope.</p>
+        </section>
+
+        <section id="changes">
+          <h2>What Changed / What Was Decided</h2>
+          <ul>
+            <li><code>packages/axiomctl</code> became <code>packages/c1ctl</code>.</li>
+            <li><code>hosts/axiom/default.nix</code> installs <code>c1ctl</code>.</li>
+            <li><code>c1ctl</code> keeps Axiom fixed target mode switching and reload delegation.</li>
+            <li>Rust dynamic dispatch uses argv arrays, constrained segments, and a final Rofi path guard.</li>
+            <li>Wiki current truth marks <code>axiomctl</code> as historical and makes <code>c1ctl</code> current.</li>
+          </ul>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li><code>rustfmt --check</code>: PASS, with known non-fatal eval-cache warning.</li>
+            <li><code>nix build .#c1ctl</code>: PASS.</li>
+            <li>CLI behavior/env/delegation checks: PASS.</li>
+            <li>Axiom package eval and toplevel dry-run: PASS, with transient cache retry warnings.</li>
+            <li><code>git diff --check</code>: PASS.</li>
+            <li>Implementation review: PASS, security lens applied.</li>
+          </ul>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <ul>
+            <li>Live mode switching and graphical reload remain post-deploy smoke checks.</li>
+            <li>Mutating command families are delegated, not Rust parity ports.</li>
+            <li>Future command-family migrations need separate parity and rollback evidence.</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>Confirm <code>c1ctl</code> naming and package wiring match the intended direction.</li>
+            <li>Inspect resolver safety around namespace parsing and Rofi path guard.</li>
+            <li>Confirm delegation remains appropriate for high-risk command families.</li>
+            <li>Confirm test report covers the risks that matter for this slice.</li>
+          </ul>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>Implementation, verification, security review, wiki writeback, and artifact-only render handoff are ready. Next stage is PR lifecycle.</p>
+          <div class="callout">Do not treat this walkthrough or PR body as proof that PR checks, review, merge, cleanup, or main refresh are complete.</div>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
