@@ -34,6 +34,7 @@
       ssh.enable = true;
       docker.enable = true;
       fail2ban.enable = true;
+      frp.server.enable = true;
       nginx.enable = true;
     };
 
@@ -72,7 +73,7 @@
       hostName = "aliyun-acorn";
       useDHCP = lib.mkForce false;
       firewall = {
-        allowedTCPPorts = [ 22 80 443 34197 ];
+        allowedTCPPorts = [ 22 80 443 2225 7000 34197 ];
         allowedUDPPorts = [ 34197 ];
       };
     };

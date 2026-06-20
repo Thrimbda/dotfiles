@@ -118,6 +118,14 @@ Those Axiom survival/resource policies are now expressed through owning module o
 
 `axiom` autossh health should prove endpoint identity, not only listener existence. The durable check is: from `8.159.128.125`, scan `127.0.0.1:2223` and compare the exposed ED25519 host key with `axiom`'s `/etc/ssh/ssh_host_ed25519_key.pub`. Timer-driven healthchecks must not kill remote `sshd` processes; stale remote listeners are detected/logged and remain manual cleanup unless a future task explicitly designs safe remote cleanup.
 
+## FRP Tunnels
+
+The frp deployment path is additive to autossh. `aliyun-acorn` owns `frps` on TCP `7000`, and `axiom` owns `frpc` proxy `axiom-ssh` from local `127.0.0.1:22` to remote TCP `2225` on `8.159.128.125`.
+
+FRP token auth must use host-local agenix secrets and runtime TOML rendering from `/run/agenix/frp-token`; do not place plaintext token values in Nix TOML, module options, task docs, PR bodies, or Nix store outputs.
+
+Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the existing autossh reservations for `charlie`, `axiom`, and `azar` remain active.
+
 ## Opencode Cloudflare Exposure
 
 `axiom` opencode exposure uses a local-only systemd service running `/home/c1/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4096`, with cloudflared ingress on `opencode-axiom.0xc1.space`. `charlie` uses the same loopback opencode pattern through `opencode-charlie.0xc1.space`.

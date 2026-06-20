@@ -197,3 +197,5 @@
 - Updated current Axiom Steam decisions, validation patterns, and maintenance with opt-in DWProton compatibility package wiring through `programs.steam.extraCompatPackages`.
 - Added task summary for `axiom-cli-mode`.
 - Updated current Axiom power/session decisions, runtime validation patterns, and maintenance with the standalone `axiom-mode` systemd target switch for SSH-only CLI operation.
+- Added task summary for `frp-agenix-deploy`.
+- Added current FRP tunnel decision and validation pattern for agenix-backed runtime token rendering, `aliyun-acorn` frps, and `axiom` frpc on remote TCP `2225`.

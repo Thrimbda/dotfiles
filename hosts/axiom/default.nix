@@ -323,6 +323,18 @@ with builtins;
       remotePort = 2223;
     };
 
+    modules.services.frp.client = {
+      enable = true;
+      serverAddr = "8.159.128.125";
+      proxies = [{
+        name = "axiom-ssh";
+        type = "tcp";
+        localIP = "127.0.0.1";
+        localPort = 22;
+        remotePort = 2225;
+      }];
+    };
+
     modules.services.opencode-server = {
       enable = true;
       publicHostname = "opencode-axiom.0xc1.space";
