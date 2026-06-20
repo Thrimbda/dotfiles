@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Axiomctl CLI Consolidation | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.018 88);
+      --surface: oklch(99% 0.01 95);
+      --surface-2: oklch(94% 0.018 102);
+      --ink: oklch(25% 0.026 132);
+      --muted: oklch(48% 0.028 132);
+      --line: oklch(82% 0.022 108);
+      --accent: oklch(43% 0.13 152);
+      --accent-soft: oklch(89% 0.07 145);
+      --warn-soft: oklch(91% 0.08 82);
+      --shadow: oklch(30% 0.02 132 / 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.64;
+    }
+
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.94em; }
+
+    main { width: min(1180px, calc(100vw - 36px)); margin: 0 auto; padding: 52px 0 72px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+      gap: 34px;
+      align-items: end;
+      margin-bottom: 34px;
+    }
+
+    .kicker { margin: 0 0 10px; color: var(--muted); font-weight: 760; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.2rem, 5vw, 4.6rem); line-height: 0.96; letter-spacing: -0.06em; max-width: 12ch; }
+    .lede { max-width: 68ch; color: var(--muted); font-size: 1.08rem; }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: 0 18px 48px var(--shadow);
+      padding: 24px;
+    }
+
+    .status h2 { margin: 0 0 16px; font-size: 1rem; color: var(--muted); }
+    .status-row { display: flex; justify-content: space-between; gap: 18px; border-top: 1px solid var(--line); padding: 12px 0; }
+    .status-row:first-of-type { border-top: 0; }
+    .pill { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); padding: 0.12rem 0.64rem; font-weight: 780; white-space: nowrap; }
+    .pill.warn { background: var(--warn-soft); }
+
+    .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: start; }
+    nav { position: sticky; top: 20px; display: grid; gap: 8px; }
+    nav a { display: block; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: 8px 12px; text-decoration: none; color: var(--ink); }
+
+    section {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 28px var(--shadow);
+    }
+
+    section h2 { margin: 0 0 14px; font-size: 1.24rem; letter-spacing: -0.02em; }
+    p, ul { max-width: 74ch; }
+    .split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .box { border: 1px solid var(--line); border-radius: 18px; background: var(--surface-2); padding: 16px; }
+    .box h3 { margin: 0 0 8px; font-size: 1rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 12px; }
+    th { color: var(--muted); font-weight: 760; }
+    tr:last-child td { border-bottom: 0; }
+
+    @media (max-width: 900px) {
+      main { width: min(100vw - 24px, 760px); padding-top: 32px; }
+      .hero, .layout, .split { grid-template-columns: 1fr; }
+      nav { position: static; }
+      section, .status { border-radius: 18px; padding: 20px; }
+      table { display: block; overflow-x: auto; }
+    }
+
+    @media print {
+      body { background: var(--surface); }
+      main { width: auto; padding: 0; }
+      nav { display: none; }
+      section, .status { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">Legion implementation walkthrough</p>
+        <h1>Axiomctl CLI Consolidation</h1>
+        <p class="lede">Reviewer 需要判断这个 PR 是否可以把 Axiom 的本机控制命令从单一的 <code>axiom-mode</code> 收敛为更通用但仍然很窄的 <code>axiomctl</code>。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <h2>当前状态</h2>
+        <div class="status-row"><span>Profile</span><span class="pill">implementation</span></div>
+        <div class="status-row"><span>Validation</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Review</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>PR lifecycle</span><span class="pill warn">pending</span></div>
+        <div class="status-row"><span>Render</span><span class="pill warn">pr-html-render pending</span></div>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">路径</a>
+        <a href="#changes">改动</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <p>本任务把 Axiom 本机 Rust CLI 从 <code>axiom-mode</code> 重命名为 <code>axiomctl</code>，并把正式入口调整为 <code>axiomctl mode ...</code>。原有的 <code>cli</code>、<code>desktop</code>、<code>status</code> 顶层工作流作为别名保留。</p>
+          <p>新增的 <code>axiomctl reload</code> 不是重写 hook 系统，而是固定 argv 调用现有 <code>hey reload</code>。这让 Axiom 有一个更合适的 host-control CLI 名字，同时避免把 broad dotfiles 工作流迁入 Rust。</p>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <div class="split">
+            <div class="box">
+              <h3>In scope</h3>
+              <ul>
+                <li>Rename <code>packages/axiom-mode</code> to <code>packages/axiomctl</code>.</li>
+                <li>Update Axiom host package wiring and README usage.</li>
+                <li>Keep mode switching under fixed systemd targets.</li>
+                <li>Add a bounded reload bridge to existing hooks.</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h3>Out of scope</h3>
+              <ul>
+                <li>No broad <code>hey</code> rewrite.</li>
+                <li>No Rofi command migration.</li>
+                <li>No Caelestia desktop-control replacement.</li>
+                <li>No remote access or target policy changes.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><code>axiomctl</code> builds as a flake package</td><td><code>docs/test-report.md</code> package build</td><td>PASS</td></tr>
+              <tr><td>Help output reflects the bounded command surface</td><td><code>docs/test-report.md</code> help output</td><td>PASS</td></tr>
+              <tr><td>Axiom installs <code>axiomctl</code> and not <code>axiom-mode</code></td><td><code>docs/test-report.md</code> host eval</td><td>PASS</td></tr>
+              <tr><td><code>axiom-cli.target</code> relationships remain intact</td><td><code>docs/test-report.md</code> host eval</td><td>PASS</td></tr>
+              <tr><td>Security-sensitive paths use fixed enum branches and fixed argv</td><td><code>docs/review-change.md</code> security lens</td><td>PASS</td></tr>
+              <tr><td>Current truth no longer points at stale package names</td><td><code>docs/test-report.md</code> stale current-reference check</td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <p>Base ref 是最新 <code>origin/master</code>。实现发生在隔离 worktree <code>.worktrees/axiomctl-cli-consolidation</code> 和分支 <code>legion/axiomctl-cli-consolidation-rust-cli</code>。PR 创建、checks/review follow-up、auto-merge 尝试、cleanup 和主工作区 refresh 仍属于后续 lifecycle。</p>
+        </section>
+
+        <section id="changes">
+          <h2>What Changed / What Was Decided</h2>
+          <p><code>axiomctl</code> 现在是 Axiom host-control CLI。它拥有小而固定的行为集合：mode switching、mode status、reload bridge。<code>hey</code> 继续拥有 Nix/dotfiles 操作、动态脚本派发和 broader maintenance workflow。</p>
+          <p>Host 配置通过 <code>pkgs.callPackage ../../packages/axiomctl</code> 安装新包，并把 <code>${hey.binDir}/hey</code> 注入给 reload bridge。Package 仍用 Nix 注入 <code>systemctl</code> store path。</p>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li>Rust formatting: PASS.</li>
+            <li><code>nix build --impure --no-link --print-out-paths .#axiomctl</code>: PASS.</li>
+            <li>Built binary help output: PASS.</li>
+            <li>Axiom host package and target eval: PASS.</li>
+            <li>Axiom toplevel dry-run: PASS.</li>
+            <li>Change review and security lens: PASS.</li>
+          </ul>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <ul>
+            <li>Live target isolation was not run because it would change the active machine target.</li>
+            <li>Live reload was not run because it belongs in the deployed Axiom graphical session smoke.</li>
+            <li>Historical raw task docs still mention <code>axiom-mode</code>; current truth pages and active host docs were updated.</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>Confirm <code>axiomctl</code> is the right durable name.</li>
+            <li>Confirm the command surface remains intentionally narrow.</li>
+            <li>Confirm <code>reload</code> should stay a fixed bridge to <code>hey reload</code>.</li>
+            <li>Confirm repository-level validation is sufficient, with live smoke left for deployment.</li>
+          </ul>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>This PR-backed walkthrough has generated the HTML artifact at <code>.legion/tasks/axiomctl-cli-consolidation/docs/report-walkthrough.html</code>. Render preview is pending handoff to <code>pr-html-render</code>.</p>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>Implementation, verification, and review evidence are ready. Remaining steps are render handoff, wiki summary writeback, commit, rebase, push, PR creation, auto-merge attempt, checks/review follow-up, worktree cleanup, and main workspace refresh.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
