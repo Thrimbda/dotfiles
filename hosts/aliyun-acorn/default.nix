@@ -49,6 +49,10 @@
 
     modules.agenix.sshKey = "/home/c1/.ssh/id_ed25519";
 
+    nix.settings.substituters = lib.mkBefore [
+      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+    ];
+
     boot = {
       growPartition = true;
       kernelParams = [ "console=ttyS0,115200n8" ];

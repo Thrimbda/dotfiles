@@ -14,6 +14,12 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
+## Host-Level Nix Binary Cache Mirror Pattern
+
+For a machine-specific domestic Nix cache preference, add the mirror at the host level with `nix.settings.substituters = lib.mkBefore [ "<mirror>" ];` rather than changing global flake inputs or forcing all hosts to use the same mirror. Keep Cachix and `https://cache.nixos.org/` fallback unless the task explicitly scopes an offline or official-cache-blocked environment.
+
+Validate mirror changes by evaluating the final host substituter list and the host toplevel derivation. The substituter-list eval proves merge order and fallback preservation; the toplevel eval proves the NixOS module graph still evaluates. A one-off machine command can temporarily override cache choice with `--option substituters "<mirror> https://cache.nixos.org/"` without landing configuration.
+
 ## NixOS Read-Only Pkgs Pattern
 
 When a NixOS configuration intentionally reuses an already imported host package set, use the recommended read-only path: include `nixpkgs.nixosModules.readOnlyPkgs`, set `nixpkgs.pkgs = <host pkgs>`, and do not pass `pkgs` through `specialArgs`.
