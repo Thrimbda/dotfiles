@@ -195,3 +195,5 @@
 - Updated current Axiom workspace/keybind decision with primary workspace 1..10 and second-monitor workspace 11..20 shortcut split.
 - Added task summary for `axiom-steam-dwproton`.
 - Updated current Axiom Steam decisions, validation patterns, and maintenance with opt-in DWProton compatibility package wiring through `programs.steam.extraCompatPackages`.
+- Added task summary for `axiom-cli-mode`.
+- Updated current Axiom power/session decisions, runtime validation patterns, and maintenance with the standalone `axiom-mode` systemd target switch for SSH-only CLI operation.

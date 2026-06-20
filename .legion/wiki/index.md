@@ -13,6 +13,7 @@
 - [Axiom 4K 240Hz HDR Display](tasks/axiom-4k240-hdr-display.md)
 - [Axiom Antigravity Install](tasks/axiom-antigravity-install.md)
 - [Axiom Autossh Reverse SSH Tunnel](tasks/axiom-autossh-reverse-ssh-tunnel.md)
+- [Axiom CLI Mode](tasks/axiom-cli-mode.md)
 - [Axiom Critical Network Resilience](tasks/axiom-critical-network-resilience.md)
 - [Axiom Default Modularization](tasks/axiom-default-modularization.md)
 - [Axiom Host Script Extraction](tasks/axiom-host-script-extraction.md)

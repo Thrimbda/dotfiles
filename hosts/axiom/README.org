@@ -4,6 +4,25 @@
 * Overview
 Axiom is C1's Ryzen 9950X + RTX 5090 NixOS workstation.
 
+* Desktop / CLI Mode
+Axiom provides a host-local ~axiom-mode~ command for switching between the full
+Hyprland desktop and an SSH-friendly CLI mode without involving ~hey~.
+
+#+begin_src sh
+axiom-mode status
+axiom-mode cli
+axiom-mode desktop
+#+end_src
+
+~axiom-mode cli~ sets the default systemd target to ~axiom-cli.target~ and
+isolates it immediately. That target requires ~multi-user.target~, wants
+~getty@tty1.service~, and conflicts with ~graphical.target~. SSH, reverse SSH,
+Cloudflare Tunnel, and opencode remain available because they are normal
+~multi-user.target~ services.
+
+~axiom-mode desktop~ sets the default target back to ~graphical.target~ and
+isolates it immediately, allowing greetd/UWSM to start the Hyprland session.
+
 * Keep Awake
 Axiom does not enable Caelestia's built-in Keep Awake mode by default when the
 Hyprland / Caelestia desktop session starts. Keep Awake remains available as
