@@ -14,3 +14,4 @@
 - Second implementation review found non-Rofi dynamic resolver traversal could still reach `config/rofi/**`. Fixed dynamic segment validation for all base resolvers and added a final `config/rofi/**` resolved-path guard. Added negative validation for namespace, `wm`, and dot-command traversal forms.
 - Final implementation review PASS with security lens applied. Residual risks are limited to live post-deploy Axiom mode/reload smoke and future delegated command-family migrations.
 - Prepared walkthrough artifacts: `docs/report-walkthrough.html`, `docs/report-walkthrough.md`, and `docs/pr-body.md`. `pr-html-render` handoff is artifact-only/local render by explicit scope decision; no GitHub Pages preview workflow was added.
+- Opened PR https://github.com/Thrimbda/dotfiles/pull/105 from branch `legion/c1ctl-hey-rust-migration-core`.
