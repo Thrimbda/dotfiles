@@ -11,3 +11,4 @@
 - Render handoff recorded as artifact-only/pending: the HTML exists at `.legion/tasks/axiomctl-cli-consolidation/docs/report-walkthrough.html`, but adding a Pages preview workflow is outside this task scope and no PR number exists yet.
 - Wrote Legion wiki summary and updated current decisions, patterns, maintenance, index, and wiki log for the `axiomctl` boundary.
 - Final lightweight checks passed after docs/wiki writeback: stale current-reference grep, HTML forbidden-pattern check, and `git diff --check`.
+- Committed `feat(axiom): rename mode cli to axiomctl`, rebased on `origin/master`, pushed branch `legion/axiomctl-cli-consolidation-rust-cli`, and opened PR https://github.com/Thrimbda/dotfiles/pull/104.

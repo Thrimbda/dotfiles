@@ -8,4 +8,4 @@
 - [x] Review diff for scope and command safety.
 - [x] Prepare walkthrough and PR body.
 - [x] Write Legion wiki summary/current-truth updates.
-- [ ] Commit, rebase, push, and open PR.
+- [x] Commit, rebase, push, and open PR.
