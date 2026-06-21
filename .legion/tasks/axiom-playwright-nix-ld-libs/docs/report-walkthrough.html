@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fix Axiom Playwright nix-ld runtime libraries | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.014 86);
+      --surface: oklch(98% 0.009 86);
+      --surface-2: oklch(93% 0.018 92);
+      --ink: oklch(24% 0.021 126);
+      --muted: oklch(50% 0.025 126);
+      --line: oklch(82% 0.018 102);
+      --accent: oklch(44% 0.12 154);
+      --accent-soft: oklch(90% 0.062 148);
+      --warn-soft: oklch(91% 0.067 76);
+      --shadow: oklch(53% 0.025 126 / 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.64;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+
+    header.hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 32px;
+    }
+
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 760;
+    }
+
+    h1 {
+      max-width: 13ch;
+      margin: 0;
+      font-size: clamp(2.4rem, 8vw, 5.6rem);
+      line-height: 0.94;
+      letter-spacing: -0.055em;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: clamp(1.25rem, 2vw, 1.7rem);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+    }
+
+    h3 { margin: 20px 0 8px; }
+
+    p { max-width: 72ch; }
+
+    .lede {
+      max-width: 70ch;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      padding: 22px;
+      box-shadow: 0 18px 44px var(--shadow);
+    }
+
+    .status p { margin: 0; }
+
+    .status-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--ink);
+      padding: 0.16rem 0.68rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .pill.pending { background: var(--warn-soft); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    nav {
+      position: sticky;
+      top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--surface);
+      padding: 18px;
+    }
+
+    nav a {
+      display: block;
+      padding: 8px 0;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 680;
+    }
+
+    nav a:hover { color: var(--accent); }
+
+    section {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      padding: clamp(20px, 4vw, 30px);
+      margin-bottom: 22px;
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface-2);
+      padding: 14px 16px;
+      color: var(--muted);
+    }
+
+    ul, ol { padding-left: 1.25rem; }
+
+    li + li { margin-top: 6px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.96rem;
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 10px;
+    }
+
+    th { color: var(--muted); font-size: 0.88rem; }
+
+    code {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-2);
+      padding: 0.08rem 0.34rem;
+      font-size: 0.92em;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      main { width: min(100% - 24px, 780px); padding-top: 30px; }
+      header.hero, .layout, .two-col { grid-template-columns: 1fr; }
+      nav { position: static; }
+      h1 { max-width: 9ch; }
+    }
+
+    @media (max-width: 620px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr { border-bottom: 1px solid var(--line); padding: 10px 0; }
+      td { border-bottom: 0; padding: 6px 0; }
+      td::before { content: attr(data-label); display: block; color: var(--muted); font-size: 0.82rem; font-weight: 760; }
+    }
+
+    @media print {
+      body { background: var(--surface); }
+      main { width: 100%; padding: 0; }
+      nav { display: none; }
+      section, .status { box-shadow: none; break-inside: avoid; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">Legion implementation walkthrough</p>
+        <h1>Playwright nix-ld runtime fix</h1>
+        <p class="lede">修复 Axiom 上 npm/npx Playwright 下载的 Ubuntu fallback Chromium 找不到 <code>libglib-2.0.so.0</code> 的启动失败，同时保持 Nix-packaged Playwright wrapper 可用。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <p class="kicker">当前状态</p>
+        <div class="status-list">
+          <div class="status-row"><span>Profile</span><span class="pill">implementation</span></div>
+          <div class="status-row"><span>Verification</span><span class="pill">PASS</span></div>
+          <div class="status-row"><span>Review</span><span class="pill">PASS</span></div>
+          <div class="status-row"><span>PR</span><span class="pill pending">not opened yet</span></div>
+          <div class="status-row"><span>Render</span><span class="pill pending">pending</span></div>
+        </div>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#decisions">改动</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <ul>
+            <li>修复点是 `modules/dev/playwright.nix` 中 Linux-only 的 `programs.nix-ld.libraries`。</li>
+            <li>系统 `playwright` wrapper 已截图成功，说明原有 Nix store browser 路径未回归。</li>
+            <li>npm Playwright `1.61.0` 下载的 fallback Chromium 已在同一库集合下启动成功，输出 `149.0.7827.55`。</li>
+            <li>`review-change` 结论 PASS，没有 blocking finding。</li>
+          </ul>
+          <p class="callout">PR lifecycle 尚未完成。此 artifact 和 `pr-body.md` 只是 reviewer 输入，不代表 checks、review、merge、auto-merge、cleanup 或主工作区 refresh 已完成。</p>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <div class="two-col">
+            <div>
+              <h3>In scope</h3>
+              <ul>
+                <li><code>modules/dev/playwright.nix</code></li>
+                <li><code>.legion/tasks/axiom-playwright-nix-ld-libs/**</code></li>
+              </ul>
+            </div>
+            <div>
+              <h3>Out of scope</h3>
+              <ul>
+                <li>不改 host-specific Axiom enablement。</li>
+                <li>不 pin npm Playwright 版本。</li>
+                <li>不提交 browser cache、npm cache 或截图。</li>
+                <li>不执行 <code>nixos-rebuild switch</code>。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Claim">任务目标、范围和验收已稳定</td><td data-label="Evidence"><code>plan.md</code></td><td data-label="Status"><span class="pill">PASS</span></td></tr>
+              <tr><td data-label="Claim">设计选择为补 nix-ld runtime libraries</td><td data-label="Evidence"><code>docs/rfc.md</code></td><td data-label="Status"><span class="pill">PASS</span></td></tr>
+              <tr><td data-label="Claim">系统 Playwright wrapper 仍能启动 Chromium</td><td data-label="Evidence"><code>docs/test-report.md</code></td><td data-label="Status"><span class="pill">PASS</span></td></tr>
+              <tr><td data-label="Claim">npm Playwright 下载 browser 可启动</td><td data-label="Evidence"><code>docs/test-report.md</code></td><td data-label="Status"><span class="pill">PASS</span></td></tr>
+              <tr><td data-label="Claim">Axiom 配置可求值和 dry-run planning</td><td data-label="Evidence"><code>docs/test-report.md</code></td><td data-label="Status"><span class="pill">PASS</span></td></tr>
+              <tr><td data-label="Claim">可交付性审查通过</td><td data-label="Evidence"><code>docs/review-change.md</code></td><td data-label="Status"><span class="pill">PASS</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <ol>
+            <li>brainstorm: 创建并回读 Legion task contract。</li>
+            <li>design-lite: 记录 options、decision、rollback 和 verification。</li>
+            <li>engineer: 添加 Linux-only nix-ld runtime library set。</li>
+            <li>verify-change: 跑 Playwright 与 Nix 验证。</li>
+            <li>review-change: 只读审查，结论 PASS。</li>
+            <li>report-walkthrough: 生成当前 reviewer handoff。</li>
+            <li>legion-wiki: 下一步写入 current-truth summary。</li>
+          </ol>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>PR-backed HTML artifact 已生成在 <code>docs/report-walkthrough.html</code>。Rendered preview 尚未生成，下一步应交给 <code>pr-html-render</code> 或记录显式 render blocker。</p>
+        </section>
+
+        <section id="decisions">
+          <h2>What Changed / What Was Decided</h2>
+          <p>保留 <code>pkgs.playwright-test</code> 和 <code>pw</code> alias，不替换现有 Playwright wrapper。新增 Linux-only <code>programs.nix-ld.libraries</code>，覆盖 npm/npx Playwright 下载 browser 在 NixOS 上通过 nix-ld 找到 glib、nss、nspr、dbus、atk、pango、libgbm、X11 与图形栈相关库的需求。</p>
+          <p>选择该方案的原因是它最小、可回滚，并且直接修复 `libglib-2.0.so.0` 缺失路径。全局 pin 或 wrap npm Playwright 属于更大 policy change，已排除在 scope 外。</p>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li><code>playwright screenshot --browser=chromium https://example.com ...</code>: PASS。</li>
+            <li>npm Playwright <code>1.61.0</code> downloaded browser launch: PASS，输出 <code>149.0.7827.55</code>。</li>
+            <li><code>nix eval --raw .#nixosConfigurations.axiom.config.system.build.toplevel.drvPath</code>: PASS。</li>
+            <li><code>nix build .#nixosConfigurations.axiom.config.system.build.toplevel --dry-run</code>: PASS。</li>
+            <li><code>docs/review-change.md</code>: PASS，无 blocking findings。</li>
+          </ul>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <ul>
+            <li>Axiom live system 需要后续 <code>nixos-rebuild switch</code> 才会持久应用。</li>
+            <li>未来 Playwright browser 版本可能需要更多 runtime libraries。</li>
+            <li>npm Playwright 下载 FFmpeg 时出现网络重试，最终第三个镜像成功，不是实现缺陷。</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>确认库列表覆盖当前 Chromium fallback browser。</li>
+            <li>确认 Linux-only guard 不影响 Darwin hosts。</li>
+            <li>确认没有引入 npm policy 或 Playwright version policy 变更。</li>
+            <li>确认验证证据足以支持合并。</li>
+          </ul>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>当前阶段输出已完成，下一步是 HTML render handoff、`legion-wiki` 写回，然后按 `git-worktree-pr` lifecycle 提交、rebase、push、创建 PR、尝试 auto-merge、跟进 checks/review、最终 cleanup 和主工作区 refresh。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
