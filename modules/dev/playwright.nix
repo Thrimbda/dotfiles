@@ -25,5 +25,38 @@ in {
     (mkIf isDarwin {
       home.packages = [ pkgs.playwright-test ];
     })
+
+    (mkIf (!isDarwin) {
+      # Let browsers downloaded by npm/npx Playwright resolve their runtime
+      # libraries through nix-ld on NixOS.
+      programs.nix-ld.libraries = with pkgs; [
+        alsa-lib
+        at-spi2-atk
+        atk
+        cairo
+        cups
+        dbus
+        expat
+        glib
+        gobject-introspection
+        libgbm
+        libxkbcommon
+        nspr
+        nss
+        pango
+        stdenv.cc.cc.lib
+        systemd
+        xorg.libX11
+        xorg.libXcomposite
+        xorg.libXdamage
+        xorg.libXext
+        xorg.libXfixes
+        xorg.libXrandr
+        xorg.libxcb
+        libGL
+        vulkan-loader
+        pciutils
+      ];
+    })
   ]);
 }

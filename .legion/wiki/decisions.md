@@ -165,3 +165,7 @@ The public hostname is `status-axiom.0xc1.space` through the existing `home-axio
 Gatus covers user-visible availability, TLS/route checks, status page display, and Prometheus-exported probe results. Prometheus remains the white-box metrics system for application and infrastructure metrics.
 
 The public Gatus page should only include public-safe endpoints. Do not add private database, Redis, message queue, or internal-only dependency hostnames to the public status page without a new security review.
+
+## Axiom Playwright Runtime
+
+When `modules.dev.playwright.enable = true` on Linux, the Playwright dev module should expose Chromium runtime libraries through `programs.nix-ld.libraries`. The Nix-packaged `playwright` wrapper remains the preferred baseline, but npm/npx Playwright downloads Ubuntu fallback browsers on unsupported Linux distributions, so those binaries also need a working `nix-ld` library path.
