@@ -22,3 +22,4 @@
 - Review: `review-change` passed with security lens applied. No blocking findings. Residual risks remain live deploy checks, DNS/ACME readiness, and data migration/ownership during real traffic cutover.
 - Delivery: `report-walkthrough` wrote `docs/report-walkthrough.md` and `docs/pr-body.md` from existing design, verification, and review evidence.
 - Wiki: wrote `wiki/tasks/aliyun-acorn-vaultwarden-dualrun.md`, updated current Aliyun/Vaultwarden decisions, added an agenix host migration pattern, and recorded post-deploy maintenance checks.
+- PR lifecycle: created implementation PR https://github.com/Thrimbda/dotfiles/pull/111 from branch `legion/aliyun-acorn-vaultwarden-dualrun-vaultwarden`.
