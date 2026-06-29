@@ -42,12 +42,17 @@
     theme.useX = false;
   };
 
-  config = { modulesPath, lib, pkgs, ... }: {
+  config = { config, modulesPath, lib, pkgs, ... }: {
     imports = [
       "${modulesPath}/profiles/qemu-guest.nix"
     ];
 
     modules.agenix.sshKey = "/home/c1/.ssh/id_ed25519";
+
+    age.secrets.nginx-status-htpasswd = {
+      owner = "nginx";
+      group = "nginx";
+    };
 
     nix.settings.substituters = lib.mkBefore [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
@@ -100,6 +105,17 @@
       network.enable = true;
       settings = {
         datasource_list = [ "AliYun" "NoCloud" "None" ];
+      };
+    };
+
+    services.nginx.virtualHosts."status-axiom.0xc1.wang" = {
+      http2 = true;
+      forceSSL = true;
+      enableACME = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:18080";
+        proxyWebsockets = true;
+        basicAuthFile = config.age.secrets.nginx-status-htpasswd.path;
       };
     };
 

@@ -126,6 +126,8 @@ Those Axiom survival/resource policies are now expressed through owning module o
 
 The frp deployment path is additive to autossh. `aliyun-acorn` owns `frps` on TCP `7000`, and `axiom` owns `frpc` proxy `axiom-ssh` from local `127.0.0.1:22` to remote TCP `2225` on `8.159.128.125`.
 
+For the first `0xc1.wang` public entry slice, `axiom` also owns frp proxy `axiom-gatus-http` from local Gatus `127.0.0.1:8080` to remote TCP `18080` on `aliyun-acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
+
 FRP token auth must use host-local agenix secrets and runtime TOML rendering from `/run/agenix/frp-token`; do not place plaintext token values in Nix TOML, module options, task docs, PR bodies, or Nix store outputs.
 
 Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the existing autossh reservations for `charlie`, `axiom`, and `azar` remain active.
@@ -163,6 +165,8 @@ Gatus is the repo-managed status page and black-box monitoring entrypoint for `a
 Reusable Gatus endpoint inventory should be represented through `modules.services.gatus` helpers: common labels, public endpoint entries, the self status-page endpoint, and optional Cloudflared ingress contribution. Hosts should pass endpoint facts such as name, URL, service label, and public hostname instead of maintaining full endpoint boilerplate.
 
 The public hostname is `status-axiom.0xc1.space` through the existing `home-axiom` cloudflared tunnel to local `127.0.0.1:8080`. Cloudflare Access is the authentication boundary; cloudflared is only transport. Create or modify the public DNS/tunnel route only after the `status-axiom.0xc1.space` Access app/policy has been verified.
+
+The parallel `status-axiom.0xc1.wang` hostname is a DNS-only `aliyun-acorn` nginx entry backed by frp remote TCP `18080` to the same Axiom Gatus loopback service. It must use nginx Basic Auth from agenix-managed htpasswd material. This does not migrate or replace `status-axiom.0xc1.space`, and it does not authorize direct nginx exposure for OpenCode or any other sensitive service.
 
 Gatus covers user-visible availability, TLS/route checks, status page display, and Prometheus-exported probe results. Prometheus remains the white-box metrics system for application and infrastructure metrics.
 
