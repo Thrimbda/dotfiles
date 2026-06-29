@@ -20,8 +20,6 @@ in {
           sans.package = rubik;
           mono.name = "CaskaydiaCove NF";
           mono.package = nerd-fonts.caskaydia-cove;
-          terminal.name = "FiraCode Nerd Font Mono";
-          terminal.package = nerd-fonts.fira-code;
           packages = [
             lxgw-neoxihei
             material-symbols
@@ -69,9 +67,6 @@ in {
           types.border  = "#0d0d0d";
         };
       };
-
-      shell.zsh.rcFiles  = [ ./config/zsh/prompt.zsh ];
-      shell.tmux.rcFiles = [ ./config/tmux.conf ];
     };
   }
 

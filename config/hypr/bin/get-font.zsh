@@ -7,7 +7,7 @@
 # DESCRIPTION:
 #   TODO
 
-local font="$(hey info theme fonts terminal | jq -r '. | "\(.name);\(.size)"')"
+local font="$(hey info term font | jq -r '. | "\(.name);\(.size)"')"
 local fontname="${font/;*/}"
 local fontsize="${font/*;/}"
 

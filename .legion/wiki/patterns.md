@@ -122,6 +122,8 @@ For Linux cloudflared services backed by agenix credentials, keep connector conf
 
 For terminal config compatibility regressions, validate the repository source and the Nix-evaluated Home Manager source path with the target terminal binary. For Foot, `foot --check-config --config <path>` is the direct validation surface; do not assume an option remains valid across package upgrades just because an older checked-in config accepted it.
 
+For shell/terminal ownership migrations out of a theme module, combine content reference search with path-level orphan checks. Reference greps such as `fonts\.terminal` or `hey info theme fonts terminal` prove consumers moved, while `git diff --name-status -- 'modules/themes/*/config/zsh/*' 'modules/themes/*/config/tmux*'` and a worktree glob prove stale theme-owned prompt/tmux assets were not left behind. Also evaluate the new owner metadata, for example `hey.info.term.font`, and at least one desktop plus one server host that enable the affected shell/terminal modules.
+
 For GUI-launched terminal or app command lookup regressions that do not reproduce over SSH, validate graphical session PATH ownership rather than patching shell rc files first. Check generated `uwsm/env`, the Hyprland startup `systemctl --user import-environment` list, relevant launcher service `path` entries, and whether the missing commands live in `config.environment.systemPackages` or user packages.
 
 For out-of-band user tools such as opencode under `$HOME/.opencode/bin`, validate both interactive shell startup and generated desktop session PATH. Avoid literal `environment.variables.PATH` strings as the only integration surface; prefer explicit shell path initialization plus generated `uwsm/env` evidence.

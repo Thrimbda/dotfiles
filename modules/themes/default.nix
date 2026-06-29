@@ -57,11 +57,6 @@ in {
         size = mkOpt float 12.0;
         package = mkOpt package null;
       };
-      terminal = {
-        name = mkOpt str cfg.fonts.mono.name;
-        size = mkOpt float (cfg.fonts.mono.size - 2.5);
-        package = mkOpt package cfg.fonts.mono.package;
-      };
       icons = {
         name = mkOpt str "Font Awesome 6 Free";
         size = mkOpt float cfg.fonts.sans.size;
@@ -174,7 +169,6 @@ in {
       fonts.packages = [
         cfg.fonts.sans.package
         cfg.fonts.mono.package
-        cfg.fonts.terminal.package
         cfg.fonts.icons.package
       ] ++ cfg.fonts.packages;
 
