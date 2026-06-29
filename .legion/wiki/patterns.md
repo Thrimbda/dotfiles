@@ -16,9 +16,11 @@ When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` t
 
 ## Host-Level Nix Binary Cache Mirror Pattern
 
-For a machine-specific domestic Nix cache preference, add the mirror at the host level with `nix.settings.substituters = lib.mkBefore [ "<mirror>" ];` rather than changing global flake inputs or forcing all hosts to use the same mirror. Keep Cachix and `https://cache.nixos.org/` fallback unless the task explicitly scopes an offline or official-cache-blocked environment.
+For a machine-specific domestic Nix cache preference, add mirrors at the host level with `nix.settings.substituters = lib.mkBefore [ "<mirror>" ... ];` rather than changing global flake inputs or forcing all hosts to use the same mirrors. Keep existing Cachix and `https://cache.nixos.org/` fallback unless the task explicitly scopes an offline or official-cache-blocked environment. For China-hosted Alibaba Cloud machines, the current `aliyun-acorn` order is TUNA, USTC, then SJTU.
 
-Validate mirror changes by evaluating the final host substituter list and the host toplevel derivation. The substituter-list eval proves merge order and fallback preservation; the toplevel eval proves the NixOS module graph still evaluates. A one-off machine command can temporarily override cache choice with `--option substituters "<mirror> https://cache.nixos.org/"` without landing configuration.
+Validate mirror changes by evaluating the final host substituter list, trusted public keys, and the most relevant host or image derivation. The substituter-list eval proves merge order and fallback preservation; the trusted-key eval proves official cache trust is still present when relying on official mirrors; the drvPath eval proves the NixOS module/image graph still evaluates. A one-off machine command can temporarily override cache choice with `--option substituters "<mirror-1> <mirror-2> https://cache.nixos.org/"` without landing configuration.
+
+When a task only asks to open a NixOS firewall port, keep the change at `networking.firewall.allowedTCPPorts` for the scoped host and do not infer service listener, authentication, SSH port, or cloud security-group changes without an explicit contract.
 
 ## NixOS Read-Only Pkgs Pattern
 

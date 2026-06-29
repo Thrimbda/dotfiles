@@ -8,7 +8,9 @@ Imported Alibaba Cloud ECS custom images for `aliyun-acorn` must set `BootMode=U
 
 Live Aliyun writes for `aliyun-acorn` remain gated until bucket, same-region OSS object, image-import role, VPC/vSwitch/security group, instance type, SSH source CIDR, cost/dry-run result, and cleanup policy are confirmed. First-boot SSH access should be injected at runtime through cloud-init `UserData` from local public-key material, not committed authorized keys or passwords.
 
-On `aliyun-acorn`, Nix binary substitutions should prefer the TUNA mirror `https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store` before the existing Cachix and official cache fallback. This is a host-local Alibaba Cloud network optimization and does not change global flake inputs or GitHub fetch behavior.
+On `aliyun-acorn`, Nix binary substitutions should prefer domestic mirrors in this order before existing Cachix and official cache fallback: TUNA `https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store`, USTC `https://mirrors.ustc.edu.cn/nix-channels/store`, then SJTU `https://mirror.sjtu.edu.cn/nix-channels/store`. The official `cache.nixos.org` fallback and trusted public key remain part of the final evaluated config. This is a host-local Alibaba Cloud network optimization and does not change global flake inputs or GitHub fetch behavior.
+
+`aliyun-acorn` NixOS firewall allows TCP `2222` as a host-local port opening. This does not by itself configure the Aliyun security group, start a service on that port, or change SSH authentication/listening behavior.
 
 ## Linux Workstation Desktop Baseline
 
