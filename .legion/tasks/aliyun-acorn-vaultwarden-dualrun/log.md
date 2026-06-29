@@ -23,3 +23,5 @@
 - Delivery: `report-walkthrough` wrote `docs/report-walkthrough.md` and `docs/pr-body.md` from existing design, verification, and review evidence.
 - Wiki: wrote `wiki/tasks/aliyun-acorn-vaultwarden-dualrun.md`, updated current Aliyun/Vaultwarden decisions, added an agenix host migration pattern, and recorded post-deploy maintenance checks.
 - PR lifecycle: created implementation PR https://github.com/Thrimbda/dotfiles/pull/111 from branch `legion/aliyun-acorn-vaultwarden-dualrun-vaultwarden`.
+- PR lifecycle: auto-merge attempt failed because repository auto-merge is disabled (`enablePullRequestAutoMerge`).
+- PR lifecycle: `gh pr checks 111 --watch --required` reported no checks on the branch; `gh pr view` reported state `OPEN`, merge state `CLEAN`, and no required review decision.
