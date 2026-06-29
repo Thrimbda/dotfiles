@@ -5,4 +5,5 @@ in {
   "frp-token.age".publicKeys = [ aliyunAcorn axiom ];
   "nginx-status-htpasswd.age".publicKeys = [ aliyunAcorn ];
   "status-basic-auth-password.age".publicKeys = [ aliyunAcorn ];
+  "vaultwarden-env.age".publicKeys = [ aliyunAcorn ];
 }

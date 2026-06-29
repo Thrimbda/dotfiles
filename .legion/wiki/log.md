@@ -220,3 +220,5 @@
 - Updated current FRP and status-page decisions with the `status-axiom.0xc1.wang` nginx/Basic Auth/frp `18080` slice and the boundary that existing `0xc1.space` and OpenCode Access exposure remain unchanged.
 - Added task summary for `axiom-frpc-direct-route`.
 - Updated current FRP and Clash Verge decisions with Axiom's host-local direct route for frpc traffic to Aliyun Acorn.
+- Added task summary for `aliyun-acorn-vaultwarden-dualrun`.
+- Updated current Aliyun/Vaultwarden decisions, agenix host migration pattern, and Aliyun Acorn maintenance follow-up for staged Vaultwarden dual-run readiness and secret re-encryption.

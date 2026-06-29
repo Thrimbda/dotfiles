@@ -45,6 +45,7 @@
   config = { config, modulesPath, lib, pkgs, ... }: {
     imports = [
       "${modulesPath}/profiles/qemu-guest.nix"
+      ./modules/vaultwarden.nix
     ];
 
     modules.agenix.sshKey = "/home/c1/.ssh/id_ed25519";

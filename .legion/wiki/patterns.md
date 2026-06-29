@@ -14,6 +14,14 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
+## Agenix Host Migration Pattern
+
+For host-to-host migration of an agenix-backed service, treat the encrypted `.age` file as host recipient material rather than portable configuration. First verify the source secret decrypts with a valid source identity, then re-encrypt it under the target host's `secrets/secrets.nix` rule context for the target recipient. Validate the new target `.age` file with `agenix -d <secret>.age -i <target-private-key> > /dev/null` so decryptability is proven without printing plaintext.
+
+When using `agenix -e` non-interactively, run from the target secret directory or set `RULES` so the file name matches the intended `secrets.nix` key. Cross-directory full paths can make `agenix` look for a different rule key than the basename stored in host-local `secrets.nix`.
+
+Do not stage private keys, decrypted env files, or command output containing secret values. Staged review should include an explicit path/content check for private-key markers and plaintext env markers when a task handles secrets.
+
 ## Host-Level Nix Binary Cache Mirror Pattern
 
 For a machine-specific domestic Nix cache preference, add mirrors at the host level with `nix.settings.substituters = lib.mkBefore [ "<mirror>" ... ];` rather than changing global flake inputs or forcing all hosts to use the same mirrors. Keep existing Cachix and `https://cache.nixos.org/` fallback unless the task explicitly scopes an offline or official-cache-blocked environment. For China-hosted Alibaba Cloud machines, the current `aliyun-acorn` order is TUNA, USTC, then SJTU.
