@@ -6,9 +6,10 @@
 
 with lib;
 with hey.lib;
-let cfg = config.modules.desktop.term.foot;
+let termCfg = config.modules.desktop.term;
+    cfg = termCfg.foot;
     defaultSettings = {
-      main.font = "${config.modules.theme.fonts.terminal.name}:size=${toString config.modules.theme.fonts.terminal.size}";
+      main.font = "${termCfg.font.name}:size=${toString termCfg.font.size}";
     };
 in {
   options.modules.desktop.term.foot = with types; {
@@ -20,6 +21,7 @@ in {
     user.packages = with pkgs; [
       foot
       libsixel  # image support in foot
+      termCfg.font.package
     ];
 
     modules.shell.tmux.term = mkForce "foot";

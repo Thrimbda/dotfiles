@@ -101,3 +101,4 @@
 - [Foot Tmux Hotkey](tasks/foot-tmux-hotkey.md)
 - [FRP Agenix Deploy](tasks/frp-agenix-deploy.md)
 - [SSH Foot Term Compatibility](tasks/ssh-foot-term-compat.md)
+- [Theme Shell Terminal Migration](tasks/theme-shell-terminal-migration.md)

@@ -30,7 +30,7 @@ elif (( ${#tmuxopts} )); then
 fi
 
 if [[ -z "$font" ]]; then
-  font=( -f "$(hey info theme fonts terminal | jq -r '. | "\(.name):size=\(.size)"')" )
+  font=( -f "$(hey info term font | jq -r '. | "\(.name):size=\(.size)"')" )
 fi
 
 fontname="${font[2]%%:*}"

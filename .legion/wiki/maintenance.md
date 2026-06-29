@@ -13,6 +13,8 @@
 ## Terminal Follow-Up
 
 - Foot terminal notification behavior was disabled by removing unsupported `[main].notify` from the global config. If terminal notification behavior is still desired, restore it only through a Foot 1.25-supported option or an explicit external wrapper design validated with `foot --check-config`.
+- After deploying the theme shell/terminal migration, open a fresh shell and tmux session on a host that enables zsh/tmux to confirm the default prompt and `config/tmux/theme.conf` load as expected. Repository-local validation cannot fully prove `~/.config/tmux/theme.conf` post-activation sourcing.
+- Split follow-up tasks before moving the remaining `modules/themes` responsibilities: GTK/cursor/fontconfig, wallpapers, Rofi assets, Hyprland visual polish, Doom local theme, and `hey path theme` still need clear owner modules or compatibility boundaries.
 
 ## Caelestia Shell Follow-Up
 

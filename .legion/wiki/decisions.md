@@ -14,6 +14,10 @@ On `aliyun-acorn`, Nix binary substitutions should prefer domestic mirrors in th
 
 ## Linux Workstation Desktop Baseline
 
+Shell prompt and tmux theme defaults are no longer owned by active theme modules. The current default prompt lives in `config/zsh/prompt.zsh` and is sourced by `config/zsh/.zshrc`; the current tmux theme lives in `config/tmux/theme.conf` and is sourced by `config/tmux/tmux.conf`. Do not reintroduce theme-module zsh/tmux injection unless a future scoped task designs an explicit shell theme option.
+
+Terminal font defaults are owned by `modules.desktop.term.font`, and runtime scripts should read `hey.info.term.font`. Do not add new consumers of `modules.theme.fonts.terminal`; that option was removed when shell/terminal ownership moved out of `modules/themes`.
+
 Current Axiom Linux workstation desktop direction is Hyprland + UWSM + NixOS-owned desktop integration, with Zen as the browser baseline, mpv as the scoped media player, Vesktop/Discord as the scoped chat app, Steam Gamescope/Gamemode/Umu tuning, NetworkManager+iwd+resolved for workstation Wi-Fi, and BlueZ/Blueman reliability settings.
 
 Caelestia Shell supersedes the previous repository-managed end4 `ii` desktop direction for Axiom. The active product shell is now the upstream Caelestia shell package with CLI support, integrated by a local NixOS module, while NixOS keeps ownership of UWSM/greetd/portal startup, Hyprland host facts, session-owned shell runner wiring, generated XDG config, rollback, and Darwin isolation.

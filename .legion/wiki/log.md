@@ -158,6 +158,9 @@
 - Added VSCode declarative extension validation pattern and Axiom editor post-deploy smoke follow-up.
 - Added task summary for `axiom-win11-kvm-vm`.
 - Updated current Axiom decisions and maintenance with the host-local libvirt/swtpm/virt-manager Windows 11 VM stack and post-deploy activation/guest-validation follow-up.
+- Added task summary for `theme-shell-terminal-migration`.
+- Updated shell/terminal decisions and validation patterns with terminal font ownership under `modules.desktop.term.font`, prompt/tmux theme ownership under default config directories, and path-level orphan checks for future theme-module reductions.
+- Added terminal/theme follow-ups for post-activation shell/tmux smoke and separate migrations for remaining `modules/themes` responsibilities.
 - Added task summary for `aliyun-acorn-nix-cache-mirror`.
 - Updated Aliyun and Nix cache patterns with host-level domestic binary cache mirror guidance and temporary `--option substituters` usage.
 - Added task summary for `axiom-hyprland-mouse-workspace-move`.
