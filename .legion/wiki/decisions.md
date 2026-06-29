@@ -12,6 +12,10 @@ On `aliyun-acorn`, Nix binary substitutions should prefer domestic mirrors in th
 
 `aliyun-acorn` NixOS firewall allows TCP `2222` as a host-local port opening. This does not by itself configure the Aliyun security group, start a service on that port, or change SSH authentication/listening behavior.
 
+`aliyun-acorn` now has a staged Vaultwarden deployment configuration for `vault.0xc1.space` while `acorn` remains unchanged. Treat this as dual-run readiness, not traffic cutover or data migration. DNS/ACME readiness and Vaultwarden data ownership must be handled before sending real traffic to the new host.
+
+For agenix-backed service migration between hosts, the target host must receive a secret encrypted to its own declared recipient. Do not copy an existing `.age` artifact across hosts unless target-key decryptability is verified; re-encrypt from a valid source decrypt identity directly into the target host's `secrets/` rule context.
+
 ## Linux Workstation Desktop Baseline
 
 Shell prompt and tmux theme defaults are no longer owned by active theme modules. The current default prompt lives in `config/zsh/prompt.zsh` and is sourced by `config/zsh/.zshrc`; the current tmux theme lives in `config/tmux/theme.conf` and is sourced by `config/tmux/tmux.conf`. Do not reintroduce theme-module zsh/tmux injection unless a future scoped task designs an explicit shell theme option.

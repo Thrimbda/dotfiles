@@ -12,6 +12,7 @@
 - [Aliyun Acorn ECS Deploy](tasks/aliyun-acorn-ecs-deploy.md)
 - [Aliyun Acorn Nix Cache Mirror](tasks/aliyun-acorn-nix-cache-mirror.md)
 - [Aliyun Acorn 0xc1.wang Entry](tasks/aliyun-acorn-0xc1-wang-entry.md)
+- [Aliyun Acorn Vaultwarden Dual Run](tasks/aliyun-acorn-vaultwarden-dualrun.md)
 - [Axiom 4K 240Hz HDR Display](tasks/axiom-4k240-hdr-display.md)
 - [Axiom Antigravity Install](tasks/axiom-antigravity-install.md)
 - [Axiom Autossh Reverse SSH Tunnel](tasks/axiom-autossh-reverse-ssh-tunnel.md)

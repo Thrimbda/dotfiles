@@ -9,6 +9,7 @@
 - Before running live `aliyun-acorn` validation, confirm the OSS bucket/object, image-import RAM role, VPC/vSwitch/security group, instance type, operator SSH CIDR, auto-release time, expected cost/dry-run result, and cleanup owner.
 - Run the first live ECS validation by uploading the built QCOW2 to same-region OSS, importing it with `BootMode=UEFI`, creating a temporary validation instance, checking serial console/cloud-init/DHCP/SSH/root partition growth, then cleaning up temporary resources or recording any intentionally retained IDs.
 - If `aliyun-acorn` should become a long-lived host, create a follow-up in `~/Work/aliyun-ops` for Terraform-owned ECS/VPC/security-group state instead of preserving one-off CLI state as durable infrastructure.
+- After deploying the `aliyun-acorn` Vaultwarden dual-run config, confirm DNS/ACME readiness for `vault.0xc1.space`, then check `vaultwarden.service`, `nginx.service`, `fail2ban.service`, certificate issuance, and `/run/agenix/vaultwarden-env` ownership. Do not split live Vaultwarden traffic between `acorn` and `aliyun-acorn` without a separate data migration/ownership plan.
 
 ## Terminal Follow-Up
 
