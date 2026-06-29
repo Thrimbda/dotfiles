@@ -132,6 +132,8 @@ The frp deployment path is additive to autossh. `aliyun-acorn` owns `frps` on TC
 
 For the first `0xc1.wang` public entry slice, `axiom` also owns frp proxy `axiom-gatus-http` from local Gatus `127.0.0.1:8080` to remote TCP `18080` on `aliyun-acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
 
+On Axiom, frpc traffic to Aliyun Acorn must bypass Clash/Meta TUN routing. Axiom owns `frpc-aliyun-acorn-direct-route.service`, which installs policy rule priority `8500` for `8.159.128.125/32` through the `main` routing table before `frpc.service` starts. Keep this host-local unless another machine shows the same Clash/Meta routing failure.
+
 FRP token auth must use host-local agenix secrets and runtime TOML rendering from `/run/agenix/frp-token`; do not place plaintext token values in Nix TOML, module options, task docs, PR bodies, or Nix store outputs.
 
 Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the existing autossh reservations for `charlie`, `axiom`, and `azar` remain active.
@@ -159,6 +161,8 @@ ToDesk state lives in `/var/lib/todesk` and should be created declaratively with
 Clash Verge Rev on NixOS should be integrated through the upstream `programs.clash-verge` NixOS module, not through the GUI's service-mode or TUN installers. Hosts enabling the dotfiles `modules.desktop.apps.clash-verge` module should get declarative service mode, TUN mode, autostart, and package pass-through from NixOS.
 
 For TUN connectivity, the current default trusted interface set is `Mihomo` and `Meta`, paired with a reverse-path filter exception for those names. Do not globally disable reverse-path filtering or migrate to `services.mihomo` unless a future scoped task explicitly chooses that route.
+
+Remote-access endpoints that must remain direct can use host-local policy rules with a priority lower than Clash/Meta rules. The current Axiom example is `8.159.128.125/32 lookup main` at priority `8500` for frpc to Aliyun Acorn; do not broaden this to general proxy bypass without a scoped review.
 
 For axiom terminal-driven Clash Verge node switching, use the local Clash/Mihomo controller API at `http://127.0.0.1:9090` with default group `Nexitally`. Do not edit subscription YAML or proxy-group definitions for runtime node switching. If a controller secret is configured, pass it at runtime and keep it out of repository files.
 

@@ -20,6 +20,7 @@
 - [Axiomctl CLI Consolidation](tasks/axiomctl-cli-consolidation.md)
 - [C1ctl Hey Rust Migration](tasks/c1ctl-hey-rust-migration.md)
 - [Axiom Critical Network Resilience](tasks/axiom-critical-network-resilience.md)
+- [Axiom FRPC Direct Route](tasks/axiom-frpc-direct-route.md)
 - [Axiom Default Modularization](tasks/axiom-default-modularization.md)
 - [Axiom Host Script Extraction](tasks/axiom-host-script-extraction.md)
 - [Axiom Host Policy Extraction](tasks/axiom-host-policy-extraction.md)

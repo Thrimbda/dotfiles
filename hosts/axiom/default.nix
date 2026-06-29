@@ -152,7 +152,10 @@ with builtins;
       opencodeDir = config.modules.services.opencode-server.dir;
       reverseSsh = config.modules.services.reverse-ssh;
       autosshRemoteHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAHARUNf8QKGEqfBx2pCtJkBp5HEqoBjp9XyqIos07nA";
+      aliyunAcornPublicIp = "8.159.128.125";
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
+      frpcDirectRouteUnit = "frpc-aliyun-acorn-direct-route.service";
+      frpcDirectRoutePriority = 8500;
       gatusPort = 8080;
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
@@ -257,15 +260,43 @@ with builtins;
 
     modules.services.reverse-ssh = {
       enable = true;
-      remoteHost = "8.159.128.125";
+      remoteHost = aliyunAcornPublicIp;
       remoteHostKey = autosshRemoteHostKey;
       knownHostName = "autossh-remote-8.159.128.125";
       remotePort = 2223;
     };
 
+    systemd.services.frpc-aliyun-acorn-direct-route = {
+      description = "Route Axiom frpc traffic to aliyun-acorn outside Clash Meta";
+      after = [ "network-online.target" "clash-verge.service" ];
+      wants = [ "network-online.target" ];
+      before = [ "frpc.service" ];
+      wantedBy = [ "multi-user.target" ];
+      path = [ pkgs.iproute2 ];
+      serviceConfig = {
+        Type = "oneshot";
+      };
+      script = ''
+        set -eu
+
+        priority=${toString frpcDirectRoutePriority}
+        target=${aliyunAcornPublicIp}/32
+
+        ip -4 rule del priority "$priority" 2>/dev/null || true
+        ip -4 rule add priority "$priority" to "$target" lookup main
+        ip -4 route flush cache || true
+      '';
+    };
+
+    systemd.services.frpc = {
+      after = [ frpcDirectRouteUnit ];
+      wants = [ frpcDirectRouteUnit ];
+      requires = [ frpcDirectRouteUnit ];
+    };
+
     modules.services.frp.client = {
       enable = true;
-      serverAddr = "8.159.128.125";
+      serverAddr = aliyunAcornPublicIp;
       proxies = [
         {
           name = "axiom-ssh";
