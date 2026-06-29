@@ -266,13 +266,22 @@ with builtins;
     modules.services.frp.client = {
       enable = true;
       serverAddr = "8.159.128.125";
-      proxies = [{
-        name = "axiom-ssh";
-        type = "tcp";
-        localIP = "127.0.0.1";
-        localPort = 22;
-        remotePort = 2225;
-      }];
+      proxies = [
+        {
+          name = "axiom-ssh";
+          type = "tcp";
+          localIP = "127.0.0.1";
+          localPort = 22;
+          remotePort = 2225;
+        }
+        {
+          name = "axiom-gatus-http";
+          type = "tcp";
+          localIP = "127.0.0.1";
+          localPort = gatusPort;
+          remotePort = 18080;
+        }
+      ];
     };
 
     modules.services.opencode-server = {

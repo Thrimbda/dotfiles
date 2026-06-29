@@ -213,3 +213,5 @@
 - Added task summary for `axiom-playwright-nix-ld-libs`.
 - Updated current Playwright runtime decisions and validation patterns with npm/npx browser nix-ld library coverage for Axiom.
 - Updated `aliyun-acorn-nix-cache-mirror` wiki summary, decisions, and patterns for TUNA/USTC/SJTU mirror order, official cache key/fallback validation, TCP 2222 firewall scope, and image-target drvPath validation.
+- Added task summary for `aliyun-acorn-0xc1-wang-entry`.
+- Updated current FRP and status-page decisions with the `status-axiom.0xc1.wang` nginx/Basic Auth/frp `18080` slice and the boundary that existing `0xc1.space` and OpenCode Access exposure remain unchanged.

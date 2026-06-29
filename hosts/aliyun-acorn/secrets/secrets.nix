@@ -3,4 +3,6 @@ let
   axiom = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMbq2TSxnl6D4oEdKGNNk1C71QCPN+xPCvCT6KvPhsws axiom.local";
 in {
   "frp-token.age".publicKeys = [ aliyunAcorn axiom ];
+  "nginx-status-htpasswd.age".publicKeys = [ aliyunAcorn ];
+  "status-basic-auth-password.age".publicKeys = [ aliyunAcorn ];
 }
