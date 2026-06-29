@@ -4,29 +4,29 @@
 
 **当前阶段**: Delivery
 **当前检查项**: 完成 Git lifecycle 或记录 blocker
-**进度**: 9/10 任务完成
+**进度**: 10/11 任务完成
 
 ---
 
 ## 阶段 1: Contract ✅ COMPLETE
 
-- [x] 创建稳定 Legion task contract | 验收: `plan.md` 覆盖目标、问题、验收、假设、约束、风险、范围和 non-goals。
-- [x] 创建 design-lite | 验收: `docs/rfc.md` 说明方案、替代方案、回滚和验证。
+- [x] 刷新稳定 Legion task contract | 验收: `plan.md` 覆盖三组国内 mirrors、官方 fallback/key、TCP 2222、scope、风险和 image 验证目标。
 
 ---
 
 ## 阶段 2: Implementation ✅ COMPLETE
 
-- [x] 打开 `git-worktree-pr` worktree | 验收: 分支 `legion/aliyun-acorn-nix-cache-mirror` 位于 `.worktrees/aliyun-acorn-nix-cache-mirror`。
-- [x] 添加 host-level TUNA substituter | 验收: `hosts/aliyun-acorn/default.nix` 使用 `lib.mkBefore` prepend mirror。
-- [x] 验证最终 substituter 顺序 | 验收: `nix eval` 输出 TUNA、Cachix、官方 cache 顺序。
+- [x] 打开或恢复 `git-worktree-pr` worktree | 验收: implementation 在隔离 worktree/branch 中完成，主工作区不混入无关改动。
+- [x] 检查 `hosts/aliyun-acorn` host/image 配置 conventions | 验收: 选择最小 host-scoped 落点，不全局改其他 hosts。
+- [x] 配置 domestic substituters 和官方 fallback/key | 验收: 最终列表优先 TUNA、USTC、SJTU，并保留 `cache.nixos.org` fallback/trusted key。
+- [x] 放行 firewall TCP 2222 | 验收: `networking.firewall.allowedTCPPorts` 最终包含 `2222`。
 
 ---
 
 ## 阶段 3: Verification ✅ COMPLETE
 
-- [x] 验证 `aliyun-acorn` toplevel 求值 | 验收: `nix eval '.#nixosConfigurations.aliyun-acorn.config.system.build.toplevel.drvPath'` 成功。
-- [x] 记录临时切换 cache 用法 | 验收: `docs/test-report.md` 或 walkthrough 包含 `--option substituters` 示例。
+- [x] 验证最终 Nix settings 和 firewall 配置 | 验收: `nix eval` 输出 substituters、trusted keys 和 allowed TCP ports 符合 acceptance。
+- [x] 验证 image target | 验收: `nix eval` 或 `nix build --dry-run` 覆盖 `./hosts/aliyun-acorn/image#aliyun-image`。
 
 ---
 
@@ -36,9 +36,9 @@
 
 ---
 
-## 阶段 5: Delivery 🟡 IN PROGRESS
+## 阶段 5: Delivery ⏳ PENDING
 
-- [x] 生成 walkthrough 和 PR body | 验收: `docs/report-walkthrough.md` 与 `docs/pr-body.md` 可供 reviewer 使用。
+- [x] 更新 walkthrough 和 PR body | 验收: `docs/report-walkthrough.md` 与 `docs/pr-body.md` 可供 reviewer 使用。
 - [x] 执行 wiki writeback | 验收: `.legion/wiki/**` 记录当前可复用知识或明确无需新增。
 - [ ] 完成 Git lifecycle 或记录 blocker | 验收: commit/PR/checks/cleanup 状态记录在 `log.md`。 ← CURRENT
 
@@ -50,4 +50,4 @@
 
 ---
 
-*最后更新: 2026-06-20*
+*最后更新: 2026-06-29*

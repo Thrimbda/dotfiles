@@ -1,5 +1,30 @@
 # Aliyun Acorn Nix Cache Mirror - 日志
 
+## 会话进展 (2026-06-29)
+
+### 已完成
+
+- 按用户当前请求恢复并刷新 task contract：范围从单一 TUNA mirror 扩展为 TUNA、USTC、SJTU 三组 domestic substituters，并新增 `aliyun-acorn` firewall TCP 2222。
+- 将验收标准更新为必须保留/添加官方 `cache.nixos.org` fallback 与 trusted public key，并验证 `./hosts/aliyun-acorn/image#aliyun-image` 的 `nix eval` 或 dry-run build。
+- 确认主工作区开始时 `git status --short` 无输出，暂无 unrelated dirty changes 需要隔离。
+- 从 `origin/master` 创建隔离 worktree `.worktrees/aliyun-acorn-nix-cache-mirror`，分支 `legion/aliyun-acorn-nix-cache-mirror`。
+- 在 `hosts/aliyun-acorn/default.nix` 扩展 host-level `nix.settings.substituters`：TUNA、USTC、SJTU 依次优先于既有 Cachix 与官方 cache。
+- 在 `hosts/aliyun-acorn/default.nix` 的 `networking.firewall.allowedTCPPorts` 添加 `2222`。
+- 验证通过：最终 substituters、trusted public keys、allowed TCP ports 与 `./hosts/aliyun-acorn/image#aliyun-image.drvPath` 均符合验收。
+- Change review 通过，结论 PASS；安全视角覆盖 Nix cache trust chain 与 TCP 2222 暴露面。
+- 更新 `docs/report-walkthrough.md` 与 `docs/pr-body.md`，并删除过期的 TUNA-only `docs/report-walkthrough.html` artifact。
+- 完成 wiki writeback：更新 `decisions.md`、`patterns.md`、任务摘要和 wiki log，记录三镜像顺序、official key/fallback 验证、TCP 2222 scope 与 image target 验证模式。
+
+### 进行中
+
+- 进入 Git lifecycle：提交、rebase、push/PR 或记录 blocker。
+
+### 阻塞/待定
+
+- 无当前实现阻塞。
+
+---
+
 ## 会话进展 (2026-06-20)
 
 ### 已完成

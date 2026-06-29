@@ -1,13 +1,16 @@
 ## Summary
 
-- Add a host-level TUNA Nix binary cache mirror for `aliyun-acorn`.
-- Keep existing nix-community Cachix, Hyprland Cachix, and `cache.nixos.org` as fallback substituters.
-- Document verification, review, and temporary one-off cache override usage in Legion evidence.
+- Prefer domestic Nix/NixOS binary cache mirrors for `aliyun-acorn`: TUNA, USTC, then SJTU.
+- Keep existing Cachix substituters and `https://cache.nixos.org/` fallback, with the official `cache.nixos.org` trusted public key preserved by the final NixOS config.
+- Open NixOS firewall TCP port `2222` for `aliyun-acorn` only.
+- Refresh Legion evidence for the updated scope and validation target.
 
 ## Verification
 
-- `nix eval '.#nixosConfigurations.aliyun-acorn.config.nix.settings.substituters' --json`
-- `nix eval '.#nixosConfigurations.aliyun-acorn.config.system.build.toplevel.drvPath'`
+- `nix eval --option eval-cache false '.#nixosConfigurations.aliyun-acorn.config.nix.settings.substituters' --json`
+- `nix eval --option eval-cache false '.#nixosConfigurations.aliyun-acorn.config.nix.settings.trusted-public-keys' --json`
+- `nix eval --option eval-cache false '.#nixosConfigurations.aliyun-acorn.config.networking.firewall.allowedTCPPorts' --json`
+- `nix eval --option eval-cache false './hosts/aliyun-acorn/image#aliyun-image.drvPath'`
 
 ## Legion Evidence
 
@@ -20,5 +23,6 @@
 ## Notes
 
 - This does not change `flake.nix` inputs or GitHub fetch behavior.
+- This does not change other hosts, Darwin config, or global cache policy.
 - This does not add new trusted public keys.
-- PR lifecycle is not complete until checks/review and merge or blocker handling finish.
+- This only opens TCP 2222 in the NixOS firewall; Aliyun security group and service-level policy are out of scope.

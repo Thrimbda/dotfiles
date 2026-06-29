@@ -212,3 +212,4 @@
 - Updated current control-CLI decisions, validation pattern, and maintenance follow-up so `c1ctl` supersedes `axiomctl`, starts the staged non-Rofi Rust migration of `hey`, and keeps `@rofi` delegated to Janet.
 - Added task summary for `axiom-playwright-nix-ld-libs`.
 - Updated current Playwright runtime decisions and validation patterns with npm/npx browser nix-ld library coverage for Axiom.
+- Updated `aliyun-acorn-nix-cache-mirror` wiki summary, decisions, and patterns for TUNA/USTC/SJTU mirror order, official cache key/fallback validation, TCP 2222 firewall scope, and image-target drvPath validation.

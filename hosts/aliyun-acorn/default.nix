@@ -51,6 +51,8 @@
 
     nix.settings.substituters = lib.mkBefore [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
+      "https://mirror.sjtu.edu.cn/nix-channels/store"
     ];
 
     boot = {
@@ -77,7 +79,7 @@
       hostName = "aliyun-acorn";
       useDHCP = lib.mkForce false;
       firewall = {
-        allowedTCPPorts = [ 22 80 443 2225 7000 34197 ];
+        allowedTCPPorts = [ 22 80 443 2222 2225 7000 34197 ];
         allowedUDPPorts = [ 34197 ];
       };
     };
