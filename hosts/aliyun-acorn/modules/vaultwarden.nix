@@ -24,9 +24,8 @@
   };
 
   services.nginx.virtualHosts."vault.0xc1.space" = {
-    http2 = true;
-    forceSSL = true;
-    enableACME = true;
+    # Staged only: re-open publicly after DNS and TLS/ACME are ready.
+    listen = [{ addr = "127.0.0.1"; port = 80; }];
     root = "/srv/www/vault.0xc1.space";
     extraConfig = ''
       client_max_body_size 64M;
