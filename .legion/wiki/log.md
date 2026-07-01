@@ -231,3 +231,5 @@
 - Corrected current Aliyun/Vaultwarden decisions so `aliyun-acorn` only deploys Vaultwarden at `vault.0xc1.wang`; `vault.0xc1.space` is not an `aliyun-acorn` compatibility vhost.
 - Added task summary for `aliyun-acorn-vault-acme-proxy`.
 - Updated Aliyun/Vaultwarden decisions so `vault.0xc1.wang` uses Cloudflare-proxied DNS plus Cloudflare DNS-01 ACME while public HTTP `80` remains closed.
+- Added task summary for `aliyun-acorn-sshd-authorizedkeysfile-fix`.
+- Extended runtime validation patterns with NixOS OpenSSH `extraConfig` caution and generated `AuthorizedKeysFile` validation guidance.
