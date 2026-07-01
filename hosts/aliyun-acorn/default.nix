@@ -9,30 +9,19 @@
       role = "server";
     };
 
-    dev = {
-      node.enable = true;
-      deno.enable = true;
-      rust.enable = true;
-      python.enable = true;
-    };
-
     editors = {
       default = "nvim";
       vim.enable = true;
     };
 
     shell = {
-      adl.enable = true;
-      direnv.enable = true;
       git.enable = true;
-      gnupg.enable = true;
       tmux.enable = true;
       zsh.enable = true;
     };
 
     services = {
       ssh.enable = true;
-      docker.enable = true;
       fail2ban.enable = true;
       frp.server.enable = true;
       nginx.enable = true;
@@ -55,11 +44,27 @@
       group = "nginx";
     };
 
-    nix.settings.substituters = lib.mkBefore [
-      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
-      "https://mirrors.ustc.edu.cn/nix-channels/store"
-      "https://mirror.sjtu.edu.cn/nix-channels/store"
-    ];
+    nix.settings = {
+      substituters = lib.mkBefore [
+        "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+        "https://mirrors.ustc.edu.cn/nix-channels/store"
+        "https://mirror.sjtu.edu.cn/nix-channels/store"
+      ];
+      max-jobs = 1;
+      cores = 1;
+      http-connections = 4;
+    };
+
+    programs.nix-ld.enable = lib.mkForce false;
+
+    documentation = {
+      enable = false;
+      man.enable = false;
+      info.enable = false;
+      nixos.enable = false;
+    };
+
+    virtualisation.docker.enableOnBoot = lib.mkForce false;
 
     boot = {
       growPartition = true;
@@ -85,7 +90,7 @@
       hostName = "aliyun-acorn";
       useDHCP = lib.mkForce false;
       firewall = {
-        allowedTCPPorts = [ 22 80 443 2222 2225 7000 34197 ];
+        allowedTCPPorts = lib.mkForce [ 22 2222 2225 7000 34197 ];
         allowedUDPPorts = [ 34197 ];
       };
     };
@@ -110,9 +115,8 @@
     };
 
     services.nginx.virtualHosts."status-axiom.0xc1.wang" = {
-      http2 = true;
-      forceSSL = true;
-      enableACME = true;
+      # Staged only: re-open publicly after DNS and TLS/ACME are ready.
+      listen = [{ addr = "127.0.0.1"; port = 80; }];
       locations."/" = {
         proxyPass = "http://127.0.0.1:18080";
         proxyWebsockets = true;
@@ -120,10 +124,11 @@
       };
     };
 
-    virtualisation.docker.enableOnBoot = lib.mkForce true;
-
     programs.ssh.startAgent = true;
-    services.openssh.startWhenNeeded = true;
+    services.openssh = {
+      startWhenNeeded = lib.mkForce false;
+      extraConfig = lib.mkForce "";
+    };
     security.acme.defaults.email = "siyuan.arc@gmail.com";
 
     time.timeZone = "Asia/Shanghai";

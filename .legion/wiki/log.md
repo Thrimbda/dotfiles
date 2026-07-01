@@ -218,6 +218,8 @@
 - Updated `aliyun-acorn-nix-cache-mirror` wiki summary, decisions, and patterns for TUNA/USTC/SJTU mirror order, official cache key/fallback validation, TCP 2222 firewall scope, and image-target drvPath validation.
 - Added task summary for `aliyun-acorn-0xc1-wang-entry`.
 - Updated current FRP and status-page decisions with the `status-axiom.0xc1.wang` nginx/Basic Auth/frp `18080` slice and the boundary that existing `0xc1.space` and OpenCode Access exposure remain unchanged.
+- Added task summary for `aliyun-acorn-vaultwarden-acme-staging-fix`.
+- Updated Aliyun decisions and maintenance with the low-resource `aliyun-acorn` server profile, loopback-only staged auth vhosts, public `80/443` closure, and DNS/TLS cutover follow-up.
 - Added task summary for `axiom-frpc-direct-route`.
 - Updated current FRP and Clash Verge decisions with Axiom's host-local direct route for frpc traffic to Aliyun Acorn.
 - Added task summary for `aliyun-acorn-vaultwarden-dualrun`.
