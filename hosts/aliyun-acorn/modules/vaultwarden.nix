@@ -24,8 +24,7 @@
   };
 
   services.nginx.virtualHosts."vault.0xc1.space" = {
-    # Staged only: re-open publicly after DNS and TLS/ACME are ready.
-    listen = [{ addr = "127.0.0.1"; port = 80; }];
+    # TLS listener is staged from the host module; ACME waits for DNS cutover.
     root = "/srv/www/vault.0xc1.space";
     extraConfig = ''
       client_max_body_size 64M;
