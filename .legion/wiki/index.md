@@ -17,6 +17,7 @@
 - [Aliyun Acorn HTTPS Firewall Ports](tasks/aliyun-acorn-https-firewall-ports.md)
 - [Aliyun Acorn Vault Wang Vhost](tasks/aliyun-acorn-vault-wang-vhost.md)
 - [Aliyun Acorn Vault Wang Only](tasks/aliyun-acorn-vault-wang-only.md)
+- [Aliyun Acorn Vault ACME Proxy](tasks/aliyun-acorn-vault-acme-proxy.md)
 - [Axiom 4K 240Hz HDR Display](tasks/axiom-4k240-hdr-display.md)
 - [Axiom Antigravity Install](tasks/axiom-antigravity-install.md)
 - [Axiom Autossh Reverse SSH Tunnel](tasks/axiom-autossh-reverse-ssh-tunnel.md)

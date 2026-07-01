@@ -2,7 +2,7 @@
 
 let
   mkVaultwardenVhost = domain: {
-    # TLS listener is staged from the host module; ACME waits for DNS cutover.
+    # TLS listener ownership is staged from the host module.
     root = "/srv/www/${domain}";
     extraConfig = ''
       client_max_body_size 64M;

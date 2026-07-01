@@ -6,4 +6,5 @@ in {
   "nginx-status-htpasswd.age".publicKeys = [ aliyunAcorn ];
   "status-basic-auth-password.age".publicKeys = [ aliyunAcorn ];
   "vaultwarden-env.age".publicKeys = [ aliyunAcorn ];
+  "cloudflare-dns.env.age".publicKeys = [ aliyunAcorn ];
 }
