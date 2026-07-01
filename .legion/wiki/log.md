@@ -222,6 +222,7 @@
 - Updated Aliyun decisions and maintenance with the low-resource `aliyun-acorn` server profile, loopback-only staged auth vhosts, public `80/443` closure, and DNS/TLS cutover follow-up.
 - Added task summary for `aliyun-acorn-https-firewall-ports`.
 - Corrected Aliyun decisions and maintenance so `aliyun-acorn` staged auth vhosts keep public HTTPS `443`, public HTTP `80` remains closed, and self-signed certs bridge until ACME cutover.
+- Added task summary for `aliyun-acorn-vault-wang-vhost` and recorded `vault.0xc1.wang` as the intended Aliyun Vaultwarden staging hostname.
 - Added task summary for `axiom-frpc-direct-route`.
 - Updated current FRP and Clash Verge decisions with Axiom's host-local direct route for frpc traffic to Aliyun Acorn.
 - Added task summary for `aliyun-acorn-vaultwarden-dualrun`.

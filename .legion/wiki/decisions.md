@@ -18,7 +18,7 @@ For agenix-backed service migration between hosts, the target host must receive 
 
 `aliyun-acorn` is a low-resource public server target, not a development or desktop machine. Keep its host profile limited to explicit server role dependencies; do not enable development runtimes, desktop/media tooling, Docker, or host `nix-ld` unless a scoped task proves they are required.
 
-Until DNS/ACME cutover is ready, `aliyun-acorn` auth-bearing nginx vhosts such as `vault.0xc1.space` and `status-axiom.0xc1.wang` may be public HTTPS-only with on-host self-signed staging certificates. Public `80` should remain closed, and those vhosts must not be exposed over public cleartext HTTP.
+Until DNS/ACME cutover is ready, `aliyun-acorn` auth-bearing nginx vhosts such as `vault.0xc1.wang`, `vault.0xc1.space`, and `status-axiom.0xc1.wang` may be public HTTPS-only with on-host self-signed staging certificates. Public `80` should remain closed, and those vhosts must not be exposed over public cleartext HTTP. The intended `aliyun-acorn` Vaultwarden staging hostname is `vault.0xc1.wang`; `vault.0xc1.space` is compatibility routing while `acorn` remains the old deployment.
 
 ## Linux Workstation Desktop Baseline
 

@@ -36,6 +36,7 @@
     stagedTlsDomains = [
       "status-axiom.0xc1.wang"
       "vault.0xc1.space"
+      "vault.0xc1.wang"
     ];
     stagedTlsDir = domain: "/var/lib/nginx-selfsigned/${domain}";
     mkStagedTlsVhost = domain: {
@@ -150,6 +151,8 @@
     };
 
     services.nginx.virtualHosts."vault.0xc1.space" = mkStagedTlsVhost "vault.0xc1.space";
+
+    services.nginx.virtualHosts."vault.0xc1.wang" = mkStagedTlsVhost "vault.0xc1.wang";
 
     services.nginx.virtualHosts."status-axiom.0xc1.wang" = mkStagedTlsVhost "status-axiom.0xc1.wang" // {
       # Staged HTTPS stays public; ACME is re-enabled after DNS cutover is ready.
