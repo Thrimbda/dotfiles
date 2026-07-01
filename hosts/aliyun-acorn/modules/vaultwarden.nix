@@ -45,7 +45,6 @@ in
   };
 
   services.nginx.virtualHosts = {
-    "vault.0xc1.space" = mkVaultwardenVhost "vault.0xc1.space";
     "vault.0xc1.wang" = mkVaultwardenVhost "vault.0xc1.wang";
   };
 

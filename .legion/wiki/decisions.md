@@ -12,13 +12,13 @@ On `aliyun-acorn`, Nix binary substitutions should prefer domestic mirrors in th
 
 `aliyun-acorn` NixOS firewall allows TCP `2222` as a host-local port opening. This does not by itself configure the Aliyun security group, start a service on that port, or change SSH authentication/listening behavior.
 
-`aliyun-acorn` now has a staged Vaultwarden deployment configuration for `vault.0xc1.space` while `acorn` remains unchanged. Treat this as dual-run readiness, not traffic cutover or data migration. DNS/ACME readiness and Vaultwarden data ownership must be handled before sending real traffic to the new host.
+`aliyun-acorn` Vaultwarden staging is scoped to `vault.0xc1.wang` only while `acorn` remains unchanged. Do not add `vault.0xc1.space` as an `aliyun-acorn` compatibility vhost; DNS/ACME readiness and Vaultwarden data ownership must be handled before sending real traffic to the new host.
 
 For agenix-backed service migration between hosts, the target host must receive a secret encrypted to its own declared recipient. Do not copy an existing `.age` artifact across hosts unless target-key decryptability is verified; re-encrypt from a valid source decrypt identity directly into the target host's `secrets/` rule context.
 
 `aliyun-acorn` is a low-resource public server target, not a development or desktop machine. Keep its host profile limited to explicit server role dependencies; do not enable development runtimes, desktop/media tooling, Docker, or host `nix-ld` unless a scoped task proves they are required.
 
-Until DNS/ACME cutover is ready, `aliyun-acorn` auth-bearing nginx vhosts such as `vault.0xc1.wang`, `vault.0xc1.space`, and `status-axiom.0xc1.wang` may be public HTTPS-only with on-host self-signed staging certificates. Public `80` should remain closed, and those vhosts must not be exposed over public cleartext HTTP. The intended `aliyun-acorn` Vaultwarden staging hostname is `vault.0xc1.wang`; `vault.0xc1.space` is compatibility routing while `acorn` remains the old deployment.
+Until DNS/ACME cutover is ready, `aliyun-acorn` auth-bearing nginx vhosts such as `vault.0xc1.wang` and `status-axiom.0xc1.wang` may be public HTTPS-only with on-host self-signed staging certificates. Public `80` should remain closed, and those vhosts must not be exposed over public cleartext HTTP. The intended `aliyun-acorn` Vaultwarden staging hostname is `vault.0xc1.wang` only.
 
 ## Linux Workstation Desktop Baseline
 
