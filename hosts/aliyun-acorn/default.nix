@@ -31,7 +31,19 @@
     theme.useX = false;
   };
 
-  config = { config, modulesPath, lib, pkgs, ... }: {
+  config = { config, modulesPath, lib, pkgs, ... }:
+  let
+    stagedTlsDomains = [
+      "status-axiom.0xc1.wang"
+      "vault.0xc1.space"
+    ];
+    stagedTlsDir = domain: "/var/lib/nginx-selfsigned/${domain}";
+    mkStagedTlsVhost = domain: {
+      onlySSL = true;
+      sslCertificate = "${stagedTlsDir domain}/fullchain.pem";
+      sslCertificateKey = "${stagedTlsDir domain}/key.pem";
+    };
+  in {
     imports = [
       "${modulesPath}/profiles/qemu-guest.nix"
       ./modules/vaultwarden.nix
@@ -90,7 +102,7 @@
       hostName = "aliyun-acorn";
       useDHCP = lib.mkForce false;
       firewall = {
-        allowedTCPPorts = lib.mkForce [ 22 2222 2225 7000 34197 ];
+        allowedTCPPorts = lib.mkForce [ 22 443 2222 2223 2224 2225 7000 34197 ];
         allowedUDPPorts = [ 34197 ];
       };
     };
@@ -114,9 +126,33 @@
       };
     };
 
-    services.nginx.virtualHosts."status-axiom.0xc1.wang" = {
-      # Staged only: re-open publicly after DNS and TLS/ACME are ready.
-      listen = [{ addr = "127.0.0.1"; port = 80; }];
+    systemd.services.nginx = {
+      serviceConfig = {
+        StateDirectory = "nginx-selfsigned";
+        StateDirectoryMode = "0750";
+      };
+      preStart = lib.mkBefore ''
+        set -eu
+        for domain in ${lib.escapeShellArgs stagedTlsDomains}; do
+          dir=/var/lib/nginx-selfsigned/$domain
+          cert=$dir/fullchain.pem
+          key=$dir/key.pem
+          if [ ! -s "$cert" ] || [ ! -s "$key" ]; then
+            mkdir -p "$dir"
+            ${pkgs.openssl}/bin/openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+              -keyout "$key" -out "$cert" \
+              -subj "/CN=$domain" -addext "subjectAltName=DNS:$domain"
+            chmod 600 "$key"
+            chmod 644 "$cert"
+          fi
+        done
+      '';
+    };
+
+    services.nginx.virtualHosts."vault.0xc1.space" = mkStagedTlsVhost "vault.0xc1.space";
+
+    services.nginx.virtualHosts."status-axiom.0xc1.wang" = mkStagedTlsVhost "status-axiom.0xc1.wang" // {
+      # Staged HTTPS stays public; ACME is re-enabled after DNS cutover is ready.
       locations."/" = {
         proxyPass = "http://127.0.0.1:18080";
         proxyWebsockets = true;
