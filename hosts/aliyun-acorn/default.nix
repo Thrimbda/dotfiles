@@ -35,7 +35,6 @@
   let
     stagedTlsDomains = [
       "status-axiom.0xc1.wang"
-      "vault.0xc1.wang"
     ];
     stagedTlsDir = domain: "/var/lib/nginx-selfsigned/${domain}";
     mkStagedTlsVhost = domain: {
@@ -54,6 +53,13 @@
     age.secrets.nginx-status-htpasswd = {
       owner = "nginx";
       group = "nginx";
+    };
+
+    age.secrets.cloudflare-dns-env = {
+      file = ./secrets/cloudflare-dns.env.age;
+      owner = "acme";
+      group = "acme";
+      mode = "0400";
     };
 
     nix.settings = {
@@ -149,7 +155,10 @@
       '';
     };
 
-    services.nginx.virtualHosts."vault.0xc1.wang" = mkStagedTlsVhost "vault.0xc1.wang";
+    services.nginx.virtualHosts."vault.0xc1.wang" = {
+      onlySSL = true;
+      useACMEHost = "vault.0xc1.wang";
+    };
 
     services.nginx.virtualHosts."status-axiom.0xc1.wang" = mkStagedTlsVhost "status-axiom.0xc1.wang" // {
       # Staged HTTPS stays public; ACME is re-enabled after DNS cutover is ready.
@@ -166,6 +175,12 @@
       extraConfig = lib.mkForce "";
     };
     security.acme.defaults.email = "siyuan.arc@gmail.com";
+    security.acme.certs."vault.0xc1.wang" = {
+      dnsProvider = "cloudflare";
+      environmentFile = config.age.secrets.cloudflare-dns-env.path;
+      group = "nginx";
+      reloadServices = [ "nginx.service" ];
+    };
 
     time.timeZone = "Asia/Shanghai";
 
