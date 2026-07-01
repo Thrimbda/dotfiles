@@ -227,3 +227,5 @@
 - Updated current FRP and Clash Verge decisions with Axiom's host-local direct route for frpc traffic to Aliyun Acorn.
 - Added task summary for `aliyun-acorn-vaultwarden-dualrun`.
 - Updated current Aliyun/Vaultwarden decisions, agenix host migration pattern, and Aliyun Acorn maintenance follow-up for staged Vaultwarden dual-run readiness and secret re-encryption.
+- Added task summary for `aliyun-acorn-vault-wang-only`.
+- Corrected current Aliyun/Vaultwarden decisions so `aliyun-acorn` only deploys Vaultwarden at `vault.0xc1.wang`; `vault.0xc1.space` is not an `aliyun-acorn` compatibility vhost.

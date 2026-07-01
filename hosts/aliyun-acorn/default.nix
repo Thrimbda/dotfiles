@@ -35,7 +35,6 @@
   let
     stagedTlsDomains = [
       "status-axiom.0xc1.wang"
-      "vault.0xc1.space"
       "vault.0xc1.wang"
     ];
     stagedTlsDir = domain: "/var/lib/nginx-selfsigned/${domain}";
@@ -149,8 +148,6 @@
         done
       '';
     };
-
-    services.nginx.virtualHosts."vault.0xc1.space" = mkStagedTlsVhost "vault.0xc1.space";
 
     services.nginx.virtualHosts."vault.0xc1.wang" = mkStagedTlsVhost "vault.0xc1.wang";
 
