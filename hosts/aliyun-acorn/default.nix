@@ -172,7 +172,6 @@
     programs.ssh.startAgent = true;
     services.openssh = {
       startWhenNeeded = lib.mkForce false;
-      extraConfig = lib.mkForce "";
     };
     security.acme.defaults.email = "siyuan.arc@gmail.com";
     security.acme.certs."vault.0xc1.wang" = {

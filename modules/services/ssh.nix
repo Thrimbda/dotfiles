@@ -22,8 +22,6 @@ in
           # with authorizedKeys!
           PasswordAuthentication = false;
         };
-        # Suppress superfluous TCP traffic on new connections. Undo if using SSSD.
-        extraConfig = ''GSSAPIAuthentication no'';
         # Deactivate short moduli
         moduliFile = pkgs.runCommand "filterModuliFile" {} ''
           awk '$5 >= 3071' "${config.programs.ssh.package}/etc/ssh/moduli" >"$out"
