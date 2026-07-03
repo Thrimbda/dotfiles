@@ -44,6 +44,8 @@ For Axiom Caelestia/Quickshell controls that need NetworkManager or logind autho
 
 Axiom graphical sessions must export a deterministic command PATH from generated `uwsm/env` and import `PATH` into the systemd user manager before starting `hyprland-session.target`. Caelestia Shell remains a launcher/app2unit parent with explicit session runner PATH ownership, and that path must include Caelestia helpers, user packages, and generated system packages so GUI-launched terminals and apps can resolve system-profile commands such as `git`, `gawk`, `steam`, and `steam-run`.
 
+Axiom's `hey hook startup` path depends on the repository-managed Janet JPM tree matching the active Janet package ABI. When the evaluated Janet version changes, activation should rebuild managed JPM artifacts rather than letting stale native `.so` modules block `hyprland-session.target` and Caelestia startup.
+
 Mutable Axiom Caelestia `shell.json` ownership is now part of `modules.desktop.caelestia`: defaults still stay minimal, but durable migrations for Axiom idle defaults, launcher favourites, legacy favourite removal, and Nix package `XDG_DATA_DIRS` discovery belong in the Caelestia module rather than host-local pre-start scripts.
 
 Caelestia Shell launcher children must also inherit the active display/session variables needed by both Wayland and X11/XWayland clients. The generated `caelestia-session` runner should use the systemd user manager as the post-Hyprland-import source of truth and hydrate only missing allowlisted variables such as `DISPLAY`, `WAYLAND_DISPLAY`, `XAUTHORITY`, desktop/session identifiers, and `HYPRLAND_INSTANCE_SIGNATURE` before starting Quickshell.

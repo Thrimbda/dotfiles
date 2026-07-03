@@ -61,12 +61,21 @@ in {
       # Compile bin/hey to trivialize janet startup time
       # TODO: Include gcc for 'jpm deps'
       system.userActivationScripts.initHey = ''
+        ${pkgs.coreutils}/bin/install -d -m 0755 "${janetTreeDir}"
+
+        janet_version="$(${janet}/bin/janet --version)"
+        janet_version_file="${janetTreeDir}/.nix-managed-janet-version"
+        if [ ! -f "$janet_version_file" ] || [ "$(${pkgs.coreutils}/bin/cat "$janet_version_file")" != "$janet_version" ]; then
+          ${pkgs.coreutils}/bin/rm -rf "${janetTreeDir}/build" "${janetTreeDir}/lib" "${janetTreeDir}/bin/hey"
+        fi
+
         ${pkgs.zsh}/bin/zsh -c 'echo $PATH' >"$XDG_DATA_HOME/hey/path"
 
         export JANET_PATH="${janetTreeDir}/lib"
         export JANET_TREE="${janetTreeDir}"
         ${pkgs.zsh}/bin/zsh -c "cd '${hey.dir}'; jpm deps"
         ${pkgs.zsh}/bin/zsh -c "cd '${hey.dir}'; jpm run deploy"
+        ${pkgs.coreutils}/bin/printf '%s\n' "$janet_version" > "$janet_version_file"
       '';
 
       systemd.user.tmpfiles.rules = [

@@ -8,6 +8,7 @@ let cfg = config.modules.services.docker;
 in {
   options.modules.services.docker = {
     enable = mkBoolOpt false;
+    package = mkOpt types.package pkgs.docker;
     # portainer.enable = mkBoolOpt false;
   };
 
@@ -15,7 +16,7 @@ in {
   config = mkIf (cfg.enable && isLinux) (mkMerge [
     {
       user.packages = with pkgs; [
-        docker
+        cfg.package
         docker-compose
       ];
 
@@ -31,6 +32,7 @@ in {
       virtualisation = {
         docker = {
           enable = true;
+          package = cfg.package;
           autoPrune.enable = true;
           enableOnBoot = mkDefault false;
           # listenOptions = [];

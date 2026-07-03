@@ -62,6 +62,7 @@
 - [Axiom Foot Notify Config Fix](tasks/axiom-foot-notify-config-fix.md)
 - [Axiom HDMI Audio Startup Fix](tasks/axiom-hdmi-audio-startup-fix.md)
 - [Axiom Audio PulseAudio Autospawn Fix](tasks/axiom-audio-pulseaudio-autospawn-fix.md)
+- [Axiom Build And Caelestia Regression](tasks/axiom-build-caelestia-regression.md)
 - [Axiom Host](tasks/axiom-host.md)
 - [Axiom Hyprland DPMS Safe Mode Fix](tasks/axiom-hyprland-dpms-safe-mode-fix.md)
 - [Axiom Hyprland Mouse Workspace Move](tasks/axiom-hyprland-mouse-workspace-move.md)
