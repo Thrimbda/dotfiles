@@ -122,7 +122,7 @@ When NixOS uses a prebuilt pkgs set, local modules should not set `nixpkgs.overl
 
 ## Reverse SSH Tunnels
 
-Current autossh reverse tunnels to `root@8.159.128.125` bind remote loopback explicitly and forward back to each host's local SSH daemon on `127.0.0.1:22`.
+Current autossh reverse tunnels to `root@8.159.128.125` bind remote loopback explicitly and forward back to each host's local SSH daemon on `127.0.0.1:22`. Axiom does not declaratively pin the remote server's own host key in `/etc/ssh/ssh_known_hosts`, because that remote is mutable/reinstallable and stale system-wide pins block login. Keep endpoint identity checks focused on proving the reverse port reaches the expected local host key.
 
 - `charlie`: remote `127.0.0.1:2222` -> local `127.0.0.1:22` through the Darwin launchd user agent.
 - `axiom`: remote `127.0.0.1:2223` -> local `127.0.0.1:22` through the NixOS systemd service; `axiom` uses persistent `sshd.service` rather than OpenSSH socket activation so the local tunnel target is daemon-backed.

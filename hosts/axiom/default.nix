@@ -151,7 +151,6 @@ with builtins;
       userName = config.user.name;
       opencodeDir = config.modules.services.opencode-server.dir;
       reverseSsh = config.modules.services.reverse-ssh;
-      autosshRemoteHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAHARUNf8QKGEqfBx2pCtJkBp5HEqoBjp9XyqIos07nA";
       aliyunAcornPublicIp = "8.159.128.125";
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       frpcDirectRouteUnit = "frpc-aliyun-acorn-direct-route.service";
@@ -269,8 +268,6 @@ with builtins;
     modules.services.reverse-ssh = {
       enable = true;
       remoteHost = aliyunAcornPublicIp;
-      remoteHostKey = autosshRemoteHostKey;
-      knownHostName = "autossh-remote-8.159.128.125";
       remotePort = 2223;
     };
 
