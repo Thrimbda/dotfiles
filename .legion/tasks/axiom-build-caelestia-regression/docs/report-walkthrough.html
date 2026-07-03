@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Axiom Build And Caelestia Regression | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.012 92);
+      --surface: oklch(98% 0.008 92);
+      --ink: oklch(24% 0.018 132);
+      --muted: oklch(50% 0.025 132);
+      --line: oklch(82% 0.018 105);
+      --accent: oklch(45% 0.12 153);
+      --ok: oklch(89% 0.065 144);
+      --warn: oklch(88% 0.08 82);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: system-ui, sans-serif; line-height: 1.62; }
+    main { width: min(1120px, calc(100vw - 36px)); margin: 0 auto; padding: 48px 0 72px; }
+    header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 28px; align-items: end; margin-bottom: 30px; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 4rem); line-height: 1; letter-spacing: -0.04em; }
+    h2 { margin-top: 0; }
+    p, li { max-width: 74ch; }
+    a { color: var(--accent); }
+    code { background: oklch(92% 0.014 92); border-radius: 0.35rem; padding: 0.05rem 0.28rem; }
+    .status, section, nav { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); }
+    .status { padding: 22px; }
+    .status p { display: flex; justify-content: space-between; gap: 16px; margin: 0.45rem 0; }
+    .pill { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--ok); padding: 0.12rem 0.62rem; font-weight: 760; }
+    .pending { background: var(--warn); }
+    .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; align-items: start; }
+    nav { position: sticky; top: 18px; padding: 18px; }
+    nav a { display: block; margin: 0.55rem 0; text-decoration: none; }
+    section { padding: 26px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 10px; }
+    th { color: var(--muted); }
+    @media (max-width: 860px) { header, .layout { grid-template-columns: 1fr; } nav { position: static; } }
+    @media print { nav { display: none; } main { width: auto; padding: 0; } section, .status { break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p>implementation walkthrough</p>
+        <h1>Axiom Build And Caelestia Regression</h1>
+        <p>Reviewer 需要判断这组低风险 Nix 修复是否足以恢复 Axiom build、Caelestia startup hook 和 Foot terminal 字体。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <p><span>Profile</span><span class="pill">implementation</span></p>
+        <p><span>Verification</span><span class="pill">PASS</span></p>
+        <p><span>Review</span><span class="pill">PASS</span></p>
+        <p><span>PR</span><span class="pill pending">pending</span></p>
+        <p><span>Render</span><span class="pill pending">bypassed</span></p>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">路径</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <p>本任务修复 Axiom build gate，并处理 switch 后的两个运行时回归。Caelestia 根因是 `hey hook startup` 因 Janet native module ABI mismatch 崩溃。Foot 字体根因是 configured terminal font 没进入 NixOS fontconfig package set。</p>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <p>In scope: Axiom host-local package fixes、Docker package option、Janet/JPM rebuild guard、Foot terminal font package exposure。</p>
+          <p>Out of scope: 用户已有 `flake.lock` 更新、Caelestia 架构重写、全量 GUI smoke 自动化。</p>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Axiom toplevel 可 build</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>startup hook 根因已定位</td><td><code>hey hook startup</code> live error 与 direct <code>caelestia-session start</code> smoke</td><td>PASS</td></tr>
+              <tr><td>review 无 blocking finding</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+              <tr><td>未使用 insecure allowlist</td><td>diff + review scope check</td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <p>contract -> implementation -> focused eval/build validation -> review-change PASS -> walkthrough -> PR lifecycle。</p>
+          <p>PR body 只是创建输入，不代表 checks、review、merge、cleanup 或 main refresh 已完成。</p>
+        </section>
+
+        <section id="changes">
+          <h2>What Changed / What Was Decided</h2>
+          <p>Axiom Docker 使用 Docker 29。Vesktop 只在当前 nixpkgs 暴露 `pnpm_10_29_2` 参数时替换为 `pkgs.unstable.pnpm_10`。Janet 版本变化时重建 managed JPM tree。Foot 启用时把 terminal font package 加入 `fonts.packages`。</p>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <p><code>nix build --impure --no-link '.#nixosConfigurations.axiom.config.system.build.toplevel'</code> 通过。Merged user activation script 通过 <code>zsh -n</code>。<code>git diff --check</code> 通过。Review 为 PASS。</p>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <p>仍需下一次 Axiom switch/reboot 后确认 Caelestia 自启动和 Foot 字体恢复。本任务没有提交用户本地 `flake.lock` 更新。</p>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>确认 Docker package option 默认兼容。</li>
+            <li>确认 Janet rebuild guard 删除范围足够窄。</li>
+            <li>确认 Foot font exposure 符合 terminal font ownership。</li>
+          </ul>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>Explicit render bypass。用户要求轻量文档，本任务不新增 Pages workflow 或发布 preview URL；repo 内 HTML artifact 作为本地审阅文件。</p>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>当前状态是 implementation evidence ready。下一步是提交、rebase、push、创建 PR、跟进 checks/review。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

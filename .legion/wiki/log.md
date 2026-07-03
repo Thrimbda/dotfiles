@@ -233,3 +233,5 @@
 - Updated Aliyun/Vaultwarden decisions so `vault.0xc1.wang` uses Cloudflare-proxied DNS plus Cloudflare DNS-01 ACME while public HTTP `80` remains closed.
 - Added task summary for `aliyun-acorn-sshd-authorizedkeysfile-fix`.
 - Extended runtime validation patterns with NixOS OpenSSH `extraConfig` caution and generated `AuthorizedKeysFile` validation guidance.
+- Added task summary for `axiom-build-caelestia-regression`.
+- Updated current Axiom desktop decisions, runtime validation patterns, and maintenance with Janet/JPM ABI rebuild guidance and Foot fontconfig fallback validation.

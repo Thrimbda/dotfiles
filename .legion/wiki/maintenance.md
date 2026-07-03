@@ -19,6 +19,7 @@
 
 ## Caelestia Shell Follow-Up
 
+- After deploying `axiom-build-caelestia-regression`, run a fresh Axiom switch/reboot smoke: confirm `hey hook startup` no longer reports Janet native module ABI mismatch, `systemctl --user is-active hyprland-session.target` is active, `pgrep -a caelestia` shows the session runner/shell, and `fc-match 'FiraCode Nerd Font Mono'` resolves to the FiraCode Nerd Font package rather than a Chinese fallback font.
 - Live Axiom validation remains required inside the actual Hyprland session: start or restart the generated `caelestia-session` runner, confirm the shell process cgroup is under `session-*.scope`, confirm the shell renders, and exercise launcher, sidebar/session/lock, notification/tray, OSD/media/brightness, screenshot/recording, wallpaper, default apps, polkit prompts, NetworkManager, Bluetooth, and power-profile paths.
 - If Caelestia global shortcuts or CLI commands differ from the initial static mapping, update the Nix-generated Hyprland keybinds rather than restoring legacy end4 IPC or fuzzel assumptions.
 - Revisit local `caelestia/shell.json` only for host policy that must be repository-owned. Avoid copying exhaustive upstream defaults unless a future task proves a stable need.

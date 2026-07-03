@@ -211,6 +211,7 @@ with builtins;
     };
 
     modules.services.todesk.enable = true;
+    modules.services.docker.package = pkgs.docker_29;
     modules.virt.libvirt.enable = true;
     modules.profiles.workstation = {
       logrotate.disableConfigCheck = true;
@@ -238,6 +239,13 @@ with builtins;
       sops
       uv
     ];
+
+    modules.desktop.apps.discord.package = pkgs.unstable.vesktop.override (
+      optionalAttrs (pkgs.unstable.vesktop.override.__functionArgs ? pnpm_10_29_2) {
+        # Newer nixpkgs temporarily pins pnpm_10_29_2 here, which is insecure.
+        pnpm_10_29_2 = pkgs.unstable.pnpm_10;
+      }
+    );
 
     modules.desktop.apps.clash-verge = {
       servicePolicy = {

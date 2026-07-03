@@ -18,6 +18,8 @@ in {
   };
 
   config = mkIf cfg.enable {
+    fonts.packages = [ termCfg.font.package ];
+
     user.packages = with pkgs; [
       foot
       libsixel  # image support in foot

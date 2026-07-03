@@ -106,6 +106,8 @@ For Hyprland monitor mode changes, directly evaluate the generated Home Manager 
 
 For visible-shell startup regressions where Hyprland shows a cursor but the desktop stays black, validate the generated startup chain directly. Check that `exec-once = hey hook startup` is present, startup hooks are ordered as expected, the early session hook starts `hyprland-session.target`, DMS/Quickshell is wanted by the session target, wallpaper starts through the configured background hook, and no foreground lock command gates the shell path.
 
+For Axiom startup regressions where Caelestia is not running, test `hey hook startup` before changing Caelestia itself. A Janet native module error such as `config mismatch - host <new> vs. module <old>` means the managed JPM tree was compiled for an older Janet ABI; fix the activation rebuild path and then verify `hyprland-session.target` plus `caelestia-session` rather than adding a second shell launcher.
+
 For Hyprland/UWSM startup warnings, validate the actual command resolution instead of only checking desktop entry existence. A `uwsm start` dry run should resolve to `start-hyprland`; if it resolves to direct `Hyprland`, the generated startup path can still trigger the upstream warning even when UWSM is present.
 
 For autossh reverse tunnel regressions, validate both sides of the generated shape: the remote-forward string must remain loopback-only and port-unique, and the local target service must exist as an active daemon if the tunnel forwards to `127.0.0.1:22`.
@@ -131,6 +133,8 @@ For Cloudflare secrets, keep cloudflared tunnel runtime credentials separate fro
 For Linux cloudflared services backed by agenix credentials, keep connector config system-owned, for example `/etc/cloudflared/config.yml`. Do not require Home Manager to write `~/.cloudflared/config.yml` if the age secret path also lives under `~/.cloudflared`, because agenix can create the parent directory as root before Home Manager activation.
 
 For terminal config compatibility regressions, validate the repository source and the Nix-evaluated Home Manager source path with the target terminal binary. For Foot, `foot --check-config --config <path>` is the direct validation surface; do not assume an option remains valid across package upgrades just because an older checked-in config accepted it.
+
+For terminal font fallback regressions, validate both the evaluated terminal config and fontconfig's live match. If Foot writes the expected family but `fc-match <family>` resolves to an unrelated fallback, make the configured `modules.desktop.term.font.package` visible through `fonts.packages` instead of changing theme font ownership or patching mutable fontconfig state.
 
 For shell/terminal ownership migrations out of a theme module, combine content reference search with path-level orphan checks. Reference greps such as `fonts\.terminal` or `hey info theme fonts terminal` prove consumers moved, while `git diff --name-status -- 'modules/themes/*/config/zsh/*' 'modules/themes/*/config/tmux*'` and a worktree glob prove stale theme-owned prompt/tmux assets were not left behind. Also evaluate the new owner metadata, for example `hey.info.term.font`, and at least one desktop plus one server host that enable the affected shell/terminal modules.
 
