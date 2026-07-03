@@ -235,3 +235,5 @@
 - Extended runtime validation patterns with NixOS OpenSSH `extraConfig` caution and generated `AuthorizedKeysFile` validation guidance.
 - Added task summary for `axiom-build-caelestia-regression`.
 - Updated current Axiom desktop decisions, runtime validation patterns, and maintenance with Janet/JPM ABI rebuild guidance and Foot fontconfig fallback validation.
+- Added task summary for `hey-jpm-activation-safe-rebuild`.
+- Updated current Axiom desktop decisions, runtime validation patterns, and maintenance so `hey` activation uses staged JPM rebuilds and does not delete active runtime artifacts before network-backed rebuild success.
