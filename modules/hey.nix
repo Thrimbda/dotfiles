@@ -65,17 +65,66 @@ in {
 
         janet_version="$(${janet}/bin/janet --version)"
         janet_version_file="${janetTreeDir}/.nix-managed-janet-version"
+        project_hash="$(${pkgs.coreutils}/bin/sha256sum '${hey.dir}/project.janet' | ${pkgs.coreutils}/bin/cut -d ' ' -f1)"
+        project_hash_file="${janetTreeDir}/.nix-managed-project-sha256"
+
+        hey_runtime_usable() {
+          DOTFILES_HOME='${hey.dir}' \
+          JANET_PATH="${hey.libDir}:${janetTreeDir}/lib" \
+          JANET_TREE="${janetTreeDir}" \
+          ${janet}/bin/janet ${hey.binDir}/hey path home >/dev/null 2>&1
+        }
+
+        rebuild_hey=false
         if [ ! -f "$janet_version_file" ] || [ "$(${pkgs.coreutils}/bin/cat "$janet_version_file")" != "$janet_version" ]; then
-          ${pkgs.coreutils}/bin/rm -rf "${janetTreeDir}/build" "${janetTreeDir}/lib" "${janetTreeDir}/bin/hey"
+          rebuild_hey=true
+        elif [ ! -f "$project_hash_file" ] || [ "$(${pkgs.coreutils}/bin/cat "$project_hash_file")" != "$project_hash" ]; then
+          rebuild_hey=true
+        elif ! hey_runtime_usable; then
+          rebuild_hey=true
         fi
 
+        ${pkgs.coreutils}/bin/install -d -m 0755 "$XDG_DATA_HOME/hey"
         ${pkgs.zsh}/bin/zsh -c 'echo $PATH' >"$XDG_DATA_HOME/hey/path"
 
-        export JANET_PATH="${janetTreeDir}/lib"
-        export JANET_TREE="${janetTreeDir}"
-        ${pkgs.zsh}/bin/zsh -c "cd '${hey.dir}'; jpm deps"
-        ${pkgs.zsh}/bin/zsh -c "cd '${hey.dir}'; jpm run deploy"
-        ${pkgs.coreutils}/bin/printf '%s\n' "$janet_version" > "$janet_version_file"
+        if [ "$rebuild_hey" = true ]; then
+          stage_tree="$(${pkgs.coreutils}/bin/mktemp -d "${janetTreeDir}.staging.XXXXXX")"
+          cleanup_stage() {
+            ${pkgs.coreutils}/bin/rm -rf "''${stage_tree:-}"
+          }
+          trap cleanup_stage EXIT
+
+          if (
+            export JANET_PATH="$stage_tree/lib"
+            export JANET_TREE="$stage_tree"
+            export XDG_BIN_HOME="$stage_tree/bin"
+            ${pkgs.coreutils}/bin/install -d -m 0755 "$JANET_TREE" "$XDG_BIN_HOME"
+            cd '${hey.dir}'
+            ${jpmPkg}/bin/jpm deps
+            ${jpmPkg}/bin/jpm run deploy
+            DOTFILES_HOME='${hey.dir}' ${janet}/bin/janet ${hey.binDir}/hey path home >/dev/null
+          ); then
+            ${pkgs.coreutils}/bin/rm -rf "${janetTreeDir}/build" "${janetTreeDir}/lib" "${janetTreeDir}/man"
+            ${pkgs.coreutils}/bin/install -d -m 0755 "${janetTreeDir}/bin"
+            [ -e "$stage_tree/build" ] && ${pkgs.coreutils}/bin/mv "$stage_tree/build" "${janetTreeDir}/build"
+            [ -e "$stage_tree/lib" ] && ${pkgs.coreutils}/bin/mv "$stage_tree/lib" "${janetTreeDir}/lib"
+            [ -e "$stage_tree/man" ] && ${pkgs.coreutils}/bin/mv "$stage_tree/man" "${janetTreeDir}/man"
+            if [ -e "$stage_tree/bin/hey" ]; then
+              ${pkgs.coreutils}/bin/rm -f "${janetTreeDir}/bin/hey"
+              ${pkgs.coreutils}/bin/mv "$stage_tree/bin/hey" "${janetTreeDir}/bin/hey"
+            fi
+            ${pkgs.coreutils}/bin/printf '%s\n' "$janet_version" > "$janet_version_file"
+            ${pkgs.coreutils}/bin/printf '%s\n' "$project_hash" > "$project_hash_file"
+          elif hey_runtime_usable; then
+            printf 'initHey: keeping existing JPM tree because staged rebuild failed\n' >&2
+          else
+            printf 'initHey: staged JPM rebuild failed and no usable existing hey runtime remains\n' >&2
+            exit 1
+          fi
+
+          trap - EXIT
+          cleanup_stage
+        fi
       '';
 
       systemd.user.tmpfiles.rules = [
