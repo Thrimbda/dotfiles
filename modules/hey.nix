@@ -18,7 +18,15 @@ let cfg = config.hey;
     '';
     jpmPkg = if isDarwin then pkgs.jpm else jpmWrapped;
     janetTreeDir = "${config.home.dataDir}/janet/jpm_tree";
+    xdgFallbackExports = optionalString (!isDarwin) ''
+      export XDG_CONFIG_HOME="''${XDG_CONFIG_HOME:-$HOME/.config}"
+      export XDG_CACHE_HOME="''${XDG_CACHE_HOME:-$HOME/.cache}"
+      export XDG_DATA_HOME="''${XDG_DATA_HOME:-$HOME/.local/share}"
+      export XDG_STATE_HOME="''${XDG_STATE_HOME:-$HOME/.local/state}"
+      export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
+    '';
     heyWrapper = pkgs.writeShellScriptBin "hey" ''
+      ${xdgFallbackExports}
       export JANET_PATH=${hey.libDir}:${janetTreeDir}/lib
       export JANET_TREE=${janetTreeDir}
       exec ${janet}/bin/janet ${hey.binDir}/hey "$@"
@@ -35,7 +43,7 @@ in {
     {
     # So systemd services in downstream modules/profiles can call hey without
     # dealing with PATH shenanigans.
-    _module.args.heyBin = "${janet}/bin/janet ${hey.binDir}/hey";
+    _module.args.heyBin = "${heyWrapper}/bin/hey";
 
     environment.systemPackages =
       [ heyWrapper janet jpmPkg pkgs.jq pkgs.git pkgs.zsh ]
@@ -61,6 +69,8 @@ in {
       # Compile bin/hey to trivialize janet startup time
       # TODO: Include gcc for 'jpm deps'
       system.userActivationScripts.initHey = ''
+        ${xdgFallbackExports}
+
         ${pkgs.coreutils}/bin/install -d -m 0755 "${janetTreeDir}"
 
         janet_version="$(${janet}/bin/janet --version)"
@@ -98,7 +108,8 @@ in {
             export JANET_PATH="$stage_tree/lib"
             export JANET_TREE="$stage_tree"
             export XDG_BIN_HOME="$stage_tree/bin"
-            ${pkgs.coreutils}/bin/install -d -m 0755 "$JANET_TREE" "$XDG_BIN_HOME"
+            export PATH="${jpmPkg}/bin:${pkgs.git}/bin:${pkgs.gcc}/bin:${pkgs.coreutils}/bin:$PATH"
+            ${pkgs.coreutils}/bin/install -d -m 0755 "$JANET_TREE" "$JANET_PATH" "$JANET_PATH/.cache" "$XDG_BIN_HOME"
             cd '${hey.dir}'
             ${jpmPkg}/bin/jpm deps
             ${jpmPkg}/bin/jpm run deploy
