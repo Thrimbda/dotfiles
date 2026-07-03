@@ -118,6 +118,7 @@
 - Updated current Axiom Caelestia decisions, patterns, and maintenance for the session-owned `caelestia-session` runner replacing `caelestia-shell.service` as the shell lifecycle owner.
 - Added task summary for `axiom-antigravity-install`.
 - Extended host-local GUI package patterns with `pkgs.unstable` FHS/unfree package validation guidance from the Antigravity install.
+- Added task summary for `hey-activation-staging-env` and extended the Axiom startup regression pattern with required JPM staging cache, tool PATH, and XDG fallback environment.
 - Added task summary for `axiom-todesk-service-network`.
 - Updated current decisions, patterns, and maintenance with Axiom ToDesk service ownership, restricted state directory handling, and post-deploy smoke checks.
 - Added task summary for `ssh-foot-term-compat`.

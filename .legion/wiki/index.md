@@ -111,5 +111,6 @@
 - [Foot Tmux Hotkey](tasks/foot-tmux-hotkey.md)
 - [FRP Agenix Deploy](tasks/frp-agenix-deploy.md)
 - [Hey JPM Activation Safe Rebuild](tasks/hey-jpm-activation-safe-rebuild.md)
+- [Hey Activation Staging Environment](tasks/hey-activation-staging-env.md)
 - [SSH Foot Term Compatibility](tasks/ssh-foot-term-compat.md)
 - [Theme Shell Terminal Migration](tasks/theme-shell-terminal-migration.md)
