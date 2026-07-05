@@ -21,6 +21,7 @@
 - [Aliyun Acorn sshd AuthorizedKeysFile Fix](tasks/aliyun-acorn-sshd-authorizedkeysfile-fix.md)
 - [Axiom 4K 240Hz HDR Display](tasks/axiom-4k240-hdr-display.md)
 - [Axiom Antigravity Install](tasks/axiom-antigravity-install.md)
+- [Axiom Autossh C1 Runtime Fix](tasks/axiom-autossh-c1-runtime-fix.md)
 - [Axiom Autossh Reverse SSH Tunnel](tasks/axiom-autossh-reverse-ssh-tunnel.md)
 - [Axiom CLI Mode](tasks/axiom-cli-mode.md)
 - [Axiom Mode Clean CLI](tasks/axiom-mode-clean-cli.md)

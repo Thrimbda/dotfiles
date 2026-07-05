@@ -11,6 +11,8 @@ let
   remote = "${cfg.remoteUser}@${cfg.remoteHost}";
   remoteForward = "${cfg.remoteBindHost}:${toString cfg.remotePort}:${cfg.localHost}:${toString cfg.localPort}";
   knownHostName = if cfg.knownHostName != "" then cfg.knownHostName else "reverse-ssh-${cfg.remoteHost}";
+  globalKnownHostsOption = optionalString (cfg.globalKnownHostsFile != null) "-o GlobalKnownHostsFile=${cfg.globalKnownHostsFile} ";
+  userKnownHostsOption = optionalString (cfg.userKnownHostsFile != null) "-o UserKnownHostsFile=${cfg.userKnownHostsFile} ";
 in {
   options.modules.services.reverse-ssh = with types; {
     enable = mkBoolOpt false;
@@ -22,6 +24,8 @@ in {
     remoteUser = mkOpt str "root";
     remoteHostKey = mkOpt (nullOr str) null;
     knownHostName = mkOpt str "";
+    globalKnownHostsFile = mkOpt (nullOr str) null;
+    userKnownHostsFile = mkOpt (nullOr str) null;
     remoteBindHost = mkOpt str "127.0.0.1";
     remotePort = mkOpt int 0;
     localHost = mkOpt str "127.0.0.1";
@@ -61,7 +65,7 @@ in {
           Type = "simple";
           User = user;
           WorkingDirectory = home;
-          ExecStart = "${cfg.package}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes -R ${remoteForward} ${remote}";
+          ExecStart = "${cfg.package}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes ${globalKnownHostsOption}${userKnownHostsOption}-R ${remoteForward} ${remote}";
           Restart = "always";
           RestartSec = cfg.restartSec;
           MemoryAccounting = true;
