@@ -8,11 +8,11 @@
 - `schema-version`: `2026-05-08-legion-workflow`
 - `historical`: `false`
 - `supersedes`: `(none)`
-- `superseded-by`: `(none)`
+- `superseded-by`: `axiom-autossh-c1-runtime-fix` for Axiom remote-user and remote host-key handling
 
 ## Outcome Summary
 
-`axiom` now has a host-local NixOS systemd service for an autossh reverse SSH tunnel to `root@8.159.128.125`. The service mirrors the existing `charlie` reverse tunnel pattern but uses remote loopback port `2223`, leaving `charlie` on `2222`. The repo change does not alter SSH keys, remote server policy, Cloudflare configuration, or `charlie`.
+`axiom` originally gained a host-local NixOS systemd service for an autossh reverse SSH tunnel to `root@8.159.128.125`. A later runtime fix changed Axiom's current remote account and host-key handling; see `axiom-autossh-c1-runtime-fix` for the current `c1@8.159.128.125` service path. The durable tunnel shape from this task remains remote loopback port `2223` to Axiom local `127.0.0.1:22`.
 
 Validation passed for both the generated service shape and the full `axiom` toplevel build. Live tunnel behavior remains a deployment-time check on physical `axiom` because this environment cannot prove remote auth, host-key trust, or remote port availability.
 

@@ -152,6 +152,10 @@ with builtins;
       opencodeDir = config.modules.services.opencode-server.dir;
       reverseSsh = config.modules.services.reverse-ssh;
       aliyunAcornPublicIp = "8.159.128.125";
+      aliyunAcornSshHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE6WwypfVtdA16Au8kXoCVJgkTDlvgu98sqA0Z04Ux3l";
+      aliyunAcornAutosshKnownHosts = pkgs.writeText "axiom-autossh-known-hosts" ''
+        ${aliyunAcornPublicIp} ${aliyunAcornSshHostKey}
+      '';
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       frpcDirectRouteUnit = "frpc-aliyun-acorn-direct-route.service";
       frpcDirectRoutePriority = 8500;
@@ -268,6 +272,9 @@ with builtins;
     modules.services.reverse-ssh = {
       enable = true;
       remoteHost = aliyunAcornPublicIp;
+      remoteUser = "c1";
+      globalKnownHostsFile = "${aliyunAcornAutosshKnownHosts}";
+      userKnownHostsFile = "/dev/null";
       remotePort = 2223;
     };
 
@@ -394,8 +401,11 @@ with builtins;
         wants = [ "network-online.target" "autossh-reverse-ssh.service" ];
         autosshEndpointKey = {
           enable = true;
+          remoteUser = reverseSsh.remoteUser;
           remoteHost = reverseSsh.remoteHost;
           remotePort = reverseSsh.remotePort;
+          globalKnownHostsFile = reverseSsh.globalKnownHostsFile;
+          userKnownHostsFile = reverseSsh.userKnownHostsFile;
         };
       };
 

@@ -19,6 +19,10 @@ let
       remoteHost = check.autosshEndpointKey.remoteHost;
       remotePort = toString check.autosshEndpointKey.remotePort;
       expectedKeyFile = check.autosshEndpointKey.expectedKeyFile;
+      globalKnownHostsFile = check.autosshEndpointKey.globalKnownHostsFile;
+      userKnownHostsFile = check.autosshEndpointKey.userKnownHostsFile;
+      globalKnownHostsOption = optionalString (globalKnownHostsFile != null) " -o GlobalKnownHostsFile=${escapeShellArg globalKnownHostsFile}";
+      userKnownHostsOption = optionalString (userKnownHostsFile != null) " -o UserKnownHostsFile=${escapeShellArg userKnownHostsFile}";
     in ''
       remote_host=${escapeShellArg remoteHost}
       remote_port=${remotePort}
@@ -37,7 +41,7 @@ let
           -o BatchMode=yes \
           -o ConnectTimeout=8 \
           -o StrictHostKeyChecking=yes \
-          -o UpdateHostKeys=no \
+          -o UpdateHostKeys=no${globalKnownHostsOption}${userKnownHostsOption} \
           ${escapeShellArg remoteUser}@"$remote_host" "$remote_scan_cmd" 2>/dev/null || true)"
       remote_key="$(printf '%s\n' "$remote_scan" \
         | ${pkgs.gnugrep}/bin/grep -m1 'ssh-ed25519 ' \
@@ -53,7 +57,7 @@ let
           -o BatchMode=yes \
           -o ConnectTimeout=8 \
           -o StrictHostKeyChecking=yes \
-          -o UpdateHostKeys=no \
+          -o UpdateHostKeys=no${globalKnownHostsOption}${userKnownHostsOption} \
           ${escapeShellArg remoteUser}@"$remote_host" \
           "ss -H -ltnp '( sport = :$remote_port )' 2>/dev/null || true" 2>/dev/null || true)"
 
@@ -159,6 +163,8 @@ in {
           remoteHost = mkOpt str "";
           remotePort = mkOpt int 0;
           expectedKeyFile = mkOpt str "/etc/ssh/ssh_host_ed25519_key.pub";
+          globalKnownHostsFile = mkOpt (nullOr str) null;
+          userKnownHostsFile = mkOpt (nullOr str) null;
         };
         serviceCore = {
           enable = mkBoolOpt false;
