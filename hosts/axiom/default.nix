@@ -164,6 +164,10 @@ with builtins;
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
       c1ctl = pkgs.callPackage ../../packages/c1ctl {
         heyBin = "${hey.binDir}/hey";
+        autosshRemoteHost = reverseSsh.remoteHost;
+        autosshRemoteUser = reverseSsh.remoteUser;
+        autosshRemotePort = reverseSsh.remotePort;
+        autosshRemoteHostKey = aliyunAcornSshHostKey;
       };
       caelestiaIdleSettings = {
         lockBeforeSleep = true;
@@ -388,25 +392,6 @@ with builtins;
         wants = [ "cloudflared.service" ];
         onUnitActiveSec = "45s";
         http.url = cloudflaredReadyUrl;
-      };
-
-      autossh-reverse-ssh-healthcheck = {
-        description = "Autossh reverse SSH endpoint health check";
-        runtimeDirectory = "axiom-healthchecks";
-        stateFile = "autossh-reverse-ssh.failures";
-        threshold = 3;
-        failureMessage = "autossh reverse endpoint key check failed";
-        restartUnit = "autossh-reverse-ssh.service";
-        after = [ "network-online.target" "autossh-reverse-ssh.service" ];
-        wants = [ "network-online.target" "autossh-reverse-ssh.service" ];
-        autosshEndpointKey = {
-          enable = true;
-          remoteUser = reverseSsh.remoteUser;
-          remoteHost = reverseSsh.remoteHost;
-          remotePort = reverseSsh.remotePort;
-          globalKnownHostsFile = reverseSsh.globalKnownHostsFile;
-          userKnownHostsFile = reverseSsh.userKnownHostsFile;
-        };
       };
 
       clash-verge-healthcheck = {

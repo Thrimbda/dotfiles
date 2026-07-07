@@ -134,7 +134,7 @@ On `axiom`, critical network services are protected as a tiered survival path. `
 
 Those Axiom survival/resource policies are now expressed through owning module options rather than host-level `systemd.services.*` blocks: SSHD through `modules.services.ssh.serviceConfig`, Cloudflared through `modules.services.cloudflared.servicePolicy`, Clash through `modules.desktop.apps.clash-verge.servicePolicy`, Clash GUI autostart through `modules.desktop.apps.clash-verge.guiAutostart`, and the user manager through `modules.profiles.workstation.userManager`.
 
-`axiom` autossh health should prove endpoint identity, not only listener existence. The durable check is: connect as `c1@8.159.128.125`, scan remote `127.0.0.1:2223`, and compare the exposed ED25519 host key with `axiom`'s `/etc/ssh/ssh_host_ed25519_key.pub`. Timer-driven healthchecks must not kill remote `sshd` processes; stale remote listeners are detected/logged and remain manual cleanup unless a future task explicitly designs safe remote cleanup.
+`axiom` autossh endpoint identity is an on-demand operator diagnostic, not timer-driven automation. The durable check is `c1ctl autossh check`: connect as `c1@8.159.128.125`, scan remote `127.0.0.1:2223`, and compare the exposed ED25519 host key with `axiom`'s `/etc/ssh/ssh_host_ed25519_key.pub`. Stale remote listeners remain manual cleanup unless a future task explicitly designs safe remote cleanup.
 
 ## FRP Tunnels
 
