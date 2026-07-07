@@ -18,7 +18,7 @@ For agenix-backed service migration between hosts, the target host must receive 
 
 `aliyun-acorn` is a low-resource public server target, not a development or desktop machine. Keep its host profile limited to explicit server role dependencies; do not enable development runtimes, desktop/media tooling, Docker, or host `nix-ld` unless a scoped task proves they are required.
 
-`vault.0xc1.wang` should use Cloudflare-proxied DNS for browser-facing HTTPS and Cloudflare DNS-01 ACME for the `aliyun-acorn` origin certificate. Public `80` remains closed; do not use HTTP-01 for this host. `status-axiom.0xc1.wang` may remain public HTTPS-only with an on-host self-signed staging certificate until its own DNS/TLS cutover task.
+`vault.0xc1.wang` should use Cloudflare-proxied DNS for browser-facing HTTPS and Cloudflare DNS-01 ACME for the `aliyun-acorn` origin certificate. `status-axiom.0xc1.wang` should also use Cloudflare DNS-01 ACME with DNS-only `A` record origin routing and nginx Basic Auth. Public `80` remains closed; do not use HTTP-01 for this host.
 
 ## Linux Workstation Desktop Baseline
 
