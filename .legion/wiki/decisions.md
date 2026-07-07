@@ -148,6 +148,8 @@ On Axiom, frpc traffic to Acorn must bypass Clash/Meta TUN routing. Axiom owns `
 
 FRP token auth must use host-local agenix secrets and runtime TOML rendering from `/run/agenix/frp-token`; do not place plaintext token values in Nix TOML, module options, task docs, PR bodies, or Nix store outputs.
 
+The Acorn frps dashboard, when enabled, must bind only to `127.0.0.1:7500` and be exposed through nginx as `frps-acorn.0xc1.wang` with nginx Basic Auth. TCP `7500` is a loopback dashboard backend and must not be opened in the NixOS firewall or Aliyun security group.
+
 Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the existing autossh reservations for `charlie`, `axiom`, and `azar` remain active.
 
 ## Opencode Cloudflare Exposure

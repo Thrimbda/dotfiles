@@ -39,6 +39,11 @@
 
     modules.agenix.sshKey = "/home/c1/.ssh/id_ed25519";
 
+    modules.services.frp.server.extraConfig.webServer = {
+      addr = "127.0.0.1";
+      port = 7500;
+    };
+
     age.secrets.nginx-status-htpasswd = {
       owner = "nginx";
       group = "nginx";
@@ -146,6 +151,15 @@
       };
     };
 
+    services.nginx.virtualHosts."frps-acorn.0xc1.wang" = {
+      onlySSL = true;
+      useACMEHost = "frps-acorn.0xc1.wang";
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:7500";
+        basicAuthFile = config.age.secrets.nginx-status-htpasswd.path;
+      };
+    };
+
     programs.ssh.startAgent = true;
     services.openssh = {
       startWhenNeeded = lib.mkForce false;
@@ -164,6 +178,12 @@
       reloadServices = [ "nginx.service" ];
     };
     security.acme.certs."opencode-axiom.0xc1.wang" = {
+      dnsProvider = "cloudflare";
+      environmentFile = config.age.secrets.cloudflare-dns-env.path;
+      group = "nginx";
+      reloadServices = [ "nginx.service" ];
+    };
+    security.acme.certs."frps-acorn.0xc1.wang" = {
       dnsProvider = "cloudflare";
       environmentFile = config.age.secrets.cloudflare-dns-env.path;
       group = "nginx";

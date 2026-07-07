@@ -10,6 +10,7 @@
 - Run the first live ECS validation by uploading the built QCOW2 to same-region OSS, importing it with `BootMode=UEFI`, creating a temporary validation instance, checking serial console/cloud-init/DHCP/SSH/root partition growth, then cleaning up temporary resources or recording any intentionally retained IDs.
 - If `acorn` should become a long-lived host, create a follow-up in `~/Work/aliyun-ops` for Terraform-owned ECS/VPC/security-group state instead of preserving one-off CLI state as durable infrastructure.
 - After deploying the `acorn` Vaultwarden ACME config, confirm the host can switch successfully and SSH remains responsive. Then check `vaultwarden.service`, `nginx.service`, `fail2ban.service`, frps, `acme-order-renew-vault.0xc1.wang.service`, `acme-vault.0xc1.wang.service`, public `443`, closed public `80`, `/run/agenix/vaultwarden-env`, and `/run/agenix/cloudflare-dns-env`. `status-axiom.0xc1.wang` remains self-signed staging until a separate DNS/TLS task.
+- After deploying `acorn-frps-dashboard-nginx`, confirm frps listens on `127.0.0.1:7500` only, nginx serves `frps-acorn.0xc1.wang` with Basic Auth, ACME has issued the dashboard certificate, and public direct TCP `7500` remains unreachable.
 
 ## Terminal Follow-Up
 
