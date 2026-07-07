@@ -73,6 +73,7 @@
 
 ## Axiom Remote Access Follow-Up
 
+- After deploying `charlie-autossh-c1-user`, reload the `org.nixos.autossh-reverse-ssh` LaunchAgent on `charlie`, confirm its generated command targets `c1@8.159.128.125`, and remove or unload the unmanaged `~/Library/LaunchAgents/com.charlie.autossh.plist` if it is still present so the stale root-based autossh process stops retrying.
 - Delete the mistakenly created `axiom-opencode.0xc1.space` CNAME in Cloudflare DNS/Zero Trust. The active axiom opencode hostname is `opencode-axiom.0xc1.space`.
 - Cloudflare Access API verification has configured `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space` with Google-only Access apps and exact-email allow policies. `opencode-axiom.0xc1.space` allows `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`, and `wangpeiguangwpg@gmail.com`; `opencode-charlie.0xc1.space` allows `c1@ntnl.io` and `siyuan.arc@gmail.com`. Manual browser smoke checks with allowed accounts and one denied account are still recommended after policy changes.
 - After deploying the SSH/opencode/cloudflared fix, run `ssh azar`, `systemctl status autossh-reverse-ssh` on `azar`, and `systemctl status opencode-server cloudflared` on `axiom`.
