@@ -197,3 +197,5 @@ The public Gatus page should only include public-safe endpoints. Do not add priv
 ## Axiom Playwright Runtime
 
 When `modules.dev.playwright.enable = true` on Linux, the Playwright dev module should expose Chromium runtime libraries through `programs.nix-ld.libraries`. The Nix-packaged `playwright` wrapper remains the preferred baseline, but npm/npx Playwright downloads Ubuntu fallback browsers on unsupported Linux distributions, so those binaries also need a working `nix-ld` library path.
+
+Because `modules.dev.playwright` is also imported by Darwin hosts, the NixOS-only `programs.nix-ld` definition must only be generated when the module option exists. A platform `mkIf` around an unknown option is not sufficient protection for nix-darwin module checking.
