@@ -2,7 +2,7 @@
 
 ## Status
 
-Current phase: wiki complete / PR pending
+Current phase: PR created / checks pending
 
 ## Checklist
 
@@ -15,6 +15,6 @@ Current phase: wiki complete / PR pending
 - [x] 编写 `docs/review-change.md`
 - [x] 编写 `docs/report-walkthrough.md`
 - [x] 更新 Legion wiki
-- [ ] 提交并推送 PR 分支
+- [x] 提交并推送 PR 分支
 - [ ] 创建/更新 PR 并尝试合并
 - [ ] 清理 worktree 并刷新主工作区

@@ -12,3 +12,4 @@
 - Review：`docs/review-change.md` 判定 PASS。安全视角已覆盖 SSH identity/authentication；remote bind 仍为 loopback，端口与本地目标不变，没有扩大暴露面。
 - Walkthrough：生成 `docs/report-walkthrough.html`、`docs/report-walkthrough.md` 与 `docs/pr-body.md`。`pr-html-render` 选择 artifact/local preview，因为报告含 SSH 运维细节、公网 IP 与 home-local plist 路径，不发布到 public Pages。
 - Wiki：新增 `wiki/tasks/charlie-autossh-c1-user.md`，更新 reverse SSH current decisions 中 `charlie` 的 remote user 为 `c1@8.159.128.125`，并记录部署后清理 unmanaged stale LaunchAgent 的维护项。
+- Git lifecycle：创建 PR https://github.com/Thrimbda/dotfiles/pull/126。
