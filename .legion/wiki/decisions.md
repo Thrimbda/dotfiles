@@ -142,6 +142,8 @@ The frp deployment path is additive to autossh. `aliyun-acorn` owns `frps` on TC
 
 For the first `0xc1.wang` public entry slice, `axiom` also owns frp proxy `axiom-gatus-http` from local Gatus `127.0.0.1:8080` to remote TCP `18080` on `aliyun-acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
 
+For the parallel OpenCode `0xc1.wang` entry, `axiom` owns frp proxy `axiom-opencode-http` from local OpenCode `127.0.0.1:4096` to remote TCP `18081` on `aliyun-acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
+
 On Axiom, frpc traffic to Aliyun Acorn must bypass Clash/Meta TUN routing. Axiom owns `frpc-aliyun-acorn-direct-route.service`, which installs policy rule priority `8500` for `8.159.128.125/32` through the `main` routing table before `frpc.service` starts. Keep this host-local unless another machine shows the same Clash/Meta routing failure.
 
 FRP token auth must use host-local agenix secrets and runtime TOML rendering from `/run/agenix/frp-token`; do not place plaintext token values in Nix TOML, module options, task docs, PR bodies, or Nix store outputs.
@@ -155,6 +157,8 @@ Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the exi
 On `axiom`, the `opencode-axiom.0xc1.space` cloudflared connector should pin `protocol = "http2"` in host-level `extraConfig` while the current Clash/Meta fake-ip network path causes cloudflared default QUIC/UDP edge dial timeouts. Keep this as a connector transport override in generated `/etc/cloudflared/config.yml`; do not replace it with a temporary user-level connector as durable state.
 
 Both opencode hostnames are protected by Cloudflare Access self-hosted applications restricted to the Google identity provider. Their allow policies require the same Google login method. `opencode-axiom.0xc1.space` allows exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`, and `wangpeiguangwpg@gmail.com`; `opencode-charlie.0xc1.space` allows exact emails `c1@ntnl.io` and `siyuan.arc@gmail.com`. Do not broaden these apps to a domain, group, everyone rule, bypass rule, or non-identity policy without a new security review.
+
+`opencode-axiom.0xc1.wang` is a parallel Acorn/frp route to Axiom OpenCode. It must keep Cloudflare Access on the proxied hostname and nginx Basic Auth at the Acorn origin, because Access alone does not protect direct origin requests by IP plus Host/SNI. This does not migrate or replace `opencode-axiom.0xc1.space`.
 
 The hostname `axiom-opencode.0xc1.space` was created by mistake during the axiom task and should not be used.
 
