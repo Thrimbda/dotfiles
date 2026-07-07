@@ -96,6 +96,7 @@
 - [Axiom Runtime Access And Session Fixes](tasks/axiom-runtime-access-session-fixes.md)
 - [Axiom Cloudflared HTTP2 Transport Fix](tasks/axiom-cloudflared-http2-transport.md)
 - [Axiom SSH Autossh and Opencode Cloudflared Fix](tasks/axiom-ssh-opencode-cloudflared-fix.md)
+- [Charlie Autossh C1 User](tasks/charlie-autossh-c1-user.md)
 - [Clash Verge NixOS Service Tun](tasks/clash-verge-nixos-service-tun.md)
 - [Cloudflare API Token Age Secret](tasks/cloudflare-api-token-age-secret.md)
 - [Dotfiles Quickshell Product Desktop](tasks/dotfiles-quickshell-product-desktop.md)

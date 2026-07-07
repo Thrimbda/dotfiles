@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Charlie Autossh C1 User | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.014 95);
+      --surface: oklch(99% 0.006 102);
+      --ink: oklch(23% 0.022 138);
+      --muted: oklch(48% 0.026 142);
+      --line: oklch(82% 0.02 108);
+      --accent: oklch(46% 0.13 152);
+      --accent-soft: oklch(91% 0.055 151);
+      --warn-soft: oklch(92% 0.052 82);
+      --code: oklch(94% 0.012 125);
+      --shadow: oklch(56% 0.03 120 / 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.64;
+      letter-spacing: 0;
+    }
+
+    main {
+      width: min(1160px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 4rem);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 1.28rem;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    p {
+      max-width: 72ch;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+
+    code {
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.08rem 0.28rem;
+      font-size: 0.94em;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .status,
+    section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 16px 40px var(--shadow);
+    }
+
+    .status {
+      padding: 20px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      padding: 11px 0;
+    }
+
+    .status-row:first-of-type {
+      border-top: 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      padding: 0 0.68rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    nav {
+      position: sticky;
+      top: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 14px;
+    }
+
+    nav a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    nav a:hover {
+      background: var(--accent-soft);
+    }
+
+    section {
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 11px;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 760;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.2rem;
+    }
+
+    li {
+      margin: 0.35rem 0;
+    }
+
+    .note {
+      background: var(--warn-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        width: min(100vw - 24px, 720px);
+        padding-top: 28px;
+      }
+
+      header,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      nav {
+        position: static;
+      }
+    }
+
+    @media print {
+      body {
+        background: var(--surface);
+      }
+
+      main {
+        width: auto;
+        padding: 0;
+      }
+
+      nav {
+        display: none;
+      }
+
+      .status,
+      section {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Implementation walkthrough</p>
+        <h1>Charlie Autossh C1 User</h1>
+        <p class="lead">Reviewer 需要判断一处 autossh remote user 替换是否安全、可验证、符合当前 reverse SSH 运维边界。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <div class="status-row"><span>Profile</span><span class="pill">implementation</span></div>
+        <div class="status-row"><span>Verification</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Review</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>PR</span><span class="pill">pending</span></div>
+        <div class="status-row"><span>Render</span><span class="pill">artifact/local</span></div>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#changed">改动</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <p>本 PR 把 <code>charlie</code> 的 declarative autossh reverse SSH remote 从 <code>root@8.159.128.125</code> 改为 <code>c1@8.159.128.125</code>。live 验证确认 <code>c1</code> 可 batch 登录，并且同形 reverse forward 可建立。</p>
+          <p>结论：验证 PASS，review PASS，安全视角已确认没有扩大监听暴露面。</p>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <p><strong>In scope:</strong> 修改 <code>hosts/charlie/default.nix</code> 中 autossh remote user，保留现有 autossh 参数、remote bind、remote port 和 local target，并提交 Legion 证据文档。</p>
+          <p><strong>Out of scope:</strong> 不修改 unmanaged <code>~/Library/LaunchAgents/com.charlie.autossh.plist</code>，不调整 SSH key、远端 <code>authorized_keys</code>、远端 sshd 或其他 host 的 tunnel 配置。</p>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead>
+              <tr><th>Claim</th><th>Evidence</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>tracked 配置已改为 <code>c1@8.159.128.125</code></td><td><code>hosts/charlie/default.nix</code>; targeted grep in <code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td><code>c1</code> SSH 登录可用</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>同形 reverse forward 可建立</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>Nix 语法和 diff 检查通过</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>scope 和安全视角通过 review</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <ol>
+            <li>创建 task contract 和 design-lite。</li>
+            <li>修改 tracked charlie autossh remote user。</li>
+            <li>执行 live SSH 与 reverse forward 验证。</li>
+            <li>完成 review-change，结论 PASS。</li>
+            <li>当前阶段：walkthrough 完成后进入 wiki 写回，再进入 PR lifecycle。</li>
+          </ol>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>这是 PR-backed walkthrough。<code>pr-html-render</code> 选择 artifact/local preview，因为 HTML 包含 SSH 运维细节、公网 IP 与 home-local plist 路径，不发布到 public Pages。reviewer 可直接打开 <code>.legion/tasks/charlie-autossh-c1-user/docs/report-walkthrough.html</code>。</p>
+        </section>
+
+        <section id="changed">
+          <h2>What Changed / What Was Decided</h2>
+          <p>只修改一处生产配置，把 autossh remote 参数从 <code>root@8.159.128.125</code> 替换为 <code>c1@8.159.128.125</code>。选择最小替换是因为故障点是 root publickey 认证失败，而现有 <code>c1</code> 账号已经是当前远端入口。</p>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li><code>ssh -o BatchMode=yes -o ConnectTimeout=10 c1@8.159.128.125 true</code> 通过。</li>
+            <li>临时 ControlMaster 使用 <code>ExitOnForwardFailure=yes</code> 建立 <code>-R 127.0.0.1:2222:127.0.0.1:22</code> 通过。</li>
+            <li>远端 <code>ssh-keyscan -p 2222 127.0.0.1</code> 能看到 SSH endpoint。</li>
+            <li><code>nix-instantiate --parse hosts/charlie/default.nix</code> 通过。</li>
+            <li><code>git diff --check</code> 通过。</li>
+            <li><code>docs/review-change.md</code> 结论为 PASS。</li>
+          </ul>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <p class="note">当前机器仍有 unmanaged <code>~/Library/LaunchAgents/com.charlie.autossh.plist</code> 指向 root。部署 tracked 配置后，应停用或删除旧 agent，避免重复进程和旧 publickey 错误继续出现。</p>
+          <ul>
+            <li>本 PR 不执行 darwin rebuild，合并后仍需按常规 dotfiles 流程部署。</li>
+            <li>如果远端 <code>c1</code> 权限后续变化，隧道仍可能再次失败。</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>确认 <code>hosts/charlie/default.nix</code> 的一行 user 替换符合预期。</li>
+            <li>确认证据足以覆盖 SSH 认证和 reverse forward 风险。</li>
+            <li>确认旧 unmanaged plist 作为运行时清理项记录即可，不应纳入本 PR。</li>
+          </ul>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>walkthrough 完成后，下一步是 <code>legion-wiki</code> 写回，然后提交、推送、创建 PR、尝试 squash 合并。<code>pr-body.md</code> 只是 PR 创建输入，不代表 PR lifecycle 已完成。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

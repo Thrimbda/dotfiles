@@ -244,3 +244,5 @@
 - Updated current Axiom desktop decisions, runtime validation patterns, and maintenance so `hey` activation uses staged JPM rebuilds and does not delete active runtime artifacts before network-backed rebuild success.
 - Added task summary for `axiom-reverse-ssh-known-host-pin`.
 - Updated reverse SSH decisions and patterns so Axiom no longer uses a Nix-managed system-wide pin for the mutable `8.159.128.125` remote server host key.
+- Added task summary for `charlie-autossh-c1-user`.
+- Updated current reverse SSH decisions so `charlie` autossh uses `c1@8.159.128.125` for remote loopback `127.0.0.1:2222`, and added a deploy follow-up to remove the unmanaged stale root-based LaunchAgent if it is still loaded.
