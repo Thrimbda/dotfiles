@@ -136,6 +136,16 @@
       };
     };
 
+    services.nginx.virtualHosts."opencode-axiom.0xc1.wang" = {
+      onlySSL = true;
+      useACMEHost = "opencode-axiom.0xc1.wang";
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:18081";
+        proxyWebsockets = true;
+        basicAuthFile = config.age.secrets.nginx-status-htpasswd.path;
+      };
+    };
+
     programs.ssh.startAgent = true;
     services.openssh = {
       startWhenNeeded = lib.mkForce false;
@@ -148,6 +158,12 @@
       reloadServices = [ "nginx.service" ];
     };
     security.acme.certs."status-axiom.0xc1.wang" = {
+      dnsProvider = "cloudflare";
+      environmentFile = config.age.secrets.cloudflare-dns-env.path;
+      group = "nginx";
+      reloadServices = [ "nginx.service" ];
+    };
+    security.acme.certs."opencode-axiom.0xc1.wang" = {
       dnsProvider = "cloudflare";
       environmentFile = config.age.secrets.cloudflare-dns-env.path;
       group = "nginx";

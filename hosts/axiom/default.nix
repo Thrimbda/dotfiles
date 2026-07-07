@@ -328,6 +328,13 @@ with builtins;
           localPort = gatusPort;
           remotePort = 18080;
         }
+        {
+          name = "axiom-opencode-http";
+          type = "tcp";
+          localIP = "127.0.0.1";
+          localPort = 4096;
+          remotePort = 18081;
+        }
       ];
     };
 
