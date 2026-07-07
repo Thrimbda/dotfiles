@@ -12,63 +12,6 @@ let
     else if check.http.url != null then ''
       ${pkgs.curl}/bin/curl --fail --silent --show-error --max-time ${toString check.http.maxTime} ${escapeShellArg check.http.url} >/dev/null
     ''
-    else if check.autosshEndpointKey.enable then let
-      sshUser = check.autosshEndpointKey.localUser;
-      sshHome = check.autosshEndpointKey.localHome;
-      remoteUser = check.autosshEndpointKey.remoteUser;
-      remoteHost = check.autosshEndpointKey.remoteHost;
-      remotePort = toString check.autosshEndpointKey.remotePort;
-      expectedKeyFile = check.autosshEndpointKey.expectedKeyFile;
-      globalKnownHostsFile = check.autosshEndpointKey.globalKnownHostsFile;
-      userKnownHostsFile = check.autosshEndpointKey.userKnownHostsFile;
-      globalKnownHostsOption = optionalString (globalKnownHostsFile != null) " -o GlobalKnownHostsFile=${escapeShellArg globalKnownHostsFile}";
-      userKnownHostsOption = optionalString (userKnownHostsFile != null) " -o UserKnownHostsFile=${escapeShellArg userKnownHostsFile}";
-    in ''
-      remote_host=${escapeShellArg remoteHost}
-      remote_port=${remotePort}
-      expected_key_file=${escapeShellArg expectedKeyFile}
-
-      if [ ! -r "$expected_key_file" ]; then
-        printf 'autossh healthcheck: missing local SSH host key %s\n' "$expected_key_file" >&2
-        exit 1
-      fi
-
-      expected_key="$(${pkgs.coreutils}/bin/cut -d ' ' -f 1,2 "$expected_key_file")"
-      remote_scan_cmd="timeout 8 ssh-keyscan -T 5 -p $remote_port 127.0.0.1 2>/dev/null"
-      remote_scan="$(${pkgs.util-linux}/bin/runuser -u ${escapeShellArg sshUser} -- \
-        ${pkgs.coreutils}/bin/env HOME=${escapeShellArg sshHome} \
-        ${pkgs.openssh}/bin/ssh \
-          -o BatchMode=yes \
-          -o ConnectTimeout=8 \
-          -o StrictHostKeyChecking=yes \
-          -o UpdateHostKeys=no${globalKnownHostsOption}${userKnownHostsOption} \
-          ${escapeShellArg remoteUser}@"$remote_host" "$remote_scan_cmd" 2>/dev/null || true)"
-      remote_key="$(printf '%s\n' "$remote_scan" \
-        | ${pkgs.gnugrep}/bin/grep -m1 'ssh-ed25519 ' \
-        | ${pkgs.gnused}/bin/sed 's/^[^[:space:]]*[[:space:]]//' || true)"
-
-      if [ "$remote_key" = "$expected_key" ]; then
-        exit 0
-      fi
-
-      listener="$(${pkgs.util-linux}/bin/runuser -u ${escapeShellArg sshUser} -- \
-        ${pkgs.coreutils}/bin/env HOME=${escapeShellArg sshHome} \
-        ${pkgs.openssh}/bin/ssh \
-          -o BatchMode=yes \
-          -o ConnectTimeout=8 \
-          -o StrictHostKeyChecking=yes \
-          -o UpdateHostKeys=no${globalKnownHostsOption}${userKnownHostsOption} \
-          ${escapeShellArg remoteUser}@"$remote_host" \
-          "ss -H -ltnp '( sport = :$remote_port )' 2>/dev/null || true" 2>/dev/null || true)"
-
-      if [ -n "$listener" ]; then
-        printf 'remote listener evidence on %s:%s: %s\n' "$remote_host" "$remote_port" "$listener" >&2
-      else
-        printf 'remote listener evidence on %s:%s: none or unreachable\n' "$remote_host" "$remote_port" >&2
-      fi
-
-      exit 1
-    ''
     else if check.serviceCore.enable then ''
       healthy=false
       if ${pkgs.systemd}/bin/systemctl is-active --quiet ${escapeShellArg check.serviceCore.service}; then
@@ -154,17 +97,6 @@ in {
         http = {
           url = mkOpt (nullOr str) null;
           maxTime = mkOpt int 5;
-        };
-        autosshEndpointKey = {
-          enable = mkBoolOpt false;
-          localUser = mkOpt str config.user.name;
-          localHome = mkOpt str config.user.home;
-          remoteUser = mkOpt str "root";
-          remoteHost = mkOpt str "";
-          remotePort = mkOpt int 0;
-          expectedKeyFile = mkOpt str "/etc/ssh/ssh_host_ed25519_key.pub";
-          globalKnownHostsFile = mkOpt (nullOr str) null;
-          userKnownHostsFile = mkOpt (nullOr str) null;
         };
         serviceCore = {
           enable = mkBoolOpt false;

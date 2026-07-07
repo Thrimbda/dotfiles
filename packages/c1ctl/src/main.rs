@@ -3,6 +3,7 @@ use std::env;
 use std::ffi::{OsStr, OsString};
 use std::fmt;
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, ExitStatus};
 
@@ -10,6 +11,12 @@ const AXIOM_CLI_TARGET: &str = "axiom-cli.target";
 const GRAPHICAL_TARGET: &str = "graphical.target";
 const SYSTEMCTL: &str = env!("C1CTL_SYSTEMCTL");
 const HEY: &str = env!("C1CTL_HEY");
+const SSH: &str = env!("C1CTL_SSH");
+const AUTOSSH_REMOTE_HOST: &str = env!("C1CTL_AUTOSSH_REMOTE_HOST");
+const AUTOSSH_REMOTE_USER: &str = env!("C1CTL_AUTOSSH_REMOTE_USER");
+const AUTOSSH_REMOTE_PORT: &str = env!("C1CTL_AUTOSSH_REMOTE_PORT");
+const AUTOSSH_REMOTE_HOST_KEY: &str = env!("C1CTL_AUTOSSH_REMOTE_HOST_KEY");
+const LOCAL_SSH_HOST_KEY: &str = "/etc/ssh/ssh_host_ed25519_key.pub";
 const SUDO: &str = "/run/wrappers/bin/sudo";
 
 const STATUS_UNITS: &[&str] = &[
@@ -81,6 +88,8 @@ enum Error {
     UnexpectedArgument(String),
     MissingSudo,
     MissingEnv(String),
+    InvalidConfig(String),
+    InvalidKeyFile(PathBuf),
     CurrentExe(std::io::Error),
     Io {
         path: PathBuf,
@@ -94,6 +103,12 @@ enum Error {
         program: String,
         status: ExitStatus,
     },
+    OutputFailed {
+        program: String,
+        status: ExitStatus,
+        stderr: String,
+    },
+    CheckFailed(String),
     Help(String),
 }
 
@@ -106,12 +121,38 @@ impl fmt::Display for Error {
             Self::UnexpectedArgument(arg) => write!(f, "unexpected argument: {arg}"),
             Self::MissingSudo => write!(f, "root privileges required and {SUDO} is unavailable"),
             Self::MissingEnv(name) => write!(f, "environment variable {name} is required"),
+            Self::InvalidConfig(message) => write!(f, "invalid build-time config: {message}"),
+            Self::InvalidKeyFile(path) => {
+                write!(f, "invalid SSH public host key file: {}", path.display())
+            }
             Self::CurrentExe(error) => write!(f, "could not resolve current executable: {error}"),
             Self::Io { path, source } => write!(f, "{}: {source}", path.display()),
             Self::Spawn { program, source } => write!(f, "failed to start {program}: {source}"),
             Self::Failed { program, status } => write!(f, "{program} exited with {status}"),
+            Self::OutputFailed {
+                program,
+                status,
+                stderr,
+            } => {
+                write!(f, "{program} exited with {status}")?;
+                if !stderr.is_empty() {
+                    write!(f, ": {stderr}")?;
+                }
+                Ok(())
+            }
+            Self::CheckFailed(message) => write!(f, "{message}"),
             Self::Help(message) => write!(f, "{message}"),
         }
+    }
+}
+
+struct TempFile {
+    path: PathBuf,
+}
+
+impl Drop for TempFile {
+    fn drop(&mut self) {
+        let _ = fs::remove_file(&self.path);
     }
 }
 
@@ -214,6 +255,7 @@ fn run_call(args: &[String], globals: &GlobalOptions, raw_args: &[OsString]) -> 
             ensure_no_extra(&args[1..])?;
             run_mode(Mode::Status, raw_args)
         }
+        Some("autossh") => run_autossh(&args[1..]),
         Some("reload") => {
             ensure_no_extra(&args[1..])?;
             let ctx = Ctx::new()?;
@@ -253,6 +295,7 @@ fn run_operation(op: Op, args: &[String], globals: &GlobalOptions) -> Result<(),
     match command {
         "mode" => run_builtin_operation(op, "mode", mode_usage),
         "path" => run_builtin_operation(op, "path", path_usage),
+        "autossh" => run_builtin_operation(op, "autossh", autossh_usage),
         "help" | "h" | "which" => run_builtin_operation(op, command, usage),
         command if DELEGATED_COMMANDS.contains(&command) => {
             let ctx = Ctx::new()?;
@@ -718,6 +761,7 @@ fn usage() {
     println!("  cli                        Alias for `mode cli`.");
     println!("  desktop                    Alias for `mode desktop`.");
     println!("  status                     Alias for `mode status`.");
+    println!("  autossh check              Verify the Axiom reverse SSH endpoint on demand.");
     println!("  reload                     Delegate to the existing hey reload path.");
     println!("  path                       Print a dotfiles or XDG path.");
     println!("  which COMMAND [ARGS]       Resolve a built-in or dynamic command.");
@@ -741,6 +785,174 @@ fn path_usage() {
     println!();
     println!("Areas: home, bin, cache, config, data, hosts, host, lib, modules,");
     println!("       runtime, state, themes, theme, wm, wm*, profile, profile*, xdg DIR");
+}
+
+fn autossh_usage() {
+    println!("Usage: c1ctl autossh check");
+    println!();
+    println!("  check  Verify remote 127.0.0.1:{AUTOSSH_REMOTE_PORT} exposes Axiom's local SSH host key.");
+}
+
+fn run_autossh(args: &[String]) -> Result<(), Error> {
+    match args.first().map(String::as_str) {
+        Some("check") => {
+            ensure_no_extra(&args[1..])?;
+            autossh_check()
+        }
+        Some("help" | "h") | None => {
+            autossh_usage();
+            Ok(())
+        }
+        Some(command) => Err(Error::UnknownCommand(format!("autossh {command}"))),
+    }
+}
+
+fn autossh_check() -> Result<(), Error> {
+    validate_autossh_config()?;
+
+    let expected_key = local_ssh_host_key()?;
+    let known_hosts = autossh_known_hosts_file()?;
+    let remote = format!("{AUTOSSH_REMOTE_USER}@{AUTOSSH_REMOTE_HOST}");
+    let global_known_hosts = format!("GlobalKnownHostsFile={}", known_hosts.path.display());
+    let remote_scan =
+        format!("timeout 8 ssh-keyscan -T 5 -p {AUTOSSH_REMOTE_PORT} 127.0.0.1 2>/dev/null");
+
+    let mut command = Command::new(SSH);
+    command.args([
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=8",
+        "-o",
+        "StrictHostKeyChecking=yes",
+        "-o",
+        "UpdateHostKeys=no",
+        "-o",
+        &global_known_hosts,
+        "-o",
+        "UserKnownHostsFile=/dev/null",
+        &remote,
+        &remote_scan,
+    ]);
+
+    let output = command_stdout(command, SSH)?;
+    let remote_key = first_ed25519_key(&output).ok_or_else(|| {
+        Error::CheckFailed(format!(
+            "no ED25519 key found on remote 127.0.0.1:{AUTOSSH_REMOTE_PORT}; is autossh-reverse-ssh.service active?"
+        ))
+    })?;
+
+    if remote_key != expected_key {
+        return Err(Error::CheckFailed(format!(
+            "autossh endpoint key mismatch: expected {expected_key}, got {remote_key}"
+        )));
+    }
+
+    println!(
+        "autossh endpoint ok: {AUTOSSH_REMOTE_HOST}:127.0.0.1:{AUTOSSH_REMOTE_PORT} exposes Axiom local SSH host key"
+    );
+    Ok(())
+}
+
+fn validate_autossh_config() -> Result<(), Error> {
+    if AUTOSSH_REMOTE_HOST.is_empty() {
+        return Err(Error::InvalidConfig(
+            "C1CTL_AUTOSSH_REMOTE_HOST is empty".to_owned(),
+        ));
+    }
+    if AUTOSSH_REMOTE_USER.is_empty() {
+        return Err(Error::InvalidConfig(
+            "C1CTL_AUTOSSH_REMOTE_USER is empty".to_owned(),
+        ));
+    }
+    if AUTOSSH_REMOTE_PORT.is_empty() || AUTOSSH_REMOTE_PORT == "0" {
+        return Err(Error::InvalidConfig(
+            "C1CTL_AUTOSSH_REMOTE_PORT is empty or zero".to_owned(),
+        ));
+    }
+    if first_two_fields(AUTOSSH_REMOTE_HOST_KEY).is_none() {
+        return Err(Error::InvalidConfig(
+            "C1CTL_AUTOSSH_REMOTE_HOST_KEY is not an SSH public key".to_owned(),
+        ));
+    }
+
+    Ok(())
+}
+
+fn autossh_known_hosts_file() -> Result<TempFile, Error> {
+    let dir = env::var_os("XDG_RUNTIME_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(env::temp_dir);
+    let content = format!("{AUTOSSH_REMOTE_HOST} {AUTOSSH_REMOTE_HOST_KEY}\n");
+
+    for attempt in 0..100 {
+        let path = dir.join(format!(
+            "c1ctl-autossh-known-hosts-{}-{attempt}",
+            process::id()
+        ));
+        match fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+        {
+            Ok(mut file) => {
+                file.write_all(content.as_bytes())
+                    .map_err(|source| Error::Io {
+                        path: path.clone(),
+                        source,
+                    })?;
+                return Ok(TempFile { path });
+            }
+            Err(source) if source.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(source) => {
+                return Err(Error::Io {
+                    path: path.clone(),
+                    source,
+                })
+            }
+        }
+    }
+
+    Err(Error::CheckFailed(format!(
+        "could not create temporary autossh known-hosts file in {}",
+        dir.display()
+    )))
+}
+
+fn local_ssh_host_key() -> Result<String, Error> {
+    let path = PathBuf::from(LOCAL_SSH_HOST_KEY);
+    let content = fs::read_to_string(&path).map_err(|source| Error::Io {
+        path: path.clone(),
+        source,
+    })?;
+    first_two_fields(&content).ok_or(Error::InvalidKeyFile(path))
+}
+
+fn first_ed25519_key(output: &str) -> Option<String> {
+    for line in output.lines() {
+        let mut fields = line.split_whitespace();
+        let Some(_) = fields.next() else {
+            continue;
+        };
+        let Some(key_type) = fields.next() else {
+            continue;
+        };
+        let Some(key) = fields.next() else {
+            continue;
+        };
+        if key_type == "ssh-ed25519" {
+            return Some(format!("{key_type} {key}"));
+        }
+    }
+
+    None
+}
+
+fn first_two_fields(content: &str) -> Option<String> {
+    let mut fields = content.split_whitespace();
+    let first = fields.next()?;
+    let second = fields.next()?;
+    Some(format!("{first} {second}"))
 }
 
 fn run_mode(mode: Mode, args: &[OsString]) -> Result<(), Error> {
@@ -830,6 +1042,23 @@ fn run_command(mut command: Command, program: &str) -> Result<(), Error> {
             status,
         })
     }
+}
+
+fn command_stdout(mut command: Command, program: &str) -> Result<String, Error> {
+    let output = command.output().map_err(|source| Error::Spawn {
+        program: program.to_owned(),
+        source,
+    })?;
+
+    if !output.status.success() {
+        return Err(Error::OutputFailed {
+            program: program.to_owned(),
+            status: output.status,
+            stderr: String::from_utf8_lossy(&output.stderr).trim().to_owned(),
+        });
+    }
+
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
 fn exec_path(dotfiles_home: &Path) -> Vec<PathBuf> {
