@@ -7,6 +7,7 @@ let
   cfg = devCfg.playwright;
   system = if hostSystem != null then hostSystem else pkgs.stdenv.hostPlatform.system;
   isDarwin = hasSuffix "-darwin" system;
+  hasNixLd = builtins.hasAttr "programs" options && builtins.hasAttr "nix-ld" options.programs;
 in {
   options.modules.dev.playwright = {
     enable = mkBoolOpt false;
@@ -26,7 +27,7 @@ in {
       home.packages = [ pkgs.playwright-test ];
     })
 
-    (mkIf (!isDarwin) {
+    (optionalAttrs hasNixLd {
       # Let browsers downloaded by npm/npx Playwright resolve their runtime
       # libraries through nix-ld on NixOS.
       programs.nix-ld.libraries = with pkgs; [

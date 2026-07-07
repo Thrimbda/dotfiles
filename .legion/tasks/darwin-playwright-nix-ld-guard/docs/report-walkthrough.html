@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Darwin Playwright Nix-LD Guard | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.012 96);
+      --surface: oklch(99% 0.006 104);
+      --ink: oklch(23% 0.022 138);
+      --muted: oklch(48% 0.026 142);
+      --line: oklch(82% 0.02 108);
+      --accent: oklch(45% 0.12 153);
+      --accent-soft: oklch(91% 0.055 151);
+      --warn-soft: oklch(92% 0.052 82);
+      --code: oklch(94% 0.012 125);
+      --shadow: oklch(55% 0.03 120 / 0.16);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.64;
+      letter-spacing: 0;
+    }
+    main { width: min(1160px, calc(100vw - 36px)); margin: 0 auto; padding: 48px 0 72px; }
+    header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 28px; align-items: end; margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: 0.82rem; font-weight: 760; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 4vw, 4rem); line-height: 1.02; letter-spacing: 0; }
+    h2 { margin: 0 0 16px; font-size: 1.28rem; line-height: 1.25; letter-spacing: 0; }
+    p { max-width: 72ch; }
+    code { background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 0.08rem 0.28rem; font-size: 0.94em; }
+    .lead { color: var(--muted); font-size: 1.05rem; }
+    .status, section { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: 0 16px 40px var(--shadow); }
+    .status { padding: 20px; }
+    .status-row { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding: 11px 0; }
+    .status-row:first-of-type { border-top: 0; }
+    .pill { display: inline-flex; align-items: center; min-height: 28px; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); padding: 0 0.68rem; font-weight: 760; white-space: nowrap; }
+    .layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; align-items: start; }
+    nav { position: sticky; top: 20px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 14px; }
+    nav a { display: block; padding: 8px 10px; border-radius: 6px; color: var(--ink); text-decoration: none; }
+    nav a:hover { background: var(--accent-soft); }
+    section { padding: 24px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 11px; }
+    th { color: var(--muted); font-weight: 760; }
+    ul, ol { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    .note { background: var(--warn-soft); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+    @media (max-width: 900px) {
+      main { width: min(100vw - 24px, 720px); padding-top: 28px; }
+      header, .layout { grid-template-columns: 1fr; }
+      nav { position: static; }
+    }
+    @media print {
+      body { background: var(--surface); }
+      main { width: auto; padding: 0; }
+      nav { display: none; }
+      .status, section { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Implementation walkthrough</p>
+        <h1>Darwin Playwright Nix-LD Guard</h1>
+        <p class="lead">Reviewer 需要确认一处 Playwright module guard 是否正确修复 nix-darwin eval，同时保留 Linux nix-ld runtime library support。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <div class="status-row"><span>Profile</span><span class="pill">implementation</span></div>
+        <div class="status-row"><span>Verification</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Review</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>nix build</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Render</span><span class="pill">artifact/local</span></div>
+      </aside>
+    </header>
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#changed">改动</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#final">下一步</a>
+      </nav>
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <p>本 PR 修复 <code>charlie</code> 的 nix-darwin eval 失败。Darwin 不再生成 <code>programs.nix-ld</code> unknown option，Linux/Axiom 仍保留 Playwright nix-ld library list。</p>
+          <p>结论：Darwin build PASS，显式 <code>nix build</code> PASS，review PASS。</p>
+        </section>
+        <section id="scope">
+          <h2>Scope</h2>
+          <p><strong>In scope:</strong> 修改 <code>modules/dev/playwright.nix</code> 的 nix-ld option guard，并记录验证与 review 证据。</p>
+          <p><strong>Out of scope:</strong> 不升级 flake inputs，不重构 dev modules，不修改 autossh，不处理后续 switch activation 阶段可能出现的独立问题。</p>
+        </section>
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead><tr><th>Claim</th><th>Evidence</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Darwin 不再触发 <code>programs.nix-ld</code> unknown option</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td><code>nix build .#darwinConfigurations.charlie.system</code> 已通过</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>Linux/Axiom nix-ld library list 仍保留</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>变更范围局部且 review 通过</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <ol>
+            <li>创建 task contract 和 design-lite。</li>
+            <li>将 nix-ld 定义改为 option-existence guarded attrset。</li>
+            <li>执行 Darwin build、explicit nix build 和 Linux/Axiom targeted eval。</li>
+            <li>完成 review-change，结论 PASS。</li>
+            <li>下一步进入 wiki 写回和 PR lifecycle。</li>
+          </ol>
+        </section>
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>HTML artifact 选择 artifact/local preview。该报告无需发布到 public Pages；reviewer 可直接打开 <code>.legion/tasks/darwin-playwright-nix-ld-guard/docs/report-walkthrough.html</code>。</p>
+        </section>
+        <section id="changed">
+          <h2>What Changed / What Was Decided</h2>
+          <p>新增 <code>hasNixLd</code>，通过 <code>options</code> 判断当前 module graph 是否提供 <code>programs.nix-ld</code>。nix-ld libraries attrset 改用 <code>optionalAttrs hasNixLd</code>，Darwin 无该 option 时不会生成定义。</p>
+        </section>
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li><code>darwin-rebuild build --flake .#charlie</code> 通过。</li>
+            <li><code>nix build .#darwinConfigurations.charlie.system</code> 通过。</li>
+            <li><code>nix eval .#nixosConfigurations.axiom.config.programs.nix-ld.libraries --apply builtins.length</code> 返回 <code>56</code>。</li>
+            <li><code>git diff --check</code> 通过。</li>
+            <li><code>docs/review-change.md</code> 结论为 PASS。</li>
+          </ul>
+        </section>
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <p class="note">本 PR 修复 eval/build blocker，不直接执行 <code>sudo darwin-rebuild switch</code>。合并后从刷新后的主工作区执行 switch。</p>
+          <p>如果 switch 暴露 activation-time 问题，应单独处理，除非证据指回本 guard。</p>
+        </section>
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>确认 <code>optionalAttrs hasNixLd</code> 是正确的跨 module-system guard。</li>
+            <li>确认 Darwin build 和 explicit nix build 证据充分。</li>
+            <li>确认 Linux/Axiom Playwright nix-ld runtime intent 未被移除。</li>
+          </ul>
+        </section>
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>walkthrough 完成后，下一步是 <code>legion-wiki</code> 写回，然后提交、推送、创建 PR、尝试 squash merge。<code>pr-body.md</code> 只是 PR 创建输入，不代表 PR lifecycle 已完成。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

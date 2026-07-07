@@ -238,6 +238,8 @@
 - Updated reverse SSH and c1ctl decisions so Axiom autossh endpoint identity checks are on-demand through `c1ctl autossh check`, not periodic systemd healthcheck timers.
 - Added task summary for `aliyun-acorn-sshd-authorizedkeysfile-fix`.
 - Extended runtime validation patterns with NixOS OpenSSH `extraConfig` caution and generated `AuthorizedKeysFile` validation guidance.
+- Added task summary for `darwin-playwright-nix-ld-guard`.
+- Updated current Playwright runtime decisions and host-local package patterns so the shared Playwright module only generates `programs.nix-ld` when that option exists, with Darwin build plus explicit `nix build` validation.
 - Added task summary for `axiom-build-caelestia-regression`.
 - Updated current Axiom desktop decisions, runtime validation patterns, and maintenance with Janet/JPM ABI rebuild guidance and Foot fontconfig fallback validation.
 - Added task summary for `hey-jpm-activation-safe-rebuild`.
