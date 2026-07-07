@@ -1,5 +1,5 @@
 {
-  description = "Alibaba Cloud ECS importable image for aliyun-acorn";
+  description = "Alibaba Cloud ECS importable image for acorn";
 
   inputs.dotfiles.url = "path:../../..";
 
@@ -13,7 +13,7 @@
         "aarch64-darwin"
       ];
       aliyunImage =
-        (dotfiles.nixosConfigurations.aliyun-acorn.extendModules {
+        (dotfiles.nixosConfigurations.acorn.extendModules {
           modules = [
             ({ modulesPath, lib, ... }: {
               imports = [
@@ -21,7 +21,7 @@
               ];
 
               image = {
-                baseName = "nixos-aliyun-acorn";
+                baseName = "nixos-acorn";
                 format = "qcow2";
                 efiSupport = true;
               };

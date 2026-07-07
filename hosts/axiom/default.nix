@@ -151,13 +151,13 @@ with builtins;
       userName = config.user.name;
       opencodeDir = config.modules.services.opencode-server.dir;
       reverseSsh = config.modules.services.reverse-ssh;
-      aliyunAcornPublicIp = "8.159.128.125";
-      aliyunAcornSshHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE6WwypfVtdA16Au8kXoCVJgkTDlvgu98sqA0Z04Ux3l";
-      aliyunAcornAutosshKnownHosts = pkgs.writeText "axiom-autossh-known-hosts" ''
-        ${aliyunAcornPublicIp} ${aliyunAcornSshHostKey}
+      acornPublicIp = "8.159.128.125";
+      acornSshHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE6WwypfVtdA16Au8kXoCVJgkTDlvgu98sqA0Z04Ux3l";
+      acornAutosshKnownHosts = pkgs.writeText "axiom-acorn-known-hosts" ''
+        ${acornPublicIp} ${acornSshHostKey}
       '';
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
-      frpcDirectRouteUnit = "frpc-aliyun-acorn-direct-route.service";
+      frpcDirectRouteUnit = "frpc-acorn-direct-route.service";
       frpcDirectRoutePriority = 8500;
       gatusPort = 8080;
       feishuLauncherId = "bytedance-feishu";
@@ -167,7 +167,7 @@ with builtins;
         autosshRemoteHost = reverseSsh.remoteHost;
         autosshRemoteUser = reverseSsh.remoteUser;
         autosshRemotePort = reverseSsh.remotePort;
-        autosshRemoteHostKey = aliyunAcornSshHostKey;
+        autosshRemoteHostKey = acornSshHostKey;
       };
       caelestiaIdleSettings = {
         lockBeforeSleep = true;
@@ -275,15 +275,15 @@ with builtins;
 
     modules.services.reverse-ssh = {
       enable = true;
-      remoteHost = aliyunAcornPublicIp;
+      remoteHost = acornPublicIp;
       remoteUser = "c1";
-      globalKnownHostsFile = "${aliyunAcornAutosshKnownHosts}";
+      globalKnownHostsFile = "${acornAutosshKnownHosts}";
       userKnownHostsFile = "/dev/null";
       remotePort = 2223;
     };
 
-    systemd.services.frpc-aliyun-acorn-direct-route = {
-      description = "Route Axiom frpc traffic to aliyun-acorn outside Clash Meta";
+    systemd.services.frpc-acorn-direct-route = {
+      description = "Route Axiom frpc traffic to acorn outside Clash Meta";
       after = [ "network-online.target" "clash-verge.service" ];
       wants = [ "network-online.target" ];
       before = [ "frpc.service" ];
@@ -296,7 +296,7 @@ with builtins;
         set -eu
 
         priority=${toString frpcDirectRoutePriority}
-        target=${aliyunAcornPublicIp}/32
+        target=${acornPublicIp}/32
 
         ip -4 rule del priority "$priority" 2>/dev/null || true
         ip -4 rule add priority "$priority" to "$target" lookup main
@@ -312,7 +312,7 @@ with builtins;
 
     modules.services.frp.client = {
       enable = true;
-      serverAddr = aliyunAcornPublicIp;
+      serverAddr = acornPublicIp;
       proxies = [
         {
           name = "axiom-ssh";

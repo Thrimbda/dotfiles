@@ -1,4 +1,10 @@
-let key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGjoe+lq7fVAdQRI2Q22H1cE1RjrNk6oRKaqa4uz6E5k c1.siyuan@outlook.com";
+let
+  acorn = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKrC5k/qhfJUVkMG0Fr+RKEIf1VV9Q6eSWLcnP+NXiFR c.one@thrimbda.com";
+  axiom = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMbq2TSxnl6D4oEdKGNNk1C71QCPN+xPCvCT6KvPhsws axiom.local";
 in {
-  "vaultwarden-env.age".publicKeys = [key];
+  "frp-token.age".publicKeys = [ acorn axiom ];
+  "nginx-status-htpasswd.age".publicKeys = [ acorn ];
+  "status-basic-auth-password.age".publicKeys = [ acorn ];
+  "vaultwarden-env.age".publicKeys = [ acorn ];
+  "cloudflare-dns.env.age".publicKeys = [ acorn ];
 }
