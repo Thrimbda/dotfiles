@@ -12,3 +12,4 @@
 - Walkthrough：生成 `docs/report-walkthrough.html`、`docs/report-walkthrough.md` 与 `docs/pr-body.md`。HTML 选择 artifact/local preview，不发布 Pages。
 - Report QA：`rg -n '—|#000|#fff|background-clip|border-left|border-right|https?://|@import' docs/report-walkthrough.html` 返回无匹配。
 - Wiki：新增 task summary，并把共享 Playwright 模块的 `programs.nix-ld` option-existence guard 结论提升到 wiki decisions/patterns。
+- PR：创建 https://github.com/Thrimbda/dotfiles/pull/128。

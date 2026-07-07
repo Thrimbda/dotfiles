@@ -2,7 +2,7 @@
 
 ## Status
 
-Current phase: wiki complete / PR pending
+Current phase: PR created / merge pending
 
 ## Checklist
 
@@ -15,6 +15,6 @@ Current phase: wiki complete / PR pending
 - [x] 编写 `docs/review-change.md`
 - [x] 编写 `docs/report-walkthrough.md`
 - [x] 更新 Legion wiki
-- [ ] 提交、推送、创建 PR 并合并
+- [ ] 提交、推送、创建 PR 并合并（PR: https://github.com/Thrimbda/dotfiles/pull/128）
 - [ ] 清理 worktree 并刷新主工作区
 - [ ] 重试 `sudo darwin-rebuild switch --flake .#charlie`
