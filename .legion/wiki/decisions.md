@@ -2,23 +2,23 @@
 
 ## Aliyun ECS Image Deployment
 
-`hosts/aliyun-acorn` dotfiles ownership stops at the NixOS host/image target and guarded ECS custom-image runbook. Durable Aliyun ECS/VPC/security-group state should live in `~/Work/aliyun-ops` Terraform if `aliyun-acorn` becomes long-lived; dotfiles must not store Aliyun credentials, CLI profiles, Terraform state, `tfvars`, QCOW2 artifacts, private keys, passwords, or account exports.
+`hosts/acorn` dotfiles ownership stops at the NixOS host/image target and guarded ECS custom-image runbook. Durable Aliyun ECS/VPC/security-group state should live in `~/Work/aliyun-ops` Terraform if `acorn` becomes long-lived; dotfiles must not store Aliyun credentials, CLI profiles, Terraform state, `tfvars`, QCOW2 artifacts, private keys, passwords, or account exports.
 
-Imported Alibaba Cloud ECS custom images for `aliyun-acorn` must set `BootMode=UEFI`, `Architecture=x86_64`, `OSType=linux`, and `Format=qcow2` to match the EFI/systemd-boot NixOS image target. Do not rely on ECS `ImportImage` defaults, because BIOS is the unsafe default for this host shape.
+Imported Alibaba Cloud ECS custom images for `acorn` must set `BootMode=UEFI`, `Architecture=x86_64`, `OSType=linux`, and `Format=qcow2` to match the EFI/systemd-boot NixOS image target. Do not rely on ECS `ImportImage` defaults, because BIOS is the unsafe default for this host shape.
 
-Live Aliyun writes for `aliyun-acorn` remain gated until bucket, same-region OSS object, image-import role, VPC/vSwitch/security group, instance type, SSH source CIDR, cost/dry-run result, and cleanup policy are confirmed. First-boot SSH access should be injected at runtime through cloud-init `UserData` from local public-key material, not committed authorized keys or passwords.
+Live Aliyun writes for `acorn` remain gated until bucket, same-region OSS object, image-import role, VPC/vSwitch/security group, instance type, SSH source CIDR, cost/dry-run result, and cleanup policy are confirmed. First-boot SSH access should be injected at runtime through cloud-init `UserData` from local public-key material, not committed authorized keys or passwords.
 
-On `aliyun-acorn`, Nix binary substitutions should prefer domestic mirrors in this order before existing Cachix and official cache fallback: TUNA `https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store`, USTC `https://mirrors.ustc.edu.cn/nix-channels/store`, then SJTU `https://mirror.sjtu.edu.cn/nix-channels/store`. The official `cache.nixos.org` fallback and trusted public key remain part of the final evaluated config. This is a host-local Alibaba Cloud network optimization and does not change global flake inputs or GitHub fetch behavior.
+On `acorn`, Nix binary substitutions should prefer domestic mirrors in this order before existing Cachix and official cache fallback: TUNA `https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store`, USTC `https://mirrors.ustc.edu.cn/nix-channels/store`, then SJTU `https://mirror.sjtu.edu.cn/nix-channels/store`. The official `cache.nixos.org` fallback and trusted public key remain part of the final evaluated config. This is a host-local Alibaba Cloud network optimization and does not change global flake inputs or GitHub fetch behavior.
 
-`aliyun-acorn` NixOS firewall allows TCP `2222` as a host-local port opening. This does not by itself configure the Aliyun security group, start a service on that port, or change SSH authentication/listening behavior.
+`acorn` NixOS firewall allows TCP `2222` as a host-local port opening. This does not by itself configure the Aliyun security group, start a service on that port, or change SSH authentication/listening behavior.
 
-`aliyun-acorn` Vaultwarden staging is scoped to `vault.0xc1.wang` only while `acorn` remains unchanged. Do not add `vault.0xc1.space` as an `aliyun-acorn` compatibility vhost; DNS/ACME readiness and Vaultwarden data ownership must be handled before sending real traffic to the new host.
+`acorn` Vaultwarden staging is scoped to `vault.0xc1.wang` only. Do not add `vault.0xc1.space` as an `acorn` compatibility vhost; DNS/ACME readiness and Vaultwarden data ownership must be handled before sending real traffic to this host.
 
 For agenix-backed service migration between hosts, the target host must receive a secret encrypted to its own declared recipient. Do not copy an existing `.age` artifact across hosts unless target-key decryptability is verified; re-encrypt from a valid source decrypt identity directly into the target host's `secrets/` rule context.
 
-`aliyun-acorn` is a low-resource public server target, not a development or desktop machine. Keep its host profile limited to explicit server role dependencies; do not enable development runtimes, desktop/media tooling, Docker, or host `nix-ld` unless a scoped task proves they are required.
+`acorn` is a low-resource public server target, not a development or desktop machine. Keep its host profile limited to explicit server role dependencies; do not enable development runtimes, desktop/media tooling, Docker, or host `nix-ld` unless a scoped task proves they are required.
 
-`vault.0xc1.wang` should use Cloudflare-proxied DNS for browser-facing HTTPS and Cloudflare DNS-01 ACME for the `aliyun-acorn` origin certificate. `status-axiom.0xc1.wang` should also use Cloudflare DNS-01 ACME with DNS-only `A` record origin routing and nginx Basic Auth. Public `80` remains closed; do not use HTTP-01 for this host.
+`vault.0xc1.wang` should use Cloudflare-proxied DNS for browser-facing HTTPS and Cloudflare DNS-01 ACME for the `acorn` origin certificate. `status-axiom.0xc1.wang` should also use Cloudflare DNS-01 ACME with DNS-only `A` record origin routing and nginx Basic Auth. Public `80` remains closed; do not use HTTP-01 for this host.
 
 ## Linux Workstation Desktop Baseline
 
@@ -138,13 +138,13 @@ Those Axiom survival/resource policies are now expressed through owning module o
 
 ## FRP Tunnels
 
-The frp deployment path is additive to autossh. `aliyun-acorn` owns `frps` on TCP `7000`, and `axiom` owns `frpc` proxy `axiom-ssh` from local `127.0.0.1:22` to remote TCP `2225` on `8.159.128.125`.
+The frp deployment path is additive to autossh. `acorn` owns `frps` on TCP `7000`, and `axiom` owns `frpc` proxy `axiom-ssh` from local `127.0.0.1:22` to remote TCP `2225` on `8.159.128.125`.
 
-For the first `0xc1.wang` public entry slice, `axiom` also owns frp proxy `axiom-gatus-http` from local Gatus `127.0.0.1:8080` to remote TCP `18080` on `aliyun-acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
+For the first `0xc1.wang` public entry slice, `axiom` also owns frp proxy `axiom-gatus-http` from local Gatus `127.0.0.1:8080` to remote TCP `18080` on `acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
 
-For the parallel OpenCode `0xc1.wang` entry, `axiom` owns frp proxy `axiom-opencode-http` from local OpenCode `127.0.0.1:4096` to remote TCP `18081` on `aliyun-acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
+For the parallel OpenCode `0xc1.wang` entry, `axiom` owns frp proxy `axiom-opencode-http` from local OpenCode `127.0.0.1:4096` to remote TCP `18081` on `acorn`. This remote port is an nginx backend only and must not be opened in the NixOS firewall or Aliyun security group.
 
-On Axiom, frpc traffic to Aliyun Acorn must bypass Clash/Meta TUN routing. Axiom owns `frpc-aliyun-acorn-direct-route.service`, which installs policy rule priority `8500` for `8.159.128.125/32` through the `main` routing table before `frpc.service` starts. Keep this host-local unless another machine shows the same Clash/Meta routing failure.
+On Axiom, frpc traffic to Acorn must bypass Clash/Meta TUN routing. Axiom owns `frpc-acorn-direct-route.service`, which installs policy rule priority `8500` for `8.159.128.125/32` through the `main` routing table before `frpc.service` starts. Keep this host-local unless another machine shows the same Clash/Meta routing failure.
 
 FRP token auth must use host-local agenix secrets and runtime TOML rendering from `/run/agenix/frp-token`; do not place plaintext token values in Nix TOML, module options, task docs, PR bodies, or Nix store outputs.
 
@@ -176,7 +176,7 @@ Clash Verge Rev on NixOS should be integrated through the upstream `programs.cla
 
 For TUN connectivity, the current default trusted interface set is `Mihomo` and `Meta`, paired with a reverse-path filter exception for those names. Do not globally disable reverse-path filtering or migrate to `services.mihomo` unless a future scoped task explicitly chooses that route.
 
-Remote-access endpoints that must remain direct can use host-local policy rules with a priority lower than Clash/Meta rules. The current Axiom example is `8.159.128.125/32 lookup main` at priority `8500` for frpc to Aliyun Acorn; do not broaden this to general proxy bypass without a scoped review.
+Remote-access endpoints that must remain direct can use host-local policy rules with a priority lower than Clash/Meta rules. The current Axiom example is `8.159.128.125/32 lookup main` at priority `8500` for frpc to Acorn; do not broaden this to general proxy bypass without a scoped review.
 
 For axiom terminal-driven Clash Verge node switching, use the local Clash/Mihomo controller API at `http://127.0.0.1:9090` with default group `Nexitally`. Do not edit subscription YAML or proxy-group definitions for runtime node switching. If a controller secret is configured, pass it at runtime and keep it out of repository files.
 
@@ -188,7 +188,7 @@ Reusable Gatus endpoint inventory should be represented through `modules.service
 
 The public hostname is `status-axiom.0xc1.space` through the existing `home-axiom` cloudflared tunnel to local `127.0.0.1:8080`. Cloudflare Access is the authentication boundary; cloudflared is only transport. Create or modify the public DNS/tunnel route only after the `status-axiom.0xc1.space` Access app/policy has been verified.
 
-The parallel `status-axiom.0xc1.wang` hostname is a DNS-only `aliyun-acorn` nginx entry backed by frp remote TCP `18080` to the same Axiom Gatus loopback service. It must use nginx Basic Auth from agenix-managed htpasswd material. This does not migrate or replace `status-axiom.0xc1.space`, and it does not authorize direct nginx exposure for OpenCode or any other sensitive service.
+The parallel `status-axiom.0xc1.wang` hostname is a DNS-only `acorn` nginx entry backed by frp remote TCP `18080` to the same Axiom Gatus loopback service. It must use nginx Basic Auth from agenix-managed htpasswd material. This does not migrate or replace `status-axiom.0xc1.space`, and it does not authorize direct nginx exposure for OpenCode or any other sensitive service.
 
 Gatus covers user-visible availability, TLS/route checks, status page display, and Prometheus-exported probe results. Prometheus remains the white-box metrics system for application and infrastructure metrics.
 

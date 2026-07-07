@@ -246,3 +246,5 @@
 - Updated reverse SSH decisions and patterns so Axiom no longer uses a Nix-managed system-wide pin for the mutable `8.159.128.125` remote server host key.
 - Added task summary for `charlie-autossh-c1-user`.
 - Updated current reverse SSH decisions so `charlie` autossh uses `c1@8.159.128.125` for remote loopback `127.0.0.1:2222`, and added a deploy follow-up to remove the unmanaged stale root-based LaunchAgent if it is still loaded.
+- Added task summary for `acorn-aliyun-host-rename`.
+- Updated current Acorn/Aliyun decisions, FRP route naming, cache mirror pattern, and maintenance follow-ups so `hosts/acorn` / `nixosConfigurations.acorn` are the current active host identity while historical `aliyun-acorn-*` task pages remain historical records.

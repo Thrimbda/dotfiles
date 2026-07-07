@@ -4,12 +4,12 @@
 
 - Full all-host NixOS evaluation is currently blocked by an unrelated existing package rename: `godot_4-export-templates` should be updated to `godot_4-export-templates-bin` in a separate scoped task if all-host evaluation or full flake checks become required.
 
-## Aliyun Acorn ECS Follow-Up
+## Acorn Aliyun ECS Follow-Up
 
-- Before running live `aliyun-acorn` validation, confirm the OSS bucket/object, image-import RAM role, VPC/vSwitch/security group, instance type, operator SSH CIDR, auto-release time, expected cost/dry-run result, and cleanup owner.
+- Before running live `acorn` validation, confirm the OSS bucket/object, image-import RAM role, VPC/vSwitch/security group, instance type, operator SSH CIDR, auto-release time, expected cost/dry-run result, and cleanup owner.
 - Run the first live ECS validation by uploading the built QCOW2 to same-region OSS, importing it with `BootMode=UEFI`, creating a temporary validation instance, checking serial console/cloud-init/DHCP/SSH/root partition growth, then cleaning up temporary resources or recording any intentionally retained IDs.
-- If `aliyun-acorn` should become a long-lived host, create a follow-up in `~/Work/aliyun-ops` for Terraform-owned ECS/VPC/security-group state instead of preserving one-off CLI state as durable infrastructure.
-- After deploying the `aliyun-acorn` Vaultwarden ACME config, confirm the host can switch successfully and SSH remains responsive. Then check `vaultwarden.service`, `nginx.service`, `fail2ban.service`, frps, `acme-order-renew-vault.0xc1.wang.service`, `acme-vault.0xc1.wang.service`, public `443`, closed public `80`, `/run/agenix/vaultwarden-env`, and `/run/agenix/cloudflare-dns-env`. `status-axiom.0xc1.wang` remains self-signed staging until a separate DNS/TLS task.
+- If `acorn` should become a long-lived host, create a follow-up in `~/Work/aliyun-ops` for Terraform-owned ECS/VPC/security-group state instead of preserving one-off CLI state as durable infrastructure.
+- After deploying the `acorn` Vaultwarden ACME config, confirm the host can switch successfully and SSH remains responsive. Then check `vaultwarden.service`, `nginx.service`, `fail2ban.service`, frps, `acme-order-renew-vault.0xc1.wang.service`, `acme-vault.0xc1.wang.service`, public `443`, closed public `80`, `/run/agenix/vaultwarden-env`, and `/run/agenix/cloudflare-dns-env`. `status-axiom.0xc1.wang` remains self-signed staging until a separate DNS/TLS task.
 
 ## Terminal Follow-Up
 

@@ -1,4 +1,4 @@
-# aliyun-acorn
+# acorn
 
 NixOS host/image target for importing into Alibaba Cloud ECS.
 
@@ -7,16 +7,16 @@ NixOS host/image target for importing into Alibaba Cloud ECS.
 From the repository root:
 
 ```sh
-nix build ./hosts/aliyun-acorn/image#aliyun-image
+nix build ./hosts/acorn/image#aliyun-image
 ```
 
 The image flake also exposes the explicit Linux package path:
 
 ```sh
-nix build ./hosts/aliyun-acorn/image#packages.x86_64-linux.aliyun-image
+nix build ./hosts/acorn/image#packages.x86_64-linux.aliyun-image
 ```
 
-The output is a QCOW2 disk image named with the `nixos-aliyun-acorn` base name.
+The output is a QCOW2 disk image named with the `nixos-acorn` base name.
 
 ## Import notes
 
@@ -36,7 +36,7 @@ The commands below are templates. Do not run the paid-resource steps until the t
 From this repository root:
 
 ```sh
-nix build ./hosts/aliyun-acorn/image#aliyun-image
+nix build ./hosts/acorn/image#aliyun-image
 ```
 
 Keep the `result` symlink and QCOW2 output local. Do not commit or copy the image into this repository.
@@ -59,7 +59,7 @@ Default to `cn-shanghai` unless a later task chooses a different region. The OSS
 export ALIYUN_ACORN_REGION=cn-shanghai
 export ALIYUN_ACORN_OSS_ENDPOINT=oss-cn-shanghai.aliyuncs.com
 export ALIYUN_ACORN_IMAGE_BUCKET=REVIEWED_PRIVATE_IMAGE_BUCKET
-export ALIYUN_ACORN_IMAGE_OBJECT=ecs-images/aliyun-acorn/$(date +%Y%m%d)/nixos-aliyun-acorn.qcow2
+export ALIYUN_ACORN_IMAGE_OBJECT=ecs-images/acorn/$(date +%Y%m%d)/nixos-acorn.qcow2
 export ALIYUN_ECS_IMAGE_IMPORT_ROLE=AliyunECSImageImportDefaultRole
 ```
 
@@ -70,7 +70,7 @@ Use a dedicated private image-import bucket or an approved existing private buck
 From `~/Work/aliyun-ops`, point `ALIYUN_ACORN_QCOW2` at the built image in the dotfiles checkout:
 
 ```sh
-export ALIYUN_ACORN_QCOW2=/home/c1/dotfiles/result/nixos-aliyun-acorn.qcow2
+export ALIYUN_ACORN_QCOW2=/home/c1/dotfiles/result/nixos-acorn.qcow2
 ossutil cp "$ALIYUN_ACORN_QCOW2" "oss://$ALIYUN_ACORN_IMAGE_BUCKET/$ALIYUN_ACORN_IMAGE_OBJECT" \
   -e "$ALIYUN_ACORN_OSS_ENDPOINT"
 ossutil stat "oss://$ALIYUN_ACORN_IMAGE_BUCKET/$ALIYUN_ACORN_IMAGE_OBJECT" \
@@ -102,14 +102,14 @@ aliyun --profile prod ecs ImportImage \
   --OSType linux \
   --Platform 'Customized Linux' \
   --BootMode UEFI \
-  --ImageName nixos-aliyun-acorn-$(date +%Y%m%d) \
-  --Description "NixOS aliyun-acorn custom image $(date +%Y%m%d)" \
+  --ImageName nixos-acorn-$(date +%Y%m%d) \
+  --Description "NixOS acorn custom image $(date +%Y%m%d)" \
   --DetectionStrategy Standard \
   --DiskDeviceMapping.1.OSSBucket "$ALIYUN_ACORN_IMAGE_BUCKET" \
   --DiskDeviceMapping.1.OSSObject "$ALIYUN_ACORN_IMAGE_OBJECT" \
   --DiskDeviceMapping.1.Format qcow2 \
   --Tag.1.Key Project --Tag.1.Value dotfiles \
-  --Tag.2.Key Component --Tag.2.Value aliyun-acorn
+  --Tag.2.Key Component --Tag.2.Value acorn
 ```
 
 Poll until the image is available:
@@ -117,7 +117,7 @@ Poll until the image is available:
 ```sh
 aliyun --profile prod ecs DescribeImages \
   --RegionId "$ALIYUN_ACORN_REGION" \
-  --ImageName nixos-aliyun-acorn-$(date +%Y%m%d)
+  --ImageName nixos-acorn-$(date +%Y%m%d)
 ```
 
 Record the returned image ID locally for the validation instance:
@@ -132,7 +132,7 @@ Generate cloud-init user data locally from a public SSH key. This injects access
 
 ```sh
 export ALIYUN_ACORN_SSH_PUBKEY_PATH=${ALIYUN_ACORN_SSH_PUBKEY_PATH:-$HOME/.ssh/id_ed25519.pub}
-export ALIYUN_ACORN_USER_DATA_FILE=${TMPDIR:-/tmp}/aliyun-acorn-user-data.yaml
+export ALIYUN_ACORN_USER_DATA_FILE=${TMPDIR:-/tmp}/acorn-user-data.yaml
 install -m 600 /dev/null "$ALIYUN_ACORN_USER_DATA_FILE"
 {
   printf '%s\n' '#cloud-config'
@@ -170,8 +170,8 @@ aliyun --profile prod ecs RunInstances \
   --InstanceType "$ALIYUN_ACORN_INSTANCE_TYPE" \
   --SecurityGroupId "$ALIYUN_ACORN_SECURITY_GROUP_ID" \
   --VSwitchId "$ALIYUN_ACORN_VSWITCH_ID" \
-  --InstanceName aliyun-acorn-validation \
-  --HostName aliyun-acorn \
+  --InstanceName acorn-validation \
+  --HostName acorn \
   --SystemDisk.Category cloud_essd \
   --SystemDisk.Size 40 \
   --InternetMaxBandwidthOut 5 \
@@ -208,4 +208,4 @@ For temporary validation, clean up in this order:
 4. Delete the staging bucket only if it was created solely for image import and is empty.
 5. Remove any temporary SSH ingress rule created outside Terraform.
 
-If `aliyun-acorn` should become a durable host, create a follow-up task in `~/Work/aliyun-ops` for Terraform-owned ECS/VPC/security-group state instead of keeping one-off CLI state as the long-term source of truth.
+If `acorn` should become a durable host, create a follow-up task in `~/Work/aliyun-ops` for Terraform-owned ECS/VPC/security-group state instead of keeping one-off CLI state as the long-term source of truth.
