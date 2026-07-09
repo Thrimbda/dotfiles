@@ -7,4 +7,5 @@ in {
   "status-basic-auth-password.age".publicKeys = [ acorn ];
   "vaultwarden-env.age".publicKeys = [ acorn ];
   "cloudflare-dns.env.age".publicKeys = [ acorn ];
+  "auth-mini-gateway-env.age".publicKeys = [ acorn ];
 }

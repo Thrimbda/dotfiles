@@ -1,0 +1,24 @@
+# Log
+
+- User requested deploying `auth-mini` and `auth-mini-gateway` into Acorn's frps/nginx architecture using Legion workflow.
+- User specified upstreams: `https://github.com/zccz14/auth-mini` and `https://github.com/Thrimbda/auth-mini-gateway`.
+- User specified public hostnames: `auth.0xc1.wang` and `auth-gateway.0xc1.wang`.
+- User specified gateway should take over nginx reverse-proxy service authentication for status/opencode/remaining existing human-facing proxy services, without OAuth.
+- Discovery: current Acorn is the canonical Aliyun host profile and runs nginx plus frps; Axiom exposes Gatus and Opencode to Acorn loopback ports through frpc.
+- Discovery: current protected reverse proxy services are `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang`; `vault.0xc1.wang` is a separate Vaultwarden app proxy and remains out of scope to avoid breaking native clients.
+- Upstream discovery: `auth-mini` deployment binary listens on loopback by default, accepts `--host`, `--port`, and `--db`, and requires post-deploy admin setup for issuer/RP/SMTP.
+- Upstream discovery: `auth-mini-gateway` expects env config, durable SQLite, stable `GATEWAY_COOKIE_SECRET`, auth-mini issuer/public URL, allowlist, and nginx `auth_request` wiring.
+- RFC review discovery: upstream `auth-mini-gateway` validates `return_to` against one `GATEWAY_PUBLIC_BASE_URL` and sets host-only cookies, so one central `auth-gateway.0xc1.wang` instance cannot safely protect multiple other hostnames. Design updated to one origin-scoped gateway instance per protected hostname while retaining `auth-gateway.0xc1.wang` as a canonical gateway vhost.
+- RFC review: PASS after per-origin gateway correction; no blocking findings remain before implementation.
+- Worktree envelope opened at `.worktrees/auth-mini-acorn-gateway` on branch `legion/auth-mini-acorn-gateway-auth` from `origin/master`.
+- Implementation: added `packages/auth-mini` for the pinned upstream release binary and `packages/auth-mini-gateway` for the pinned Rust source build.
+- Implementation: added `hosts/acorn/modules/auth-mini.nix` with `auth-mini`, per-origin `auth-mini-gateway-*` services, `auth.0xc1.wang`, `auth-gateway.0xc1.wang`, and gateway-protected status/opencode/frps vhosts.
+- Implementation: generated `hosts/acorn/secrets/auth-mini-gateway-env.age` with a stable cookie secret and exact-email allowlist, encrypted to the Acorn recipient; decrypt check with `/home/c1/.ssh/id_ed25519` passed without printing plaintext.
+- Implementation check: staged scoped files for flake evaluation because new untracked files are otherwise absent from the Git flake source; `nix eval --raw .#nixosConfigurations.acorn.config.networking.hostName` returned `acorn`.
+- Verification: package builds passed for `auth-mini` and `auth-mini-gateway`; gateway package build also ran upstream Rust tests with `11 passed`.
+- Verification: Acorn toplevel build passed after fixing duplicate agenix `file` definition and incorrect nginx vhost attr keys.
+- Verification: firewall eval excludes backend ports `7777`-`7781`; protected vhost evals show `auth_request /_auth` and no `basicAuthFile`; generated nginx config inspection confirms full hostnames and per-origin gateway ports; Vaultwarden remains unchanged.
+- Change review: PASS. Security lens applied; no blocking findings. Residual risks are live DNS/ACME/bootstrap/smoke checks and future `auth-mini` latest-tag hash updates.
+- Walkthrough: wrote implementation-mode `docs/report-walkthrough.md` and `docs/pr-body.md` from existing RFC, verification, and review evidence.
+- Wiki: wrote `wiki/tasks/auth-mini-acorn-gateway.md`, updated current decisions for Acorn Auth Mini Gateway, updated auth gateway validation patterns, and recorded post-deploy maintenance checks.
+- Rebase verification: after `git fetch origin && git rebase origin/master`, reran Acorn toplevel build plus `git diff --check`; both passed.
