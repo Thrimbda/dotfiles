@@ -157,6 +157,16 @@ git diff --check
 
 Result: PASS.
 
+### Post-Rebase Check
+
+After rebasing the branch onto updated `origin/master`, reran:
+
+```bash
+nix build --impure --no-link .#nixosConfigurations.acorn.config.system.build.toplevel && git diff --check && git status --short --branch
+```
+
+Result: PASS. Acorn toplevel rebuilt on the new base, whitespace check passed, and the branch was clean with one commit ahead of `origin/master` at that point.
+
 ## Post-Deploy Checks Not Run Locally
 
 - Create/verify DNS-only Cloudflare records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang` pointing to Acorn.

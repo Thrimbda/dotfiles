@@ -21,3 +21,4 @@
 - Change review: PASS. Security lens applied; no blocking findings. Residual risks are live DNS/ACME/bootstrap/smoke checks and future `auth-mini` latest-tag hash updates.
 - Walkthrough: wrote implementation-mode `docs/report-walkthrough.md` and `docs/pr-body.md` from existing RFC, verification, and review evidence.
 - Wiki: wrote `wiki/tasks/auth-mini-acorn-gateway.md`, updated current decisions for Acorn Auth Mini Gateway, updated auth gateway validation patterns, and recorded post-deploy maintenance checks.
+- Rebase verification: after `git fetch origin && git rebase origin/master`, reran Acorn toplevel build plus `git diff --check`; both passed.
