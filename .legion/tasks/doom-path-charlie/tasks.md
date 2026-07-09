@@ -8,6 +8,7 @@
 - Base ref：origin/master
 - Branch：legion/doom-path-charlie-zsh-path
 - Worktree：.worktrees/doom-path-charlie
+- PR：https://github.com/Thrimbda/dotfiles/pull/130
 
 ## Checklist
 
@@ -20,4 +21,4 @@
 - [x] 完成 review-change
 - [x] 完成 report-walkthrough
 - [x] 完成 legion-wiki 写回
-- [ ] commit / rebase / push / PR lifecycle
+- [ ] PR checks/review/auto-merge lifecycle

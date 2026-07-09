@@ -16,3 +16,4 @@
 - Walkthrough：已生成 `docs/report-walkthrough.html`、`docs/report-walkthrough.md` 与 `docs/pr-body.md`。
 - Render handoff：artifact-only/blocker。仓库没有现成 `.github` Pages PR preview workflow，新增 workflow 会扩大本次 PATH 修复 scope；reviewer 可直接查看 PR 中的 HTML artifact。若需要稳定 rendered URL，应另开任务配置 `pr-html-render` workflow 和 Pages settings。
 - Wiki writeback：新增 `.legion/wiki/tasks/doom-path-charlie.md`，更新 `.legion/wiki/index.md`、`.legion/wiki/patterns.md` 与 `.legion/wiki/log.md`。
+- Git lifecycle：提交 `d8287aa7` 已推送到 `origin/legion/doom-path-charlie-zsh-path`，PR 已创建：`https://github.com/Thrimbda/dotfiles/pull/130`。
