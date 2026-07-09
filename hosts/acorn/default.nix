@@ -34,6 +34,7 @@
   config = { config, modulesPath, lib, pkgs, ... }: {
     imports = [
       "${modulesPath}/profiles/qemu-guest.nix"
+      ./modules/auth-mini.nix
       ./modules/vaultwarden.nix
     ];
 
@@ -129,35 +130,6 @@
     services.nginx.virtualHosts."vault.0xc1.wang" = {
       onlySSL = true;
       useACMEHost = "vault.0xc1.wang";
-    };
-
-    services.nginx.virtualHosts."status-axiom.0xc1.wang" = {
-      onlySSL = true;
-      useACMEHost = "status-axiom.0xc1.wang";
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:18080";
-        proxyWebsockets = true;
-        basicAuthFile = config.age.secrets.nginx-status-htpasswd.path;
-      };
-    };
-
-    services.nginx.virtualHosts."opencode-axiom.0xc1.wang" = {
-      onlySSL = true;
-      useACMEHost = "opencode-axiom.0xc1.wang";
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:18081";
-        proxyWebsockets = true;
-        basicAuthFile = config.age.secrets.nginx-status-htpasswd.path;
-      };
-    };
-
-    services.nginx.virtualHosts."frps-acorn.0xc1.wang" = {
-      onlySSL = true;
-      useACMEHost = "frps-acorn.0xc1.wang";
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:7500";
-        basicAuthFile = config.age.secrets.nginx-status-htpasswd.path;
-      };
     };
 
     programs.ssh.startAgent = true;

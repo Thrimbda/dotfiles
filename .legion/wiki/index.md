@@ -10,6 +10,7 @@
 
 - [Acorn Aliyun Host Profile Rename](tasks/acorn-aliyun-host-rename.md)
 - [Acorn frps Dashboard Nginx](tasks/acorn-frps-dashboard-nginx.md)
+- [Auth Mini Gateway on Acorn](tasks/auth-mini-acorn-gateway.md)
 - [Aliyun NixOS Image Host](tasks/aliyun-nixos-image-host.md)
 - [Aliyun Acorn ECS Deploy](tasks/aliyun-acorn-ecs-deploy.md)
 - [Aliyun Acorn Nix Cache Mirror](tasks/aliyun-acorn-nix-cache-mirror.md)

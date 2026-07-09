@@ -148,9 +148,21 @@ On Axiom, frpc traffic to Acorn must bypass Clash/Meta TUN routing. Axiom owns `
 
 FRP token auth must use host-local agenix secrets and runtime TOML rendering from `/run/agenix/frp-token`; do not place plaintext token values in Nix TOML, module options, task docs, PR bodies, or Nix store outputs.
 
-The Acorn frps dashboard, when enabled, must bind only to `127.0.0.1:7500` and be exposed through nginx as `frps-acorn.0xc1.wang` with nginx Basic Auth. TCP `7500` is a loopback dashboard backend and must not be opened in the NixOS firewall or Aliyun security group.
+The Acorn frps dashboard, when enabled, must bind only to `127.0.0.1:7500` and be exposed through nginx as `frps-acorn.0xc1.wang` behind the Acorn Auth Mini Gateway `auth_request` boundary. TCP `7500` is a loopback dashboard backend and must not be opened in the NixOS firewall or Aliyun security group.
 
 Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the existing autossh reservations for `charlie`, `axiom`, and `azar` remain active.
+
+## Acorn Auth Mini Gateway
+
+`auth-mini` is the Acorn-hosted authentication issuer at `auth.0xc1.wang`. It runs as a loopback-only service on `127.0.0.1:7777` with SQLite state under `/var/lib/auth-mini`; public traffic reaches it only through nginx HTTPS.
+
+`auth-mini-gateway` protects Acorn's human-facing `0xc1.wang` nginx reverse proxies via nginx `auth_request`. Current protected hostnames are `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang`.
+
+Current upstream gateway behavior is same-origin: it validates returns against one `GATEWAY_PUBLIC_BASE_URL` and emits host-only cookies. Therefore Acorn must run one gateway instance per protected hostname instead of one central cross-host callback service. The current loopback allocation is `auth-gateway.0xc1.wang -> 7778`, `status-axiom.0xc1.wang -> 7779`, `opencode-axiom.0xc1.wang -> 7780`, and `frps-acorn.0xc1.wang -> 7781`.
+
+The gateway cookie secret and allowlist live in `hosts/acorn/secrets/auth-mini-gateway-env.age`; do not put gateway secrets, refresh tokens, or plaintext allowlists into Nix store paths, task docs, PR bodies, or logs. Backend ports `7777` through `7781` must remain absent from the public firewall and cloud security group.
+
+`vault.0xc1.wang` remains outside the gateway because Vaultwarden has native clients and app-level authentication. Do not put Vaultwarden behind the browser gateway without a separate compatibility design and native-client smoke plan.
 
 ## Opencode Cloudflare Exposure
 
@@ -160,7 +172,7 @@ On `axiom`, the `opencode-axiom.0xc1.space` cloudflared connector should pin `pr
 
 Both opencode hostnames are protected by Cloudflare Access self-hosted applications restricted to the Google identity provider. Their allow policies require the same Google login method. `opencode-axiom.0xc1.space` allows exact emails `c1@ntnl.io`, `siyuan.arc@gmail.com`, `froggy2818@gmail.com`, and `wangpeiguangwpg@gmail.com`; `opencode-charlie.0xc1.space` allows exact emails `c1@ntnl.io` and `siyuan.arc@gmail.com`. Do not broaden these apps to a domain, group, everyone rule, bypass rule, or non-identity policy without a new security review.
 
-`opencode-axiom.0xc1.wang` is a parallel Acorn/frp route to Axiom OpenCode. It must keep Cloudflare Access on the proxied hostname and nginx Basic Auth at the Acorn origin, because Access alone does not protect direct origin requests by IP plus Host/SNI. This does not migrate or replace `opencode-axiom.0xc1.space`.
+`opencode-axiom.0xc1.wang` is a parallel Acorn/frp route to Axiom OpenCode. It must use the Acorn Auth Mini Gateway at the Acorn origin, because Cloudflare Access on other hostnames does not protect direct origin requests by IP plus Host/SNI. This does not migrate or replace `opencode-axiom.0xc1.space`.
 
 The hostname `axiom-opencode.0xc1.space` was created by mistake during the axiom task and should not be used.
 
@@ -190,7 +202,7 @@ Reusable Gatus endpoint inventory should be represented through `modules.service
 
 The public hostname is `status-axiom.0xc1.space` through the existing `home-axiom` cloudflared tunnel to local `127.0.0.1:8080`. Cloudflare Access is the authentication boundary; cloudflared is only transport. Create or modify the public DNS/tunnel route only after the `status-axiom.0xc1.space` Access app/policy has been verified.
 
-The parallel `status-axiom.0xc1.wang` hostname is a DNS-only `acorn` nginx entry backed by frp remote TCP `18080` to the same Axiom Gatus loopback service. It must use nginx Basic Auth from agenix-managed htpasswd material. This does not migrate or replace `status-axiom.0xc1.space`, and it does not authorize direct nginx exposure for OpenCode or any other sensitive service.
+The parallel `status-axiom.0xc1.wang` hostname is a DNS-only `acorn` nginx entry backed by frp remote TCP `18080` to the same Axiom Gatus loopback service. It must use the Acorn Auth Mini Gateway at the Acorn origin. This does not migrate or replace `status-axiom.0xc1.space`, and it does not authorize direct nginx exposure for other sensitive services without a scoped gateway-backed design.
 
 Gatus covers user-visible availability, TLS/route checks, status page display, and Prometheus-exported probe results. Prometheus remains the white-box metrics system for application and infrastructure metrics.
 

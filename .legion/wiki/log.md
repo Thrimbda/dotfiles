@@ -253,3 +253,5 @@
 - Updated current Acorn/Aliyun decisions, FRP route naming, cache mirror pattern, and maintenance follow-ups so `hosts/acorn` / `nixosConfigurations.acorn` are the current active host identity while historical `aliyun-acorn-*` task pages remain historical records.
 - Added task summary for `acorn-frps-dashboard-nginx`.
 - Updated current FRP decisions and Acorn maintenance with the loopback-only `frps-acorn.0xc1.wang` dashboard exposure through nginx Basic Auth.
+- Added task summary for `auth-mini-acorn-gateway`.
+- Updated current Acorn FRP/status/opencode decisions, auth gateway patterns, and Acorn maintenance so `0xc1.wang` status/opencode/frps dashboard routes use Auth Mini Gateway instead of nginx Basic Auth, while Vaultwarden remains outside the browser gateway.
