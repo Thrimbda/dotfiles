@@ -1,5 +1,6 @@
 # Wiki Log
 
+- Added task summary for `doom-path-charlie` and recorded the direct macOS app CLI shim PATH pattern for charlie Doom Emacs.
 - Added task summary for `aliyun-nixos-image-host`.
 - Added task summary for `axiom-host`.
 - Added task summary for `dotfiles-wayland-product-overhaul`.
