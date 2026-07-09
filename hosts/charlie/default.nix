@@ -17,6 +17,14 @@ with lib;
     shell = {
       direnv.enable = true;
       zsh.enable = true;
+      zsh.envInit = ''
+        path=(
+          "$XDG_CONFIG_HOME/emacs/bin"
+          "/Applications/Emacs.app/Contents/MacOS/bin"
+          "''${path[@]}"
+        )
+        typeset -U path PATH
+      '';
       git.enable = true;
       gnupg.enable = true;
       tmux.enable = true;

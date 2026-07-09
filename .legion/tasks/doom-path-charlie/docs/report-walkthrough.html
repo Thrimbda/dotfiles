@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>doom-path-charlie | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.012 92);
+      --surface: oklch(98% 0.008 96);
+      --surface-2: oklch(93% 0.018 98);
+      --ink: oklch(24% 0.018 132);
+      --muted: oklch(48% 0.026 132);
+      --line: oklch(82% 0.018 105);
+      --accent: oklch(45% 0.12 153);
+      --accent-soft: oklch(90% 0.06 153);
+      --warn-soft: oklch(91% 0.07 78);
+      --code: oklch(28% 0.03 252);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.62;
+    }
+    main {
+      width: min(1180px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      gap: 34px;
+      align-items: end;
+      margin-bottom: 32px;
+    }
+    .kicker {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 760;
+      letter-spacing: 0;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      line-height: 1.02;
+      margin: 0;
+      letter-spacing: 0;
+      max-width: 11ch;
+    }
+    .lead {
+      color: var(--muted);
+      max-width: 68ch;
+      font-size: 1.08rem;
+      margin: 18px 0 0;
+    }
+    .status,
+    section {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+    }
+    .status {
+      padding: 22px;
+    }
+    .status h2 {
+      font-size: 0.95rem;
+      margin: 0 0 14px;
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-top: 1px solid var(--line);
+      padding: 12px 0;
+    }
+    .status-row:first-of-type { border-top: 0; }
+    .label { color: var(--muted); }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      padding: 0.14rem 0.62rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+    .pill.pending { background: var(--warn-soft); }
+    .layout {
+      display: grid;
+      grid-template-columns: 236px minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+    nav {
+      position: sticky;
+      top: 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 14px;
+    }
+    nav a {
+      display: block;
+      color: var(--ink);
+      padding: 8px 10px;
+      border-radius: 10px;
+      text-decoration: none;
+    }
+    nav a:hover { background: var(--surface-2); }
+    section {
+      padding: 26px;
+      margin-bottom: 22px;
+    }
+    section h2 {
+      font-size: 1.28rem;
+      margin: 0 0 14px;
+      letter-spacing: 0;
+    }
+    p, li { max-width: 73ch; }
+    ul { padding-left: 1.15rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 760;
+    }
+    code {
+      color: var(--code);
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.08rem 0.28rem;
+      overflow-wrap: anywhere;
+    }
+    pre {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface-2);
+      padding: 16px;
+      max-width: 100%;
+    }
+    pre code {
+      border: 0;
+      background: transparent;
+      padding: 0;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .note {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    @media (max-width: 900px) {
+      main { width: min(100vw - 24px, 720px); padding-top: 28px; }
+      .hero, .layout, .split { grid-template-columns: 1fr; }
+      nav { position: static; }
+      h1 { max-width: 100%; }
+    }
+    @media print {
+      body { background: var(--surface); }
+      main { width: 100%; padding: 0; }
+      nav { display: none; }
+      section, .status { break-inside: avoid; box-shadow: none; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">Legion implementation walkthrough</p>
+        <h1>doom-path-charlie</h1>
+        <p class="lead">修复 charlie 上 Doom Emacs CLI 与直接安装的 Emacs.app CLI shim 不在 zsh PATH 中的问题，同时避免启用 Nix Emacs 模块。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <h2>交付状态</h2>
+        <div class="status-row"><span class="label">Profile</span><span class="pill">implementation</span></div>
+        <div class="status-row"><span class="label">Review</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span class="label">PR</span><span class="pill pending">pending</span></div>
+        <div class="status-row"><span class="label">Render</span><span class="pill pending">artifact-only blocker</span></div>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#render">渲染</a>
+        <a href="#final">下一步</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <ul>
+            <li>本任务只调整 charlie 的 zsh env 初始化，让 shell 能找到 <code>doom</code> 和 <code>emacs</code>。</li>
+            <li>Emacs 继续由 <code>/Applications/Emacs.app</code> 直接安装提供，不启用 Nix Emacs 模块。</li>
+            <li>Nix parse 和 charlie 生成的 <code>.config/zsh/.zshenv</code> eval 均已通过。</li>
+            <li><code>docs/review-change.md</code> 结论为 PASS，无 blocking findings。</li>
+          </ul>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <div class="split">
+            <div class="note">
+              <strong>In scope</strong>
+              <ul>
+                <li>修改 <code>hosts/charlie/default.nix</code>。</li>
+                <li>将 <code>$XDG_CONFIG_HOME/emacs/bin</code> 加入 charlie zsh PATH。</li>
+                <li>将 <code>/Applications/Emacs.app/Contents/MacOS/bin</code> 加入 charlie zsh PATH。</li>
+              </ul>
+            </div>
+            <div class="note">
+              <strong>Out of scope</strong>
+              <ul>
+                <li>不启用 <code>modules.editors.emacs.enable</code>。</li>
+                <li>不安装、升级或迁移 Emacs。</li>
+                <li>不修改其它 host、Doom repo 或 private Doom 配置。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead>
+              <tr><th>Claim</th><th>Evidence</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>变更只影响 charlie host PATH 初始化</td><td><code>hosts/charlie/default.nix</code>; <code>docs/review-change.md</code></td><td>PASS</td></tr>
+              <tr><td>没有启用 Nix Emacs 模块</td><td><code>hosts/charlie/default.nix</code>; <code>docs/review-change.md</code></td><td>PASS</td></tr>
+              <tr><td>Nix 语法有效</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>生成的 <code>.zshenv</code> 包含两个新增路径</td><td><code>docs/test-report.md</code></td><td>PASS</td></tr>
+              <tr><td>交付审查无阻塞项</td><td><code>docs/review-change.md</code></td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <ol>
+            <li>Legion task contract 已落盘到 <code>plan.md</code> 与 <code>tasks.md</code>。</li>
+            <li>实现阶段已在 <code>hosts/charlie/default.nix</code> 添加 zsh PATH 初始化。</li>
+            <li>验证阶段已写入 <code>docs/test-report.md</code>。</li>
+            <li>审查阶段已写入 <code>docs/review-change.md</code>，结论 PASS。</li>
+            <li>当前 walkthrough 供 reviewer 快速判断，PR lifecycle 尚未完成。</li>
+          </ol>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>这是 PR-backed task，<code>docs/report-walkthrough.html</code> 是主 reviewer artifact。当前状态为 <strong>artifact-only/blocker</strong>：仓库没有现成 <code>.github</code> Pages PR preview workflow，新增 workflow 会扩大本次 PATH 修复 scope。Reviewer 可直接查看 PR 中的 HTML artifact；若需要稳定 rendered URL，应另开任务配置 <code>pr-html-render</code> workflow 和 Pages settings。</p>
+        </section>
+
+        <section id="decisions">
+          <h2>What Changed / What Was Decided</h2>
+          <p>在 charlie 的 <code>modules.shell.zsh.envInit</code> 中 prepend Doom bin 与 Emacs.app CLI shim：</p>
+          <pre><code>path=(
+  "$XDG_CONFIG_HOME/emacs/bin"
+  "/Applications/Emacs.app/Contents/MacOS/bin"
+  "${path[@]}"
+)
+typeset -U path PATH</code></pre>
+          <p>这个方案只修 shell 可见性，不改变 Emacs 的安装来源。</p>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <ul>
+            <li><code>nix-instantiate --parse hosts/charlie/default.nix &gt;/dev/null</code> 通过。</li>
+            <li><code>nix eval --raw --no-eval-cache '.#darwinConfigurations.charlie.config.home-manager.users.c1.home.file.".config/zsh/.zshenv".text'</code> 输出包含新增 PATH 片段。</li>
+            <li><code>docs/review-change.md</code> 结论为 PASS。</li>
+          </ul>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <ul>
+            <li>如果未来 Emacs.app 不再位于 <code>/Applications/Emacs.app</code>，需要更新 shim 路径。</li>
+            <li>如果 Doom 安装目录不再是 <code>$XDG_CONFIG_HOME/emacs</code>，需要更新 Doom bin 路径。</li>
+            <li>未执行 <code>darwin-rebuild switch</code>，避免在 PR worktree 验证阶段改变用户机器状态。</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>确认 charlie host 使用直接安装的 Emacs.app。</li>
+            <li>确认没有误启用 Nix Emacs 模块。</li>
+            <li>确认 PATH prepend 顺序符合预期。</li>
+            <li>确认验证证据足以覆盖本次配置变更。</li>
+          </ul>
+        </section>
+
+        <section id="final">
+          <h2>Final State / Next Stage</h2>
+          <p>Walkthrough 已生成，render handoff 已记录为 artifact-only/blocker，但 PR lifecycle 未完成。下一步是 <code>legion-wiki</code> 写回、commit、rebase、push、PR 创建或更新、checks/review follow-up、auto-merge 尝试、cleanup 和主工作区 refresh。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
