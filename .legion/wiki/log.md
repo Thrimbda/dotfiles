@@ -255,3 +255,5 @@
 - Updated current FRP decisions and Acorn maintenance with the loopback-only `frps-acorn.0xc1.wang` dashboard exposure through nginx Basic Auth.
 - Added task summary for `auth-mini-acorn-gateway`.
 - Updated current Acorn FRP/status/opencode decisions, auth gateway patterns, and Acorn maintenance so `0xc1.wang` status/opencode/frps dashboard routes use Auth Mini Gateway instead of nginx Basic Auth, while Vaultwarden remains outside the browser gateway.
+- Added task summary for `auth-mini-acorn-empty-response`.
+- Updated current Acorn Auth Mini decisions, gateway task summary, runtime validation patterns, and maintenance after diagnosing the post-switch empty response as missing Cloudflare DNS records plus root-path UI mismatch.

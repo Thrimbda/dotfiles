@@ -156,6 +156,10 @@ Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the exi
 
 `auth-mini` is the Acorn-hosted authentication issuer at `auth.0xc1.wang`. It runs as a loopback-only service on `127.0.0.1:7777` with SQLite state under `/var/lib/auth-mini`; public traffic reaches it only through nginx HTTPS.
 
+`auth-mini` serves the browser UI under `/web/`; nginx should redirect exact `https://auth.0xc1.wang/` to `/web/` so the public root is usable instead of exposing the API fallback `404`.
+
+Cloudflare DNS-only A records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang` point to Acorn at `8.159.128.125`. Treat those DNS records as part of the release artifact for new Acorn public hostnames, not as optional post-deploy cleanup.
+
 `auth-mini-gateway` protects Acorn's human-facing `0xc1.wang` nginx reverse proxies via nginx `auth_request`. Current protected hostnames are `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang`.
 
 Current upstream gateway behavior is same-origin: it validates returns against one `GATEWAY_PUBLIC_BASE_URL` and emits host-only cookies. Therefore Acorn must run one gateway instance per protected hostname instead of one central cross-host callback service. The current loopback allocation is `auth-gateway.0xc1.wang -> 7778`, `status-axiom.0xc1.wang -> 7779`, `opencode-axiom.0xc1.wang -> 7780`, and `frps-acorn.0xc1.wang -> 7781`.
