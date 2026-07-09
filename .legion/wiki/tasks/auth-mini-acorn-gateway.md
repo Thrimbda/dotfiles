@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `auth-mini-acorn-gateway`
-- `status`: `ready for PR`
+- `status`: `merged; runtime DNS/root-path follow-up handled by auth-mini-acorn-empty-response`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -13,6 +13,8 @@
 ## Outcome Summary
 
 This task deploys `auth-mini` and `auth-mini-gateway` on the canonical `acorn` host. `auth-mini` is published at `auth.0xc1.wang`. `auth-mini-gateway` is published at `auth-gateway.0xc1.wang` and also runs origin-scoped instances for the protected `0xc1.wang` service hostnames.
+
+Post-switch follow-up `auth-mini-acorn-empty-response` confirmed the auth-mini service was healthy, created the missing Cloudflare DNS-only A records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang`, and added a root redirect from `/` to auth-mini's browser UI at `/web/`.
 
 The Acorn nginx routes `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang` now use nginx `auth_request` against local gateway instances instead of nginx Basic Auth. Vaultwarden remains unchanged because it has native clients and app-level authentication.
 
@@ -33,7 +35,8 @@ The Acorn nginx routes `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and
 
 ## Operational Follow-Up
 
-- Create or verify DNS-only Cloudflare records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang` pointing to Acorn.
+- DNS-only Cloudflare records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang` now point to Acorn (`8.159.128.125`). If a client still sees `198.18.x.x`, refresh the local browser/proxy DNS cache.
+- After deploying the root-path hotfix, confirm `https://auth.0xc1.wang/` redirects to `/web/`.
 - Deploy/switch Acorn and confirm `auth-mini.service` plus all `auth-mini-gateway-*` services are active.
 - Confirm ACME issuance for the two new hostnames.
 - Bootstrap auth-mini admin and configure issuer `https://auth.0xc1.wang` plus RP ID `auth.0xc1.wang`.

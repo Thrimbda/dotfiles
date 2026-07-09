@@ -212,9 +212,14 @@ in
     ${authHost} = {
       onlySSL = true;
       useACMEHost = authHost;
-      locations."/" = {
-        proxyPass = authUrl;
-        proxyWebsockets = true;
+      locations = {
+        "= /".extraConfig = ''
+          return 302 /web/;
+        '';
+        "/" = {
+          proxyPass = authUrl;
+          proxyWebsockets = true;
+        };
       };
     };
   } // mapAttrs' (_: instance: nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances;
