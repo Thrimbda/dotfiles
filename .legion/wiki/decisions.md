@@ -158,6 +158,8 @@ Do not use frp remote TCP `2222`, `2223`, or `2224` for this proxy while the exi
 
 `auth-mini` serves the browser UI under `/web/`; nginx should redirect exact `https://auth.0xc1.wang/` to `/web/` so the public root is usable instead of exposing the API fallback `404`.
 
+Auth Mini email OTP uses Resend SMTP at `smtp.resend.com:465` with implicit TLS, username `resend`, and verified sender `auth-mini <auth@0xc1.space>`. The API key is retained in `hosts/acorn/secrets/auth-mini-resend-api-key.age` and deploys for `auth-mini:auth-mini` with mode `0400`; auth-mini's active SMTP configuration remains application-owned SQLite state.
+
 Cloudflare DNS-only A records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang` point to Acorn at `8.159.128.125`. Treat those DNS records as part of the release artifact for new Acorn public hostnames, not as optional post-deploy cleanup.
 
 `auth-mini-gateway` protects Acorn's human-facing `0xc1.wang` nginx reverse proxies via nginx `auth_request`. Current protected hostnames are `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang`.

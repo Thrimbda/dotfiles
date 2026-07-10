@@ -183,6 +183,12 @@ in
     mode = "0400";
   };
 
+  age.secrets.auth-mini-resend-api-key = {
+    owner = authUser;
+    group = authUser;
+    mode = "0400";
+  };
+
   systemd.services = {
     auth-mini = {
       description = "auth-mini authentication server";
