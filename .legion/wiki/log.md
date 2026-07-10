@@ -257,3 +257,5 @@
 - Updated current Acorn FRP/status/opencode decisions, auth gateway patterns, and Acorn maintenance so `0xc1.wang` status/opencode/frps dashboard routes use Auth Mini Gateway instead of nginx Basic Auth, while Vaultwarden remains outside the browser gateway.
 - Added task summary for `auth-mini-acorn-empty-response`.
 - Updated current Acorn Auth Mini decisions, gateway task summary, runtime validation patterns, and maintenance after diagnosing the post-switch empty response as missing Cloudflare DNS records plus root-path UI mismatch.
+- Added task summary for `auth-mini-resend-smtp`.
+- Updated Acorn Auth Mini current truth, secret-handling patterns, and maintenance after moving OTP delivery to Resend and retaining the API key in an Acorn-only age secret.

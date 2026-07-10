@@ -12,6 +12,7 @@
 - [Acorn frps Dashboard Nginx](tasks/acorn-frps-dashboard-nginx.md)
 - [Auth Mini Gateway on Acorn](tasks/auth-mini-acorn-gateway.md)
 - [Auth Mini Acorn Empty Response Hotfix](tasks/auth-mini-acorn-empty-response.md)
+- [Auth Mini Resend SMTP](tasks/auth-mini-resend-smtp.md)
 - [Aliyun NixOS Image Host](tasks/aliyun-nixos-image-host.md)
 - [Aliyun Acorn ECS Deploy](tasks/aliyun-acorn-ecs-deploy.md)
 - [Aliyun Acorn Nix Cache Mirror](tasks/aliyun-acorn-nix-cache-mirror.md)
