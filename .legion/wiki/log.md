@@ -259,3 +259,5 @@
 - Updated current Acorn Auth Mini decisions, gateway task summary, runtime validation patterns, and maintenance after diagnosing the post-switch empty response as missing Cloudflare DNS records plus root-path UI mismatch.
 - Added task summary for `auth-mini-resend-smtp`.
 - Updated Acorn Auth Mini current truth, secret-handling patterns, and maintenance after moving OTP delivery to Resend and retaining the API key in an Acorn-only age secret.
+- Added task summary for `auth-mini-gateway-login-failure`.
+- Updated current Acorn Auth Mini decisions, gateway diagnostic patterns, and maintenance so auth-mini owns authentication methods while auth-mini-gateway authorizes only exact email/user-id identities; live post-switch browser smoke remains pending.

@@ -1,0 +1,21 @@
+# Log
+
+- User reports `Login failed. Please try again.` after completing the expected auth-mini login flow.
+- Safe secret inspection confirmed `siyuan.arc@gmail.com` is in `ALLOW_EMAILS` and `REQUIRE_PASSKEY=true`.
+- Live gateway services for status/opencode/frps are active.
+- Unauthenticated requests to all three protected hosts return `302` to the correct auth-mini login URL with per-origin callback URI and state.
+- Worktree: `.worktrees/auth-mini-gateway-login-failure`; branch: `legion/auth-mini-gateway-login-failure-fix`; base: `origin/master` at `2e0e1f06`.
+- Exact string ownership confirmed: absent from auth-mini binary and present in the deployed auth-mini-gateway binary. Gateway `callback_page()` maps every non-2xx `/auth/callback/session` response to this string.
+- Live JWT checks passed issuer, `typ=access`, session-id, and issuer reachability hypotheses.
+- Authenticated database export inspection showed the target user is verified and has one Passkey credential, but both recent sessions use `email_otp`; there are no `webauthn` sessions. With `REQUIRE_PASSKEY=true`, gateway policy returns `403`, which the bridge displays as the generic failure.
+- User explicitly selected `Allow Email OTP`; implementation scope changed to setting `REQUIRE_PASSKEY=false` while preserving exact allowlists and all protected-origin boundaries.
+- Upstream config inspection found `REQUIRE_PASSKEY` defaults to `true`, so removing only the env line would preserve the unwanted behavior. User explicitly requested removing the strategy itself; scope expanded to remove the upstream config/policy feature and update the dotfiles pin.
+- Upstream policy removal merged in auth-mini-gateway PR #4 at `f0519d1fcfbf49be43602f7a25ad2373434366fe`.
+- Upstream verification passed: `cargo fmt --check`, all 11 `cargo test` tests, and real Docker auth-mini + nginx E2E covering Email OTP callback, HTTP/WebSocket, persistence, refresh/logout, refresh-failure revocation, and unknown-user denial.
+- Dotfiles verification passed: package build produced `/nix/store/f9hajhs6v1ksrvx64a83q435qvzbb4rg-auth-mini-gateway-0.1.0-unstable-2026-07-10`, the Acorn toplevel built, and all four gateway `ExecStart` values point to the updated binary.
+- Artifact and sanitized-env checks confirmed the binary lacks `REQUIRE_PASSKEY`; the decrypted env contains only `ALLOW_EMAILS`, `ALLOW_USER_IDS`, and `GATEWAY_COOKIE_SECRET`, with four emails including `siyuan.arc@gmail.com` and no `REQUIRE_PASSKEY`.
+- `git diff --check` passed.
+- Live browser smoke remains pending until the dotfiles PR is merged and an interactive-sudo Acorn switch can be performed; review, walkthrough, PR lifecycle, and deployment completion remain open.
+- Read-only correctness/scope/security review completed with PASS and no blocking findings; the opaque age diff is supported by the sanitized decrypted-env evidence in `docs/test-report.md`.
+- Implementation-mode reviewer artifacts generated at `docs/report-walkthrough.md` and `docs/pr-body.md`; live post-switch browser smoke remains the only deployment residual.
+- Wiki writeback completed: task summary, current identity-only authorization decision, generic-callback diagnostic pattern, and post-switch maintenance smoke are recorded under `.legion/wiki`.
