@@ -161,6 +161,9 @@ with builtins;
       frpcDirectRoutePriority = 8500;
       rustdeskHost = "rustdesk.0xc1.wang";
       rustdeskPackage = pkgs.unstable.rustdesk;
+      rustdeskSecret = config.age.secrets.rustdesk-password;
+      rustdeskSecretMetadata =
+        "${rustdeskSecret.owner}:${rustdeskSecret.group}:${removePrefix "0" rustdeskSecret.mode}";
       rustdeskPublicKey = removeSuffix "\n" (readFile ../acorn/secrets/rustdesk-server-key.pub);
       rustdeskPublicConfig = pkgs.writeShellScript "axiom-rustdesk-public-config" ''
         set -eu
@@ -195,7 +198,7 @@ with builtins;
       rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
         package=${rustdeskPackage.version}
         public-config=${rustdeskPublicConfig}
-        provision=axiom-rustdesk-provision-v1
+        provision=axiom-rustdesk-provision-v2
         ciphertext=${./secrets/rustdesk-password.age}
       '';
       rustdeskProvision = pkgs.writeShellScript "axiom-rustdesk-provision" ''
@@ -203,6 +206,8 @@ with builtins;
         umask 077
 
         rustdesk=${rustdeskPackage}/bin/rustdesk
+        rustdesk_server_exe=${rustdeskPackage}/lib/rustdesk/rustdesk
+        rustdesk_user=${escapeShellArg userName}
         state=/var/lib/rustdesk-provision
         stamp=$state/stamp
         stamp_tmp=$state/stamp.tmp.$$
@@ -215,32 +220,103 @@ with builtins;
         trap 'exit 1' HUP INT TERM
         fail() { echo "RustDesk provisioning failed: $1" >&2; exit 1; }
 
-        if [ -f "$stamp" ] \
+        resolve_secret() {
+          configured=${escapeShellArg rustdeskSecret.path}
+          target=$(${pkgs.coreutils}/bin/readlink -e -- "$configured" 2>/dev/null) \
+            || return 1
+          [ -n "$target" ] && [ -f "$target" ] && [ ! -L "$target" ] \
+            || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%U:%G:%a' -- "$target" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = ${escapeShellArg rustdeskSecretMetadata} ] \
+            || return 1
+          [ -r "$target" ] || return 1
+          printf '%s\n' "$target"
+        }
+
+        validate_user_server() {
+          uid=$(${pkgs.coreutils}/bin/id -u "$rustdesk_user" 2>/dev/null) \
+            || return 1
+          gid=$(${pkgs.coreutils}/bin/id -g "$rustdesk_user" 2>/dev/null) \
+            || return 1
+          ipc_parent=/tmp/RustDesk-$uid
+          ipc=$ipc_parent/ipc
+          pid_file=$ipc.pid
+
+          [ -d "$ipc_parent" ] && [ ! -L "$ipc_parent" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' -- "$ipc_parent" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = "$uid:$gid:700" ] || return 1
+
+          [ -S "$ipc" ] && [ ! -L "$ipc" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' -- "$ipc" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = "$uid:$gid:600" ] || return 1
+
+          [ -f "$pid_file" ] && [ ! -L "$pid_file" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' -- "$pid_file" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          pid_bytes=$(${pkgs.coreutils}/bin/wc -c < "$pid_file") || return 1
+          server_pid=
+          IFS= read -r server_pid < "$pid_file" \
+            || [ -n "$server_pid" ] || return 1
+          [ "$pid_bytes" -eq "''${#server_pid}" ] || return 1
+          case "$server_pid" in ""|0|1|*[!0-9]*) return 1 ;; esac
+
+          [ -d "/proc/$server_pid" ] && [ ! -L "/proc/$server_pid" ] \
+            || return 1
+          process_uid=$(${pkgs.coreutils}/bin/stat --format='%u' -- "/proc/$server_pid" 2>/dev/null) \
+            || return 1
+          [ "$process_uid" = "$uid" ] || return 1
+          process_exe=$(${pkgs.coreutils}/bin/readlink -e -- "/proc/$server_pid/exe" 2>/dev/null) \
+            || return 1
+          [ "$process_exe" = "$rustdesk_server_exe" ] || return 1
+
+          process_args=()
+          while IFS= read -r -d "" arg; do
+            process_args+=("$arg")
+          done < "/proc/$server_pid/cmdline"
+          [ "''${#process_args[@]}" -eq 2 ] \
+            && [ "''${process_args[1]}" = --server ] || return 1
+
+          socket_pid=$(${pkgs.lsof}/bin/lsof -nP -t -a \
+            -p "$server_pid" -U -- "$ipc" 2>/dev/null) || return 1
+          [ "$socket_pid" = "$server_pid" ] || return 1
+          validated_server_pid=$server_pid
+        }
+
+        rustdesk_ready() {
+          main_pid=$(${pkgs.systemd}/bin/systemctl show \
+            -p MainPID --value rustdesk.service 2>/dev/null) || return 1
+          case "$main_pid" in ""|0|*[!0-9]*) return 1 ;; esac
+          ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
+            || return 1
+          validate_user_server || return 1
+          ready_server_pid=$validated_server_pid
+          ${rustdeskPublicConfig} --check || return 1
+          validate_user_server || return 1
+          [ "$validated_server_pid" = "$ready_server_pid" ]
+        }
+
+        wait_ready() {
+          attempt=0
+          while [ "$attempt" -lt 60 ]; do
+            rustdesk_ready && return 0
+            attempt=$((attempt + 1))
+            ${pkgs.coreutils}/bin/sleep 1
+          done
+          return 1
+        }
+
+        wait_ready || fail readiness
+
+        if [ -f "$stamp" ] && [ ! -L "$stamp" ] \
           && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}; then
-          ${rustdeskPublicConfig} --check || fail public-config
           exit 0
         fi
 
-        ready=0
-        attempt=0
-        while [ "$attempt" -lt 60 ]; do
-          pid=$(${pkgs.systemd}/bin/systemctl show -p MainPID --value rustdesk.service)
-          case "$pid" in ""|0|*[!0-9]*) ;; *)
-            if ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
-              && [ -S /tmp/RustDesk/ipc ] \
-              && ${rustdeskPublicConfig} --check; then
-              ready=1
-              break
-            fi
-            ;;
-          esac
-          attempt=$((attempt + 1))
-          ${pkgs.coreutils}/bin/sleep 1
-        done
-        [ "$ready" -eq 1 ] || fail readiness
-
-        secret=${config.age.secrets.rustdesk-password.path}
-        [ -r "$secret" ] && [ -f "$secret" ] || fail secret
+        secret=$(resolve_secret) || fail secret
         bytes=$(${pkgs.coreutils}/bin/wc -c < "$secret")
         password=
         IFS= read -r password < "$secret" || [ -n "$password" ] || fail secret
@@ -265,14 +341,7 @@ with builtins;
         result=
 
         ${pkgs.systemd}/bin/systemctl restart rustdesk.service
-        attempt=0
-        until ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
-          && [ -S /tmp/RustDesk/ipc ] \
-          && ${rustdeskPublicConfig} --check; do
-          [ "$attempt" -lt 60 ] || fail restart
-          attempt=$((attempt + 1))
-          ${pkgs.coreutils}/bin/sleep 1
-        done
+        wait_ready || fail restart
         ${pkgs.coreutils}/bin/install -m 0600 ${rustdeskRevision} "$stamp_tmp"
         ${pkgs.coreutils}/bin/mv -f "$stamp_tmp" "$stamp"
         trap - EXIT HUP INT TERM

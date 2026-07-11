@@ -54,3 +54,12 @@
 ---
 
 *最后更新: 2026-07-11 14:01 by Legion CLI*
+
+## 2026-07-11 final review blocker implementation
+
+- 修复 Acorn/Axiom/Charlie 的 secret target 类型、owner/group/mode 校验；consumer 只读取解析后的普通文件。
+- 修复 Axiom/Charlie 1.4.8 per-user IPC readiness，并绑定预期 `--server` 进程、PID、socket owner 和 open socket。
+- Charlie 增加 revision+boot-bound agenix completion gate；已从 pinned nix-darwin 生成 activation 确认实际 load 顺序仍为 provision -> service -> agenix，gate 在 preActivation 关闭、agenix 成功 EXIT 后发布、postActivation 等待完成。
+- Charlie public/provision helper 在每条 RustDesk CLI 路径前执行本地 `codesign` 和 `spctl` gate。
+- Cheap checks：3 个 Nix 文件 parse、3 host system drv eval、Linux helper derivation build、generated helper `bash -n`/ShellCheck、activation/order/metadata focused assertions 通过。Acorn/Axiom full toplevel build 与 Charlie Darwin build/signature 仍待 `verify-change`。
+- 实现 agent 按职责未 commit、push、deploy 或 switch host；既有未提交 `docs/test-report.md` 修改保持原样，未提前把本轮结果写成新的 PASS。

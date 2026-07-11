@@ -56,6 +56,9 @@ with lib;
       rustdeskVersion = "1.4.8";
       rustdeskHost = "rustdesk.0xc1.wang";
       rustdeskDmgHash = "sha256-f4rPsNyrIdTI/lcJAr5woC7Q2wB9ql6/4eARlIel/Bc=";
+      rustdeskSecret = config.age.secrets.rustdesk-password;
+      rustdeskSecretMetadata =
+        "${rustdeskSecret.owner}:${rustdeskSecret.group}:${removePrefix "0" rustdeskSecret.mode}";
       rustdeskPublicKey = removeSuffix "\n" (
         builtins.readFile ../acorn/secrets/rustdesk-server-key.pub
       );
@@ -75,10 +78,20 @@ with lib;
         dontFixup = true;
         dontStrip = true;
       };
+      rustdeskAppVerify = pkgs.writeShellScript "charlie-rustdesk-app-verify" ''
+        set -eu
+
+        app=/Applications/RustDesk.app
+        [ -d "$app" ] && [ ! -L "$app" ] || exit 1
+        /usr/bin/codesign --verify --deep --strict "$app" >/dev/null 2>&1
+        /usr/sbin/spctl -a -t exec "$app" >/dev/null 2>&1
+      '';
       rustdeskPublicConfig = pkgs.writeShellScript "charlie-rustdesk-public-config" ''
         set -eu
         rustdesk=/Applications/RustDesk.app/Contents/MacOS/RustDesk
         timeout=${pkgs.coreutils}/bin/timeout
+
+        ${rustdeskAppVerify}
 
         if [ "''${1:-apply}" = apply ]; then
           "$timeout" 15s "$rustdesk" --config \
@@ -109,14 +122,111 @@ with lib;
         package=${rustdeskVersion}
         source=${rustdeskDmgHash}
         public-config=${rustdeskPublicConfig}
-        provision=charlie-rustdesk-provision-v1
+        provision=charlie-rustdesk-provision-v2
         ciphertext=${./secrets/rustdesk-password.age}
+      '';
+      rustdeskAgenixGate = pkgs.writeShellScript "charlie-rustdesk-agenix-gate" ''
+        set -eu
+        umask 077
+
+        state=/var/db/rustdesk-provision
+        marker=$state/agenix-complete
+        revision=${escapeShellArg (toString rustdeskRevision)}
+
+        prepare_state() {
+          if [ -e "$state" ] || [ -L "$state" ]; then
+            [ -d "$state" ] && [ ! -L "$state" ] || return 1
+          else
+            /usr/bin/install -d -m 0700 -o root -g wheel "$state" \
+              || return 1
+          fi
+          metadata=$(/usr/bin/stat -f '%Su:%Sg:%Lp' "$state" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = root:wheel:700 ]
+        }
+
+        current_boot() {
+          boot=$(/usr/sbin/sysctl -n kern.bootsessionuuid 2>/dev/null) \
+            || return 1
+          [ -n "$boot" ] || return 1
+          case "$boot" in *[!A-Fa-f0-9-]*) return 1 ;; esac
+          printf '%s\n' "$boot"
+        }
+
+        check_marker() {
+          prepare_state || return 1
+          [ -f "$marker" ] && [ ! -L "$marker" ] || return 1
+          metadata=$(/usr/bin/stat -f '%Su:%Sg:%Lp' "$marker" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = root:wheel:600 ] || return 1
+
+          marker_revision=
+          marker_boot=
+          exec 3< "$marker" || return 1
+          IFS= read -r marker_revision <&3 || {
+            exec 3<&-
+            return 1
+          }
+          IFS= read -r marker_boot <&3 || {
+            exec 3<&-
+            return 1
+          }
+          if IFS= read -r _ <&3; then
+            exec 3<&-
+            return 1
+          fi
+          exec 3<&-
+
+          boot=$(current_boot) || return 1
+          [ "$marker_revision" = "revision=$revision" ] \
+            && [ "$marker_boot" = "boot=$boot" ]
+        }
+
+        case "''${1:-}" in
+          prepare)
+            prepare_state
+            ;;
+          invalidate)
+            prepare_state
+            if [ -e "$marker" ] || [ -L "$marker" ]; then
+              /bin/rm -f -- "$marker"
+            fi
+            [ ! -e "$marker" ] && [ ! -L "$marker" ]
+            ;;
+          publish)
+            prepare_state
+            boot=$(current_boot)
+            tmp=$(/usr/bin/mktemp "$state/agenix-complete.tmp.XXXXXX")
+            cleanup() { [ -z "$tmp" ] || /bin/rm -f -- "$tmp"; }
+            trap cleanup EXIT
+            trap 'exit 1' HUP INT TERM
+            /usr/bin/printf 'revision=%s\nboot=%s\n' \
+              "$revision" "$boot" > "$tmp"
+            /bin/chmod 0600 "$tmp"
+            /usr/sbin/chown root:wheel "$tmp"
+            metadata=$(/usr/bin/stat -f '%Su:%Sg:%Lp' "$tmp" 2>/dev/null)
+            [ -f "$tmp" ] && [ ! -L "$tmp" ] \
+              && [ "$metadata" = root:wheel:600 ]
+            /bin/mv -f "$tmp" "$marker"
+            tmp=
+            check_marker
+            trap - EXIT HUP INT TERM
+            ;;
+          check)
+            check_marker
+            ;;
+          *)
+            exit 2
+            ;;
+        esac
       '';
       rustdeskProvision = pkgs.writeShellScript "charlie-rustdesk-provision" ''
         set -eu
         umask 077
 
-        rustdesk=/Applications/RustDesk.app/Contents/MacOS/RustDesk
+        rustdesk_app=/Applications/RustDesk.app
+        rustdesk=$rustdesk_app/Contents/MacOS/RustDesk
+        rustdesk_user=c1
         state=/var/db/rustdesk-provision
         stamp=$state/stamp
         reservation=$state/attempt
@@ -131,40 +241,119 @@ with lib;
         trap 'exit 1' HUP INT TERM
         fail() { echo "RustDesk provisioning failed: $1" >&2; exit 1; }
 
-        /usr/bin/install -d -m 0700 -o root -g wheel "$state"
-        if [ -f "$stamp" ] \
+        verify_app() {
+          ${rustdeskAppVerify}
+        }
+
+        resolve_secret() {
+          configured=${escapeShellArg rustdeskSecret.path}
+          target=$(${pkgs.coreutils}/bin/readlink -e -- "$configured" 2>/dev/null) \
+            || return 1
+          [ -n "$target" ] && [ -f "$target" ] && [ ! -L "$target" ] \
+            || return 1
+          metadata=$(/usr/bin/stat -f '%Su:%Sg:%Lp' "$target" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = ${escapeShellArg rustdeskSecretMetadata} ] \
+            || return 1
+          [ -r "$target" ] || return 1
+          printf '%s\n' "$target"
+        }
+
+        validate_user_server() {
+          uid=$(/usr/bin/id -u "$rustdesk_user" 2>/dev/null) || return 1
+          gid=$(/usr/bin/id -g "$rustdesk_user" 2>/dev/null) || return 1
+          ipc_parent=/tmp/RustDesk-$uid
+          ipc=$ipc_parent/ipc
+          pid_file=$ipc.pid
+
+          [ -d "$ipc_parent" ] && [ ! -L "$ipc_parent" ] || return 1
+          metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$ipc_parent" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = "$uid:$gid:700" ] || return 1
+
+          [ -S "$ipc" ] && [ ! -L "$ipc" ] || return 1
+          metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$ipc" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = "$uid:$gid:600" ] || return 1
+
+          [ -f "$pid_file" ] && [ ! -L "$pid_file" ] || return 1
+          metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$pid_file" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          pid_bytes=$(/usr/bin/wc -c < "$pid_file") || return 1
+          server_pid=
+          IFS= read -r server_pid < "$pid_file" \
+            || [ -n "$server_pid" ] || return 1
+          [ "$pid_bytes" -eq "''${#server_pid}" ] || return 1
+          case "$server_pid" in ""|0|1|*[!0-9]*) return 1 ;; esac
+
+          launch_pid=$(/bin/launchctl print \
+            "gui/$uid/com.carriez.RustDesk_server" 2>/dev/null \
+            | /usr/bin/awk '
+                $1 == "pid" && $2 == "=" && $3 ~ /^[0-9]+$/ {
+                  count += 1
+                  pid = $3
+                }
+                END {
+                  if (count == 1) print pid
+                  else exit 1
+                }
+              ') || return 1
+          [ "$launch_pid" = "$server_pid" ] || return 1
+
+          process_uid=$(/bin/ps -p "$server_pid" -o uid= 2>/dev/null \
+            | /usr/bin/tr -d '[:space:]') || return 1
+          [ "$process_uid" = "$uid" ] || return 1
+          process_exe=$(/bin/ps -ww -p "$server_pid" -o comm= 2>/dev/null) \
+            || return 1
+          process_command=$(/bin/ps -ww -p "$server_pid" -o command= 2>/dev/null) \
+            || return 1
+          [ "$process_exe" = "$rustdesk" ] \
+            && [ "$process_command" = "$rustdesk --server" ] || return 1
+
+          socket_pid=$(/usr/sbin/lsof -nP -t -a -p "$server_pid" \
+            -U -- "$ipc" 2>/dev/null) || return 1
+          [ "$socket_pid" = "$server_pid" ] || return 1
+          validated_server_pid=$server_pid
+        }
+
+        rustdesk_ready() {
+          verify_app || return 1
+          /bin/launchctl print system/com.carriez.RustDesk_service \
+            >/dev/null 2>&1 || return 1
+          validate_user_server || return 1
+          ready_server_pid=$validated_server_pid
+          ${rustdeskPublicConfig} --check || return 1
+          validate_user_server || return 1
+          [ "$validated_server_pid" = "$ready_server_pid" ]
+        }
+
+        wait_ready() {
+          attempt=0
+          while [ "$attempt" -lt 60 ]; do
+            rustdesk_ready && return 0
+            attempt=$((attempt + 1))
+            ${pkgs.coreutils}/bin/sleep 2
+          done
+          return 1
+        }
+
+        ${rustdeskAgenixGate} prepare || fail state
+        verify_app || fail app-trust
+        wait_ready || fail readiness
+
+        if [ -f "$stamp" ] && [ ! -L "$stamp" ] \
           && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}; then
-          ${rustdeskPublicConfig} --check || fail public-config
           exit 0
         fi
 
-        uid=$(/usr/bin/id -u c1)
-        ready=0
-        attempt=0
-        while [ "$attempt" -lt 60 ]; do
-          if [ -x "$rustdesk" ] \
-            && /bin/launchctl print system/com.carriez.RustDesk_service >/dev/null 2>&1 \
-            && /bin/launchctl print "gui/$uid/com.carriez.RustDesk_server" >/dev/null 2>&1 \
-            && [ -S /tmp/RustDesk/ipc ] \
-            && ${rustdeskPublicConfig} --check; then
-            ready=1
-            break
-          fi
-          attempt=$((attempt + 1))
-          ${pkgs.coreutils}/bin/sleep 2
-        done
-        [ "$ready" -eq 1 ] || fail readiness
-        /usr/bin/codesign --verify --deep --strict /Applications/RustDesk.app \
-          >/dev/null 2>&1 || fail codesign
-        /usr/sbin/spctl -a -t exec /Applications/RustDesk.app \
-          >/dev/null 2>&1 || fail spctl
-
+        ${rustdeskAgenixGate} check || fail agenix-revision
         if [ -f "$reservation" ] \
           && ${pkgs.diffutils}/bin/cmp -s "$reservation" ${rustdeskRevision}; then
           fail password-attempt-used-reset-required
         fi
-        secret=${config.age.secrets.rustdesk-password.path}
-        [ -r "$secret" ] && [ -f "$secret" ] || fail secret
+        secret=$(resolve_secret) || fail secret
+        ${rustdeskAgenixGate} check || fail agenix-revision
         bytes=$(/usr/bin/wc -c < "$secret")
         password=
         IFS= read -r password < "$secret" || [ -n "$password" ] || fail secret
@@ -177,6 +366,14 @@ with lib;
           ${rustdeskRevision} "$attempt_tmp"
         /bin/mv -f "$attempt_tmp" "$reservation"
 
+        verify_app || {
+          unset password
+          fail app-trust
+        }
+        ${rustdeskAgenixGate} check || {
+          unset password
+          fail agenix-revision
+        }
         result=$(/usr/bin/mktemp "$state/result.XXXXXX")
         status=0
         ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
@@ -193,13 +390,9 @@ with lib;
         result=
 
         /bin/launchctl kickstart -k system/com.carriez.RustDesk_service
+        uid=$(/usr/bin/id -u "$rustdesk_user")
         /bin/launchctl kickstart -k "gui/$uid/com.carriez.RustDesk_server"
-        attempt=0
-        until [ -S /tmp/RustDesk/ipc ] && ${rustdeskPublicConfig} --check; do
-          [ "$attempt" -lt 60 ] || fail restart
-          attempt=$((attempt + 1))
-          ${pkgs.coreutils}/bin/sleep 1
-        done
+        wait_ready || fail restart
         /usr/bin/install -m 0600 -o root -g wheel \
           ${rustdeskRevision} "$stamp_tmp"
         /bin/mv -f "$stamp_tmp" "$stamp"
@@ -329,6 +522,46 @@ with lib;
       group = "wheel";
       mode = "0400";
     };
+
+    # The pinned nix-darwin activation runs preActivation before launchd and
+    # postActivation after launchd. Keep the gate closed across that interval.
+    system.activationScripts.preActivation.text = mkAfter ''
+      ${rustdeskAgenixGate} invalidate
+    '';
+
+    # Agenix ends its generated script with "exit 0", so an EXIT trap is the
+    # only merge-safe hook that runs after decrypt, link, and chown complete.
+    launchd.daemons.activate-agenix.script = mkBefore ''
+      ${rustdeskAgenixGate} invalidate || exit 1
+      # Invoked indirectly by the EXIT trap.
+      # shellcheck disable=SC2329
+      rustdesk_agenix_gate_exit() {
+        status=$?
+        trap - EXIT
+        if [ "$status" -eq 0 ]; then
+          ${rustdeskAgenixGate} publish || status=$?
+        fi
+        exit "$status"
+      }
+      trap rustdesk_agenix_gate_exit EXIT
+    '';
+
+    system.activationScripts.postActivation.text = mkAfter ''
+      if ! ${rustdeskAgenixGate} check; then
+        /bin/launchctl kickstart system/org.nixos.activate-agenix \
+          >/dev/null 2>&1 || true
+      fi
+      rustdesk_gate_attempt=0
+      until ${rustdeskAgenixGate} check; do
+        if [ "$rustdesk_gate_attempt" -ge 120 ]; then
+          echo "RustDesk agenix revision gate did not complete" >&2
+          exit 1
+        fi
+        rustdesk_gate_attempt=$((rustdesk_gate_attempt + 1))
+        ${pkgs.coreutils}/bin/sleep 1
+      done
+      unset rustdesk_gate_attempt
+    '';
 
     system.activationScripts.extraActivation.text = mkAfter ''
       (

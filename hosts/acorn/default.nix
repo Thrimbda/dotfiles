@@ -31,7 +31,26 @@
     theme.useX = false;
   };
 
-  config = { config, modulesPath, lib, pkgs, ... }: {
+  config = { config, modulesPath, lib, pkgs, ... }:
+    let
+      rustdeskSecret = config.age.secrets.rustdesk-server-key;
+      rustdeskSecretMetadata =
+        "${rustdeskSecret.owner}:${rustdeskSecret.group}:${lib.removePrefix "0" rustdeskSecret.mode}";
+      rustdeskKeyPreflight = pkgs.writeShellScript "acorn-rustdesk-key-preflight" ''
+        set -eu
+
+        configured=${lib.escapeShellArg rustdeskSecret.path}
+        target=$(${pkgs.coreutils}/bin/readlink -e -- "$configured" 2>/dev/null) \
+          || exit 1
+        [ -n "$target" ] && [ -f "$target" ] && [ ! -L "$target" ] \
+          || exit 1
+        metadata=$(${pkgs.coreutils}/bin/stat --format='%U:%G:%a' -- "$target" 2>/dev/null) \
+          || exit 1
+        [ "$metadata" = ${lib.escapeShellArg rustdeskSecretMetadata} ] \
+          || exit 1
+        [ -r "$target" ] && [ -s "$target" ]
+      '';
+    in {
     imports = [
       "${modulesPath}/profiles/qemu-guest.nix"
       ./modules/auth-mini.nix
@@ -141,8 +160,7 @@
       ];
       serviceConfig = {
         ExecStartPre = [
-          "${pkgs.coreutils}/bin/test -r /var/lib/rustdesk/id_ed25519"
-          "${pkgs.coreutils}/bin/test -s /var/lib/rustdesk/id_ed25519"
+          rustdeskKeyPreflight
           "${pkgs.coreutils}/bin/test -r /var/lib/rustdesk/id_ed25519.pub"
           "${pkgs.coreutils}/bin/test -s /var/lib/rustdesk/id_ed25519.pub"
         ];
@@ -159,8 +177,7 @@
       ];
       serviceConfig = {
         ExecStartPre = [
-          "${pkgs.coreutils}/bin/test -r /var/lib/rustdesk/id_ed25519"
-          "${pkgs.coreutils}/bin/test -s /var/lib/rustdesk/id_ed25519"
+          rustdeskKeyPreflight
           "${pkgs.coreutils}/bin/test -r /var/lib/rustdesk/id_ed25519.pub"
           "${pkgs.coreutils}/bin/test -s /var/lib/rustdesk/id_ed25519.pub"
         ];
