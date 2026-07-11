@@ -7,11 +7,11 @@
 
 stdenv.mkDerivation rec {
   pname = "auth-mini";
-  version = "latest-2026-07-05";
+  version = "latest-2026-07-10";
 
   src = fetchurl {
     url = "https://github.com/zccz14/auth-mini/releases/download/latest/auth-mini-linux-x86_64.tar.gz";
-    hash = "sha256-CT0JbhCLCjTUVdStN7r3leDapkHImSPL4o7FxdyieH4=";
+    hash = "sha256-BoXetpgzYWfBxAOcVEFl1trknmpJICprF6TrH0Jzi9Q=";
   };
 
   nativeBuildInputs = lib.optionals stdenv.isLinux [ autoPatchelfHook ];
