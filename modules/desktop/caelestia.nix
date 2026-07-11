@@ -33,10 +33,34 @@ let cfg = config.modules.desktop.caelestia;
       mono = "CaskaydiaCove NF";
       sans = "Rubik";
     };
-    defaultShellPackage =
+    caelestiaBluetoothPolicy = ./caelestia-bluetooth-policy.js;
+    upstreamShellPackage =
       if isLinux
       then hey.inputs.caelestia-shell.packages.${system}.with-cli
       else pkgs.runCommand "caelestia-shell-unavailable" {} "mkdir -p $out";
+    defaultShellPackage =
+      if isLinux then upstreamShellPackage.overrideAttrs (old: {
+        patches = (old.patches or []) ++ [ ./caelestia-bluetooth-primary.patch ];
+        postPatch = (old.postPatch or "") + ''
+          install -m 0644 ${caelestiaBluetoothPolicy} modules/bar/popouts/BluetoothPolicy.js
+        '';
+        postInstall = (old.postInstall or "") + ''
+          cmp ${caelestiaBluetoothPolicy} "$out/share/caelestia-shell/modules/bar/popouts/BluetoothPolicy.js"
+        '';
+      }) else upstreamShellPackage;
+    caelestiaBluetoothPolicyTest = pkgs.runCommand "caelestia-bluetooth-policy-test" {
+      nativeBuildInputs = [ pkgs.nodejs pkgs.diffutils pkgs.gnugrep ];
+    } ''
+      node ${./tests/caelestia-bluetooth-policy-test.js} \
+        ${caelestiaBluetoothPolicy} \
+        ${hey.inputs.caelestia-shell}/modules/nexus/pages/bluetooth/BluetoothPairing.qml
+      cmp ${caelestiaBluetoothPolicy} \
+        ${defaultShellPackage}/share/caelestia-shell/modules/bar/popouts/BluetoothPolicy.js
+      grep -Fq 'BluetoothPolicy.primaryDevices(Bluetooth.devices.values, 5)' \
+        ${defaultShellPackage}/share/caelestia-shell/modules/bar/popouts/Bluetooth.qml
+      mkdir -p "$out"
+      touch "$out/passed"
+    '';
     defaultCliPackage =
       if isLinux
       then hey.inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.default
@@ -426,6 +450,8 @@ in {
         breeze.qt5
         breeze-icons
       ];
+
+      system.extraDependencies = [ caelestiaBluetoothPolicyTest ];
 
       user.packages = with pkgs; [
         cfg.package
