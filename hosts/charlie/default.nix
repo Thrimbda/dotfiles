@@ -362,14 +362,14 @@ with lib;
                   argument[argument_count] = $1
                 }
                 END {
-                  if (state_count == 1 && state == "running"
-                      && pid_count == 1 && pid > 1
-                      && program_count == 1 && program == expected_program
-                      && arguments_count == 1 && !in_arguments
-                      && argument_count == 3
-                      && argument[1] == expected_arg0
-                      && argument[2] == expected_arg1
-                      && argument[3] == expected_arg2) print pid
+                  if (state_count == 1 && state == "running" &&
+                      pid_count == 1 && pid > 1 &&
+                      program_count == 1 && program == expected_program &&
+                      arguments_count == 1 && !in_arguments &&
+                      argument_count == 3 &&
+                      argument[1] == expected_arg0 &&
+                      argument[2] == expected_arg1 &&
+                      argument[3] == expected_arg2) print pid
                   else exit 1
                 }
               ') || return 1
