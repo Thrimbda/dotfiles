@@ -198,7 +198,7 @@ with builtins;
       rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
         package=${rustdeskPackage.version}
         public-config=${rustdeskPublicConfig}
-        provision=axiom-rustdesk-provision-v2
+        provision=axiom-rustdesk-provision-v3
         ciphertext=${./secrets/rustdesk-password.age}
       '';
       rustdeskProvision = pkgs.writeShellScript "axiom-rustdesk-provision" ''
@@ -219,6 +219,14 @@ with builtins;
         trap cleanup EXIT
         trap 'exit 1' HUP INT TERM
         fail() { echo "RustDesk provisioning failed: $1" >&2; exit 1; }
+
+        stamp_is_current() {
+          [ -f "$stamp" ] && [ ! -L "$stamp" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%U:%G:%a' -- "$stamp" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = root:root:600 ] \
+            && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}
+        }
 
         resolve_secret() {
           configured=${escapeShellArg rustdeskSecret.path}
@@ -309,12 +317,11 @@ with builtins;
           return 1
         }
 
-        wait_ready || fail readiness
-
-        if [ -f "$stamp" ] && [ ! -L "$stamp" ] \
-          && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}; then
+        if stamp_is_current; then
           exit 0
         fi
+
+        wait_ready || fail readiness
 
         secret=$(resolve_secret) || fail secret
         bytes=$(${pkgs.coreutils}/bin/wc -c < "$secret")

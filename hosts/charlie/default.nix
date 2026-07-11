@@ -56,6 +56,9 @@ with lib;
       rustdeskVersion = "1.4.8";
       rustdeskHost = "rustdesk.0xc1.wang";
       rustdeskDmgHash = "sha256-f4rPsNyrIdTI/lcJAr5woC7Q2wB9ql6/4eARlIel/Bc=";
+      rustdeskServiceLauncher = "/bin/sh";
+      rustdeskServiceLauncherArgument = "-c";
+      rustdeskServiceProgram = "/Applications/RustDesk.app/Contents/MacOS/service";
       rustdeskSecret = config.age.secrets.rustdesk-password;
       rustdeskSecretMetadata =
         "${rustdeskSecret.owner}:${rustdeskSecret.group}:${removePrefix "0" rustdeskSecret.mode}";
@@ -122,7 +125,7 @@ with lib;
         package=${rustdeskVersion}
         source=${rustdeskDmgHash}
         public-config=${rustdeskPublicConfig}
-        provision=charlie-rustdesk-provision-v2
+        provision=charlie-rustdesk-provision-v3
         ciphertext=${./secrets/rustdesk-password.age}
       '';
       rustdeskAgenixGate = pkgs.writeShellScript "charlie-rustdesk-agenix-gate" ''
@@ -245,6 +248,14 @@ with lib;
           ${rustdeskAppVerify}
         }
 
+        stamp_is_current() {
+          [ -f "$stamp" ] && [ ! -L "$stamp" ] || return 1
+          metadata=$(/usr/bin/stat -f '%Su:%Sg:%Lp' "$stamp" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = root:wheel:600 ] \
+            && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}
+        }
+
         resolve_secret() {
           configured=${escapeShellArg rustdeskSecret.path}
           target=$(${pkgs.coreutils}/bin/readlink -e -- "$configured" 2>/dev/null) \
@@ -317,13 +328,86 @@ with lib;
           validated_server_pid=$server_pid
         }
 
+        validate_privileged_service() {
+          service_pid=$(/bin/launchctl print \
+            system/com.carriez.RustDesk_service 2>/dev/null \
+            | /usr/bin/awk \
+              -v expected_program=${escapeShellArg rustdeskServiceLauncher} \
+              -v expected_arg0=${escapeShellArg rustdeskServiceLauncher} \
+              -v expected_arg1=${escapeShellArg rustdeskServiceLauncherArgument} \
+              -v expected_arg2=${escapeShellArg rustdeskServiceProgram} '
+                $1 == "state" && $2 == "=" {
+                  state_count += 1
+                  state = $3
+                }
+                $1 == "pid" && $2 == "=" && $3 ~ /^[0-9]+$/ {
+                  pid_count += 1
+                  pid = $3
+                }
+                $1 == "program" && $2 == "=" {
+                  program_count += 1
+                  program = $3
+                }
+                $1 == "arguments" && $2 == "=" && $3 == "{" {
+                  arguments_count += 1
+                  in_arguments = 1
+                  next
+                }
+                in_arguments && $1 == "}" {
+                  in_arguments = 0
+                  next
+                }
+                in_arguments {
+                  argument_count += 1
+                  argument[argument_count] = $1
+                }
+                END {
+                  if (state_count == 1 && state == "running"
+                      && pid_count == 1 && pid > 1
+                      && program_count == 1 && program == expected_program
+                      && arguments_count == 1 && !in_arguments
+                      && argument_count == 3
+                      && argument[1] == expected_arg0
+                      && argument[2] == expected_arg1
+                      && argument[3] == expected_arg2) print pid
+                  else exit 1
+                }
+              ') || return 1
+
+          process_uid=$(/bin/ps -p "$service_pid" -o uid= 2>/dev/null \
+            | /usr/bin/tr -d '[:space:]') || return 1
+          process_ruid=$(/bin/ps -p "$service_pid" -o ruid= 2>/dev/null \
+            | /usr/bin/tr -d '[:space:]') || return 1
+          [ "$process_uid" = 0 ] && [ "$process_ruid" = 0 ] || return 1
+          executable_pid=$(/usr/sbin/lsof -nP -t -a -p "$service_pid" \
+            -d txt -- ${escapeShellArg rustdeskServiceProgram} 2>/dev/null) \
+            || return 1
+          [ "$executable_pid" = "$service_pid" ] || return 1
+          process_command=$(/bin/ps -ww -p "$service_pid" -o command= 2>/dev/null) \
+            || return 1
+          [ "$process_command" = ${escapeShellArg rustdeskServiceProgram} ] \
+            || return 1
+          validated_service_pid=$service_pid
+        }
+
+        validate_runtime_pids() {
+          expected_service_pid=$1
+          expected_server_pid=$2
+          validate_privileged_service || return 1
+          [ "$validated_service_pid" = "$expected_service_pid" ] || return 1
+          validate_user_server || return 1
+          [ "$validated_server_pid" = "$expected_server_pid" ]
+        }
+
         rustdesk_ready() {
           verify_app || return 1
-          /bin/launchctl print system/com.carriez.RustDesk_service \
-            >/dev/null 2>&1 || return 1
+          validate_privileged_service || return 1
+          ready_service_pid=$validated_service_pid
           validate_user_server || return 1
           ready_server_pid=$validated_server_pid
           ${rustdeskPublicConfig} --check || return 1
+          validate_privileged_service || return 1
+          [ "$validated_service_pid" = "$ready_service_pid" ] || return 1
           validate_user_server || return 1
           [ "$validated_server_pid" = "$ready_server_pid" ]
         }
@@ -331,7 +415,17 @@ with lib;
         wait_ready() {
           attempt=0
           while [ "$attempt" -lt 60 ]; do
-            rustdesk_ready && return 0
+            if rustdesk_ready; then
+              candidate_service_pid=$ready_service_pid
+              candidate_server_pid=$ready_server_pid
+              ${pkgs.coreutils}/bin/sleep 2
+              if validate_runtime_pids \
+                "$candidate_service_pid" "$candidate_server_pid"; then
+                ready_service_pid=$candidate_service_pid
+                ready_server_pid=$candidate_server_pid
+                return 0
+              fi
+            fi
             attempt=$((attempt + 1))
             ${pkgs.coreutils}/bin/sleep 2
           done
@@ -340,18 +434,22 @@ with lib;
 
         ${rustdeskAgenixGate} prepare || fail state
         verify_app || fail app-trust
-        wait_ready || fail readiness
-
-        if [ -f "$stamp" ] && [ ! -L "$stamp" ] \
-          && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}; then
+        if stamp_is_current; then
           exit 0
         fi
+
+        wait_ready || fail readiness
+        provision_service_pid=$ready_service_pid
+        provision_server_pid=$ready_server_pid
 
         ${rustdeskAgenixGate} check || fail agenix-revision
         if [ -f "$reservation" ] \
           && ${pkgs.diffutils}/bin/cmp -s "$reservation" ${rustdeskRevision}; then
           fail password-attempt-used-reset-required
         fi
+        validate_runtime_pids \
+          "$provision_service_pid" "$provision_server_pid" \
+          || fail runtime-changed-before-secret
         secret=$(resolve_secret) || fail secret
         ${rustdeskAgenixGate} check || fail agenix-revision
         bytes=$(/usr/bin/wc -c < "$secret")
@@ -374,6 +472,11 @@ with lib;
           unset password
           fail agenix-revision
         }
+        validate_runtime_pids \
+          "$provision_service_pid" "$provision_server_pid" || {
+          unset password
+          fail runtime-changed-before-password
+        }
         result=$(/usr/bin/mktemp "$state/result.XXXXXX")
         status=0
         ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
@@ -389,10 +492,20 @@ with lib;
         /bin/rm -f "$result"
         result=
 
+        validate_runtime_pids \
+          "$provision_service_pid" "$provision_server_pid" \
+          || fail runtime-changed-during-password
+
         /bin/launchctl kickstart -k system/com.carriez.RustDesk_service
         uid=$(/usr/bin/id -u "$rustdesk_user")
         /bin/launchctl kickstart -k "gui/$uid/com.carriez.RustDesk_server"
         wait_ready || fail restart
+        [ "$ready_service_pid" != "$provision_service_pid" ] \
+          || fail service-not-restarted
+        [ "$ready_server_pid" != "$provision_server_pid" ] \
+          || fail server-not-restarted
+        validate_runtime_pids "$ready_service_pid" "$ready_server_pid" \
+          || fail runtime-changed-after-restart
         /usr/bin/install -m 0600 -o root -g wheel \
           ${rustdeskRevision} "$stamp_tmp"
         /bin/mv -f "$stamp_tmp" "$stamp"
@@ -720,8 +833,9 @@ with lib;
         <key>Label</key><string>com.carriez.RustDesk_service</string>
         <key>AssociatedBundleIdentifiers</key><string>com.carriez.rustdesk</string>
         <key>ProgramArguments</key><array>
-          <string>/bin/sh</string><string>-c</string>
-          <string>/Applications/RustDesk.app/Contents/MacOS/service</string>
+          <string>${rustdeskServiceLauncher}</string>
+          <string>${rustdeskServiceLauncherArgument}</string>
+          <string>${rustdeskServiceProgram}</string>
         </array>
         <key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
         <key>ThrottleInterval</key><integer>1</integer>
