@@ -164,6 +164,8 @@ Cloudflare DNS-only A records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang` 
 
 `auth-mini-gateway` protects Acorn's human-facing `0xc1.wang` nginx reverse proxies via nginx `auth_request`. Current protected hostnames are `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang`.
 
+Auth-mini is the sole authority for authentication-method selection. The gateway verifies the auth-mini token/session and grants upstream access only when the normalized email exactly matches `ALLOW_EMAILS` or the user ID exactly matches `ALLOW_USER_IDS`; unknown identities are denied. Do not reintroduce gateway-owned Passkey/`amr` policy without a new security design.
+
 Current upstream gateway behavior is same-origin: it validates returns against one `GATEWAY_PUBLIC_BASE_URL` and emits host-only cookies. Therefore Acorn must run one gateway instance per protected hostname instead of one central cross-host callback service. The current loopback allocation is `auth-gateway.0xc1.wang -> 7778`, `status-axiom.0xc1.wang -> 7779`, `opencode-axiom.0xc1.wang -> 7780`, and `frps-acorn.0xc1.wang -> 7781`.
 
 The gateway cookie secret and allowlist live in `hosts/acorn/secrets/auth-mini-gateway-env.age`; do not put gateway secrets, refresh tokens, or plaintext allowlists into Nix store paths, task docs, PR bodies, or logs. Backend ports `7777` through `7781` must remain absent from the public firewall and cloud security group.

@@ -124,6 +124,8 @@ For nginx `auth_request` gateways that set host-only cookies and validate return
 
 For auth gateway deployments, keep the protected upstream and gateway backend loopback-only, expose only nginx HTTPS, keep cookie secrets and allowlists in agenix env files, and validate the firewall excludes backend ports. If the protected upstream has native clients or its own non-browser protocol, leave it outside the browser gateway until a compatibility design proves those clients still work.
 
+When an auth callback UI maps every non-2xx response to one generic failure, diagnose the callback/session HTTP status and policy decision before changing redirect, cookie, or origin topology. Preserve authentication and authorization as separate checks: the identity provider selects authentication methods, while the gateway should enforce its documented exact-identity allowlist unless a separately reviewed method policy is intentional.
+
 When a lightweight service stores provider credentials in application-owned state and has an authenticated configuration API, retain the source credential in a host-recipient agenix secret and apply it through the loopback admin API without logging it. Do not add startup reconciliation by default; document that key rotation or database recovery requires an explicit reapply step.
 
 For Acorn public `0xc1.wang` vhosts, verify Cloudflare DNS records through the API or DoH in addition to service health, ACME issuance, and direct `--resolve` HTTPS smoke. A healthy loopback service plus valid certificate can still produce browser empty responses if the public hostname has no DNS record or the client/proxy resolves to a fake-ip cache. For apps whose UI is not at `/`, include a root-path smoke or redirect in the release checklist.
