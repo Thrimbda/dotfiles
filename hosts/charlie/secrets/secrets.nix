@@ -2,4 +2,5 @@ let key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKrC5k/qhfJUVkMG0Fr+RKEIf1VV9Q6eS
 in
 {
   "cloudflare-api-token.age".publicKeys = [ key ];
+  "rustdesk-password.age".publicKeys = [ key ];
 }

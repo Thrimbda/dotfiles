@@ -159,6 +159,124 @@ with builtins;
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       frpcDirectRouteUnit = "frpc-acorn-direct-route.service";
       frpcDirectRoutePriority = 8500;
+      rustdeskHost = "rustdesk.0xc1.wang";
+      rustdeskPackage = pkgs.unstable.rustdesk;
+      rustdeskPublicKey = removeSuffix "\n" (readFile ../acorn/secrets/rustdesk-server-key.pub);
+      rustdeskPublicConfig = pkgs.writeShellScript "axiom-rustdesk-public-config" ''
+        set -eu
+        rustdesk=${rustdeskPackage}/bin/rustdesk
+        timeout=${pkgs.coreutils}/bin/timeout
+
+        if [ "''${1:-apply}" = apply ]; then
+          "$timeout" 15s "$rustdesk" --config \
+            "rustdesk-host=${rustdeskHost},key=${rustdeskPublicKey},relay=${rustdeskHost}" \
+            >/dev/null 2>&1
+          set_option() {
+            "$timeout" 15s "$rustdesk" --option "$1" "$2" >/dev/null 2>&1
+          }
+          set_option verification-method use-permanent-password
+          set_option approve-mode password
+          set_option allow-auto-update N
+        elif [ "$1" != --check ]; then
+          exit 2
+        fi
+
+        check() {
+          value=$("$timeout" 15s "$rustdesk" --option "$1" 2>/dev/null)
+          [ "$value" = "$2" ]
+        }
+        check custom-rendezvous-server ${escapeShellArg rustdeskHost}
+        check key ${escapeShellArg rustdeskPublicKey}
+        check relay-server ${escapeShellArg rustdeskHost}
+        check verification-method use-permanent-password
+        check approve-mode password
+        check allow-auto-update N
+      '';
+      rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
+        package=${rustdeskPackage.version}
+        public-config=${rustdeskPublicConfig}
+        provision=axiom-rustdesk-provision-v1
+        ciphertext=${./secrets/rustdesk-password.age}
+      '';
+      rustdeskProvision = pkgs.writeShellScript "axiom-rustdesk-provision" ''
+        set -eu
+        umask 077
+
+        rustdesk=${rustdeskPackage}/bin/rustdesk
+        state=/var/lib/rustdesk-provision
+        stamp=$state/stamp
+        stamp_tmp=$state/stamp.tmp.$$
+        result=
+        cleanup() {
+          [ -z "$result" ] || ${pkgs.coreutils}/bin/rm -f "$result"
+          ${pkgs.coreutils}/bin/rm -f "$stamp_tmp"
+        }
+        trap cleanup EXIT
+        trap 'exit 1' HUP INT TERM
+        fail() { echo "RustDesk provisioning failed: $1" >&2; exit 1; }
+
+        if [ -f "$stamp" ] \
+          && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}; then
+          ${rustdeskPublicConfig} --check || fail public-config
+          exit 0
+        fi
+
+        ready=0
+        attempt=0
+        while [ "$attempt" -lt 60 ]; do
+          pid=$(${pkgs.systemd}/bin/systemctl show -p MainPID --value rustdesk.service)
+          case "$pid" in ""|0|*[!0-9]*) ;; *)
+            if ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
+              && [ -S /tmp/RustDesk/ipc ] \
+              && ${rustdeskPublicConfig} --check; then
+              ready=1
+              break
+            fi
+            ;;
+          esac
+          attempt=$((attempt + 1))
+          ${pkgs.coreutils}/bin/sleep 1
+        done
+        [ "$ready" -eq 1 ] || fail readiness
+
+        secret=${config.age.secrets.rustdesk-password.path}
+        [ -r "$secret" ] && [ -f "$secret" ] || fail secret
+        bytes=$(${pkgs.coreutils}/bin/wc -c < "$secret")
+        password=
+        IFS= read -r password < "$secret" || [ -n "$password" ] || fail secret
+        [ "$bytes" -eq "''${#password}" ] \
+          && [ "''${#password}" -ge 32 ] && [ "''${#password}" -le 64 ] \
+          || fail secret-format
+        case "$password" in *[!A-Za-z0-9_-]*) fail secret-format ;; esac
+
+        result=$(${pkgs.coreutils}/bin/mktemp "$state/result.XXXXXX")
+        status=0
+        ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+          "$rustdesk" --password "$password" > "$result" 2>&1 || status=$?
+        unset password
+        [ "$status" -eq 0 ] || fail password-command
+        exec 3< "$result"
+        IFS= read -r line <&3 || fail password-result
+        if IFS= read -r _ <&3; then fail password-result; fi
+        exec 3<&-
+        [ "$line" = "Done!" ] || fail password-result
+        unset line
+        ${pkgs.coreutils}/bin/rm -f "$result"
+        result=
+
+        ${pkgs.systemd}/bin/systemctl restart rustdesk.service
+        attempt=0
+        until ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
+          && [ -S /tmp/RustDesk/ipc ] \
+          && ${rustdeskPublicConfig} --check; do
+          [ "$attempt" -lt 60 ] || fail restart
+          attempt=$((attempt + 1))
+          ${pkgs.coreutils}/bin/sleep 1
+        done
+        ${pkgs.coreutils}/bin/install -m 0600 ${rustdeskRevision} "$stamp_tmp"
+        ${pkgs.coreutils}/bin/mv -f "$stamp_tmp" "$stamp"
+        trap - EXIT HUP INT TERM
+      '';
       gatusPort = 8080;
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
@@ -243,6 +361,7 @@ with builtins;
       k9s
       kubectl
       nvtopPackages.nvidia
+      rustdeskPackage
       sops
       uv
     ];
@@ -270,6 +389,78 @@ with builtins;
     };
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
+
+    assertions = [{
+      assertion = rustdeskPackage.version == "1.4.8";
+      message = "axiom RustDesk client must remain pinned to 1.4.8";
+    }];
+
+    age.secrets.rustdesk-password = {
+      owner = "root";
+      group = "root";
+      mode = "0400";
+    };
+
+    systemd.services.rustdesk-config = {
+      description = "Configure RustDesk public self-host parameters";
+      before = [ "rustdesk.service" ];
+      requiredBy = [ "rustdesk.service" ];
+      restartTriggers = [ rustdeskRevision ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = rustdeskPublicConfig;
+        RemainAfterExit = true;
+        UMask = "0077";
+        LimitCORE = 0;
+      };
+    };
+
+    systemd.services.rustdesk = {
+      description = "RustDesk system service";
+      wantedBy = [ "multi-user.target" ];
+      wants = [ "network-online.target" ];
+      requires = [ "rustdesk-config.service" frpcDirectRouteUnit ];
+      after = [
+        "network-online.target"
+        "systemd-user-sessions.service"
+        "rustdesk-config.service"
+        frpcDirectRouteUnit
+      ];
+      path = with pkgs; [ bash coreutils gawk gnugrep gnused procps sudo systemd util-linux ];
+      environment = {
+        PIPEWIRE_LATENCY = "1024/48000";
+        PULSE_LATENCY_MSEC = "60";
+      };
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${rustdeskPackage}/bin/rustdesk --service";
+        User = "root";
+        KillMode = "mixed";
+        LimitNOFILE = 100000;
+        LimitCORE = 0;
+        TimeoutStopSec = "30s";
+        Restart = "on-failure";
+        RestartSec = "5s";
+      };
+    };
+
+    systemd.services.rustdesk-provision = {
+      description = "Provision RustDesk permanent password once";
+      wantedBy = [ "multi-user.target" ];
+      wants = [ "rustdesk.service" ];
+      after = [ "rustdesk.service" ];
+      restartTriggers = [ ./secrets/rustdesk-password.age rustdeskRevision ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = rustdeskProvision;
+        RemainAfterExit = true;
+        StateDirectory = "rustdesk-provision";
+        StateDirectoryMode = "0700";
+        UMask = "0077";
+        TimeoutStartSec = "4min";
+        LimitCORE = 0;
+      };
+    };
 
     modules.services.prometheus.enable = true;
 
