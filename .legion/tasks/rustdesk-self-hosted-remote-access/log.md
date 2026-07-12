@@ -63,3 +63,42 @@
 - Charlie public/provision helper 在每条 RustDesk CLI 路径前执行本地 `codesign` 和 `spctl` gate。
 - Cheap checks：3 个 Nix 文件 parse、3 host system drv eval、Linux helper derivation build、generated helper `bash -n`/ShellCheck、activation/order/metadata focused assertions 通过。Acorn/Axiom full toplevel build 与 Charlie Darwin build/signature 仍待 `verify-change`。
 - 实现 agent 按职责未 commit、push、deploy 或 switch host；既有未提交 `docs/test-report.md` 修改保持原样，未提前把本轮结果写成新的 PASS。
+
+## 2026-07-12 RustDesk 1.4.9 security revision
+
+- Upstream 1.4.9与CVE-2026-57850确认1.4.8不可继续部署；阶段退回design review，旧1.4.8 PASS/evidence全部标记superseded。
+- RFC改为Axiom从同一1.4.9 source显式重建cargoDeps、Charlie pin官方1.4.9 ARM64 DMG，并禁止rollback到`<1.4.9`。
+- Public config proof改用fresh-empty caller fallback context与IPC失败负控，避免`--option` local fallback假阳性。
+- 两端采用明确的per-revision attempt/stamp状态机；Charlie launchctl parser要求完整service/user-agent fixture与top-level brace-depth语义。
+- Round 5 review-rfc初次结果为FAIL；findings已写回RFC，等待新一轮review-rfc。
+
+## 2026-07-12 Round 6 RustDesk 1.4.9 implementation
+
+- Axiom基于锁定的`pkgs.unstable.rustdesk`仅override version/source/cargo hash/cargoDeps；source固定到`6c578292e8ebbbec708b76986ba8c4bc7c509747`并含唯一`libs/hbb_common` submodule，cargo vendor从同一source显式重建。完整1.4.9 package与Axiom toplevel build通过，nixpkgs reproducibility patch、postPatch、依赖和wrapper均保留，`lib/rustdesk/rustdesk`存在且`--version`为1.4.9。
+- Charlie改为官方`rustdesk-1.4.9-aarch64.dmg`及批准SRI，保持no-fixup/no-strip/no-resign copy，并在store/staging/destination/runtime gate中验证bundle id、TeamIdentifier和Gatekeeper origin。Linux评估可生成完整Darwin system；本机缺少aarch64-darwin builder，真实bundle build/signature仍留给orchestrator/Charlie。
+- 两端public config只在user server与稳定PID/socket存在后由provision执行；每个apply/query使用独立fresh-empty root-owned 0700 HOME/XDG context。当前stamp fast-skip不检查reservation、不需要session且不调用管理CLI；password使用持久root/service context、exact `Done!` ACK，并在restart与IPC proof后才写stamp。
+- 两端实现同一per-revision attempt/stamp状态机：canonical metadata/content fail closed，current reservation在readiness/secret前拒绝，reservation在public proof后原子publish、filesystem sync并复核，secret读取和password前再次复核；失败保留reservation，新revision可替换合法stale对象。
+- Charlie service与user-agent统一使用brace-depth launchctl parser，只读取顶层state/pid/program/arguments并忽略nested coalition fields；保留UID、command/executable、lsof socket与PID稳定检查。
+- Verification：Nix parse/eval、Axiom source/cargo derivation linkage、submodule identity、retained patch application、1.4.9 source CLI/IPC call sites、generated helper `bash -n`/ShellCheck、完整fallback正/负控（IPC阻断时zero secret/reservation/password action）、全部状态表行及directory/symlink/device/FIFO/mode/owner/content malformed cases、完整modern launchctl service/agent fixtures及truncated/duplicate/wrong-field cases均PASS。Acorn与Axiom完整toplevel build PASS；未commit、push、deploy、switch或读取secret。
+
+## 2026-07-12 Round 7 manual-finalize implementation
+
+- Axiom provision/finalize现共享root-owned `flock` operation lock；Charlie共享atomic root-owned lock directory，既有/stale lock不自动清理。两端对current stamp保持lock内fast-skip，并严格拒绝malformed state、stamp、reservation、ready与lock对象。
+- Provision在exact `Done!\n`后强制替换全部auth-serving PID、复核public config与稳定identity，只原子发布绑定host/revision/PID/start/executable/UID的`ready-to-finalize`，保留current reservation且不再写stamp。Axiom恢复upstream `pkill -f "rustdesk --"` ExecStop并要求main/user-server双PID替换；Charlie继续要求privileged/user-server双PID替换并以exact `ps` fields hash绑定start identity。
+- 两端system PATH新增root-only `rustdesk-provision-finalize --confirm-remote-auth`。Finalizer不包含agenix path、secret resolver或`--password`，在共享lock内重验current reservation/ready/revision与同一live process identities后才sync stamp并移除/sync ready；未实现history或anti-rollback ledger。
+- Targeted generated-artifact harness覆盖ACK/restart/post-restart-public失败、双PID未替换、pending reboot/interval replay、exact finalize参数、process drift、并发/stale lock、stale revision fixed-forward，以及Axiom 15 ready + 15 state malformed cases和Charlie 14 ready + 15 state malformed cases，全部PASS。Harness同时发现并修复`publish_revision_object`参数被inspector全局变量覆盖的问题。
+- Verification PASS：两端Nix parse/eval、Axiom完整toplevel build、四个generated provision/finalizer的`bash -n`与ShellCheck、finalizer zero-secret/zero-password assertion、Axiom `/proc` start parser、systemd Wants/After/ExecStop、Charlie plist/bundle-id/version/hash assertions。Charlie full aarch64-darwin build与真机launchd/signature/runtime remote-auth仍是orchestrator gate；未连接Charlie，未commit/push/deploy/switch或读取secret。
+
+## 2026-07-12 review finding repair
+
+- Charlie activation现以完整signature/identity/Gatekeeper gate、CDHash和递归内容比较识别相同bundle；相同时不移动或复制app。真正的app/revision transition先bootout并确认旧provision job absent，marker/app失败回滚仍在同一transaction内；service与user-server plist均绑定composite revision。
+- Axiom与Charlie均改为先原子publish/sync/revalidate current reservation，再删除/sync stale ready并证明absent，随后重验runtime才允许读取secret；生成脚本的publish rename前/后与ready unlink前/后共20个failure-injection case均证明失败路径zero secret/zero password。
+- 三端Nix parse/eval、Axiom完整toplevel build、四个generated provision/finalizer及Charlie activation的`bash -n`/ShellCheck、Charlie plist/完整parser fixture与双PID post-ACK assertions均PASS。Charlie真机bundle/build/launchd/runtime gate仍未执行；未连接host、读取secret、commit、push、deploy或switch。
+
+## 2026-07-12 Charlie pre-merge artifact verification
+
+- `charlie-tunnel`恢复后，只清理了本任务隔离worktree中旧1.4.8 temporary patch；未触碰Charlie主工作区。当前三个host files通过SHA-256确认与本地candidate逐字一致。
+- Charlie完整`aarch64-darwin` system build PASS。Store app确认为arm64 RustDesk 1.4.9、bundle id `com.carriez.rustdesk`、Team `HZF9JMC8YN`；deep/strict codesign与Gatekeeper Notarized Developer ID/origin全部PASS。
+- `ditto`临时copy保持recursive content、CDHash、签名与Gatekeeper identity；临时copy已删除，未安装到`/Applications`。
+- Generated brace-depth parser在Charlie真实完整`launchctl print`输出上通过2-argument server和3-argument service形状，正确忽略nested coalition states；临时jobs均已移除。目标`ps` PID/start identity格式稳定，generated provision/finalizer/activate通过Charlie `/bin/bash -n`。
+- 无deploy/switch、无RustDesk app/jobs/mutable state变更、无RustDesk secret读取。隔离worktree仍是detached dirty verification tree并保留`.cache/`，不得用于switch。

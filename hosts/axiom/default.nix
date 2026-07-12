@@ -159,47 +159,129 @@ with builtins;
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       frpcDirectRouteUnit = "frpc-acorn-direct-route.service";
       frpcDirectRoutePriority = 8500;
+      rustdeskVersion = "1.4.9";
       rustdeskHost = "rustdesk.0xc1.wang";
-      rustdeskPackage = pkgs.unstable.rustdesk;
+      rustdeskSourceHash = "sha256-AnwdIO4TveC48uMioBCvH60xun24ckK420ONSEB9lQI=";
+      rustdeskCargoHash = "sha256-HPvvsTcjSErGfdNwsHgWhs930Fe0hmK1g5J/ngtlkKM=";
+      rustdeskSource = pkgs.unstable.fetchFromGitHub {
+        owner = "rustdesk";
+        repo = "rustdesk";
+        rev = "6c578292e8ebbbec708b76986ba8c4bc7c509747";
+        fetchSubmodules = true;
+        hash = rustdeskSourceHash;
+      };
+      rustdeskCargoDeps = pkgs.unstable.rustPlatform.fetchCargoVendor {
+        name = "rustdesk-${rustdeskVersion}";
+        src = rustdeskSource;
+        hash = rustdeskCargoHash;
+      };
+      rustdeskPackage = pkgs.unstable.rustdesk.overrideAttrs (_finalAttrs: _previousAttrs: {
+        version = rustdeskVersion;
+        src = rustdeskSource;
+        cargoHash = rustdeskCargoHash;
+        cargoDeps = rustdeskCargoDeps;
+      });
       rustdeskSecret = config.age.secrets.rustdesk-password;
       rustdeskSecretMetadata =
         "${rustdeskSecret.owner}:${rustdeskSecret.group}:${removePrefix "0" rustdeskSecret.mode}";
       rustdeskPublicKey = removeSuffix "\n" (readFile ../acorn/secrets/rustdesk-server-key.pub);
       rustdeskPublicConfig = pkgs.writeShellScript "axiom-rustdesk-public-config" ''
         set -eu
+        umask 077
+
         rustdesk=${rustdeskPackage}/bin/rustdesk
         timeout=${pkgs.coreutils}/bin/timeout
 
-        if [ "''${1:-apply}" = apply ]; then
-          "$timeout" 15s "$rustdesk" --config \
-            "rustdesk-host=${rustdeskHost},key=${rustdeskPublicKey},relay=${rustdeskHost}" \
-            >/dev/null 2>&1
-          set_option() {
-            "$timeout" 15s "$rustdesk" --option "$1" "$2" >/dev/null 2>&1
-          }
-          set_option verification-method use-permanent-password
-          set_option approve-mode password
-          set_option allow-auto-update N
-        elif [ "$1" != --check ]; then
-          exit 2
-        fi
-
-        check() {
-          value=$("$timeout" 15s "$rustdesk" --option "$1" 2>/dev/null)
-          [ "$value" = "$2" ]
+        context=$(${pkgs.coreutils}/bin/mktemp -d \
+          /tmp/axiom-rustdesk-public-config.XXXXXX)
+        home=$context/home
+        config_home=$context/config
+        # Invoked indirectly by the EXIT trap.
+        # shellcheck disable=SC2329
+        cleanup() {
+          ${pkgs.coreutils}/bin/rm -rf -- "$context"
         }
-        check custom-rendezvous-server ${escapeShellArg rustdeskHost}
-        check key ${escapeShellArg rustdeskPublicKey}
-        check relay-server ${escapeShellArg rustdeskHost}
-        check verification-method use-permanent-password
-        check approve-mode password
-        check allow-auto-update N
+        trap cleanup EXIT
+        trap 'exit 1' HUP INT TERM
+
+        ${pkgs.coreutils}/bin/chmod 0700 "$context"
+        ${pkgs.coreutils}/bin/install -d -m 0700 -o root -g root \
+          "$home" "$config_home"
+        for directory in "$context" "$home" "$config_home"; do
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$directory" 2>/dev/null) || exit 1
+          [ "$metadata" = 0:0:700 ] || exit 1
+        done
+
+        quiet=0
+        case "''${1:-}" in
+          apply-server)
+            quiet=1
+            set -- --config \
+              "rustdesk-host=${rustdeskHost},key=${rustdeskPublicKey},relay=${rustdeskHost}"
+            ;;
+          apply-verification-method)
+            quiet=1
+            set -- --option verification-method use-permanent-password
+            ;;
+          apply-approve-mode)
+            quiet=1
+            set -- --option approve-mode password
+            ;;
+          apply-auto-update)
+            quiet=1
+            set -- --option allow-auto-update N
+            ;;
+          query-host)
+            set -- --option custom-rendezvous-server
+            ;;
+          query-key)
+            set -- --option key
+            ;;
+          query-relay)
+            set -- --option relay-server
+            ;;
+          query-verification-method)
+            set -- --option verification-method
+            ;;
+          query-approve-mode)
+            set -- --option approve-mode
+            ;;
+          query-auto-update)
+            set -- --option allow-auto-update
+            ;;
+          *)
+            exit 2
+            ;;
+        esac
+
+        status=0
+        if [ "$quiet" -eq 1 ]; then
+          HOME="$home" XDG_CONFIG_HOME="$config_home" \
+            ${pkgs.coreutils}/bin/env \
+            "$timeout" --signal=TERM --kill-after=5s 15s \
+            "$rustdesk" "$@" >/dev/null 2>&1 || status=$?
+        else
+          HOME="$home" XDG_CONFIG_HOME="$config_home" \
+            ${pkgs.coreutils}/bin/env \
+            "$timeout" --signal=TERM --kill-after=5s 15s \
+            "$rustdesk" "$@" 2>/dev/null || status=$?
+        fi
+        exit "$status"
       '';
-      rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
-        package=${rustdeskPackage.version}
+      rustdeskRevisionValue = "axiom-rustdesk-provision-v4:${hashString "sha256" ''
+        package=${rustdeskPackage}
+        version=${rustdeskVersion}
+        source=${rustdeskSourceHash}
+        cargo=${rustdeskCargoHash}
         public-config=${rustdeskPublicConfig}
-        provision=axiom-rustdesk-provision-v3
+        provision=axiom-rustdesk-provision-v7
+        ready-to-finalize=axiom-rustdesk-ready-v1
+        manual-finalize=axiom-rustdesk-finalize-v1
         ciphertext=${./secrets/rustdesk-password.age}
+      ''}";
+      rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
+        ${rustdeskRevisionValue}
       '';
       rustdeskProvision = pkgs.writeShellScript "axiom-rustdesk-provision" ''
         set -eu
@@ -208,24 +290,293 @@ with builtins;
         rustdesk=${rustdeskPackage}/bin/rustdesk
         rustdesk_server_exe=${rustdeskPackage}/lib/rustdesk/rustdesk
         rustdesk_user=${escapeShellArg userName}
+        password_home=/root
+        password_config_home=/root/.config
         state=/var/lib/rustdesk-provision
         stamp=$state/stamp
-        stamp_tmp=$state/stamp.tmp.$$
+        reservation=$state/attempt
+        ready=$state/ready-to-finalize
+        operation_lock=$state/operation.lock
+        revision_prefix=axiom-rustdesk-provision-v4:
+        current_revision=${escapeShellArg rustdeskRevisionValue}
+        object_tmp=
+        ready_tmp=
+        ready_cleanup_required=0
         result=
         cleanup() {
           [ -z "$result" ] || ${pkgs.coreutils}/bin/rm -f "$result"
-          ${pkgs.coreutils}/bin/rm -f "$stamp_tmp"
+          [ -z "$object_tmp" ] || ${pkgs.coreutils}/bin/rm -f "$object_tmp"
+          [ -z "$ready_tmp" ] || ${pkgs.coreutils}/bin/rm -f "$ready_tmp"
+          if [ "$ready_cleanup_required" -eq 1 ]; then
+            remove_current_ready >/dev/null 2>&1 || true
+          fi
         }
         trap cleanup EXIT
         trap 'exit 1' HUP INT TERM
         fail() { echo "RustDesk provisioning failed: $1" >&2; exit 1; }
 
-        stamp_is_current() {
-          [ -f "$stamp" ] && [ ! -L "$stamp" ] || return 1
-          metadata=$(${pkgs.coreutils}/bin/stat --format='%U:%G:%a' -- "$stamp" 2>/dev/null) \
+        validate_state_directory() {
+          [ -d "$state" ] && [ ! -L "$state" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$state" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0:700 ]
+        }
+
+        validate_operation_lock() {
+          [ -f "$operation_lock" ] && [ ! -L "$operation_lock" ] \
             || return 1
-          [ "$metadata" = root:root:600 ] \
-            && ${pkgs.diffutils}/bin/cmp -s "$stamp" ${rustdeskRevision}
+          metadata=$(${pkgs.coreutils}/bin/stat \
+            --format='%u:%g:%a:%s:%h' -- "$operation_lock" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = 0:0:600:0:1 ]
+        }
+
+        acquire_operation_lock() {
+          [ "$(${pkgs.coreutils}/bin/id -u)" = 0 ] || return 1
+          validate_state_directory || return 1
+          if [ ! -e "$operation_lock" ] && [ ! -L "$operation_lock" ]; then
+            ( set -C; : > "$operation_lock" ) 2>/dev/null || true
+          fi
+          validate_operation_lock || return 1
+          exec 9<> "$operation_lock" || return 1
+          ${pkgs.util-linux}/bin/flock --nonblock 9 || {
+            exec 9>&-
+            return 1
+          }
+          path_identity=$(${pkgs.coreutils}/bin/stat \
+            --format='%d:%i:%u:%g:%a:%s:%h' \
+            -- "$operation_lock" 2>/dev/null) || return 1
+          fd_identity=$(${pkgs.coreutils}/bin/stat --dereference \
+            --format='%d:%i:%u:%g:%a:%s:%h' \
+            -- /proc/self/fd/9 2>/dev/null) || return 1
+          [ "$path_identity" = "$fd_identity" ] \
+            && validate_operation_lock
+        }
+
+        inspect_revision_object() {
+          object_path=$1
+          object_state=
+          if [ ! -e "$object_path" ] && [ ! -L "$object_path" ]; then
+            object_state=absent
+            return 0
+          fi
+
+          [ -f "$object_path" ] && [ ! -L "$object_path" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$object_path" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0:600 ] || return 1
+
+          bytes=$(${pkgs.coreutils}/bin/wc -c < "$object_path") || return 1
+          object_value=
+          IFS= read -r object_value < "$object_path" || return 1
+          [ "$bytes" -eq $(( ''${#object_value} + 1 )) ] || return 1
+          case "$object_value" in
+            "$revision_prefix"*)
+              object_digest=''${object_value#"$revision_prefix"}
+              ;;
+            *)
+              return 1
+              ;;
+          esac
+          [ "''${#object_digest}" -eq 64 ] || return 1
+          case "$object_digest" in *[!0-9a-f]*) return 1 ;; esac
+
+          if ${pkgs.diffutils}/bin/cmp -s \
+            "$object_path" ${rustdeskRevision}; then
+            object_state=current
+          else
+            object_state=stale
+          fi
+        }
+
+        publish_revision_object() {
+          publish_object_path=$1
+          object_name=$2
+          object_tmp=$(${pkgs.coreutils}/bin/mktemp \
+            "$state/$object_name.tmp.XXXXXX") || return 1
+          ${pkgs.coreutils}/bin/install -m 0600 -o root -g root \
+            ${rustdeskRevision} "$object_tmp" || return 1
+          inspect_revision_object "$object_tmp" || return 1
+          [ "$object_state" = current ] || return 1
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$object_tmp" || return 1
+          ${pkgs.coreutils}/bin/mv -fT -- "$object_tmp" "$publish_object_path" \
+            || return 1
+          object_tmp=
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$state" || return 1
+          inspect_revision_object "$publish_object_path" || return 1
+          [ "$object_state" = current ]
+        }
+
+        inspect_ready_object() {
+          ready_path=$1
+          ready_state=
+          if [ ! -e "$ready_path" ] && [ ! -L "$ready_path" ]; then
+            ready_state=absent
+            return 0
+          fi
+
+          [ -f "$ready_path" ] && [ ! -L "$ready_path" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a:%h' \
+            -- "$ready_path" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0:600:1 ] || return 1
+          ready_line_count=$(${pkgs.coreutils}/bin/wc -l < "$ready_path") \
+            || return 1
+          [ "$ready_line_count" -eq 11 ] || return 1
+
+          exec 4< "$ready_path" || return 1
+          IFS= read -r ready_line1 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line2 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line3 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line4 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line5 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line6 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line7 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line8 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line9 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line10 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line11 <&4 || { exec 4<&-; return 1; }
+          if IFS= read -r _ <&4; then
+            exec 4<&-
+            return 1
+          fi
+          exec 4<&-
+
+          ready_bytes=$(${pkgs.coreutils}/bin/wc -c < "$ready_path") \
+            || return 1
+          ready_expected_bytes=$((
+            ''${#ready_line1} + ''${#ready_line2} + ''${#ready_line3} \
+            + ''${#ready_line4} + ''${#ready_line5} + ''${#ready_line6} \
+            + ''${#ready_line7} + ''${#ready_line8} + ''${#ready_line9} \
+            + ''${#ready_line10} + ''${#ready_line11} + 11
+          ))
+          [ "$ready_bytes" -eq "$ready_expected_bytes" ] || return 1
+          [ "$ready_line1" = format=rustdesk-ready-v1 ] || return 1
+          [ "$ready_line2" = host=axiom ] || return 1
+
+          case "$ready_line3" in revision=*) ;; *) return 1 ;; esac
+          ready_revision=''${ready_line3#revision=}
+          case "$ready_revision" in
+            "$revision_prefix"*)
+              ready_digest=''${ready_revision#"$revision_prefix"}
+              ;;
+            *)
+              return 1
+              ;;
+          esac
+          [ "''${#ready_digest}" -eq 64 ] || return 1
+          case "$ready_digest" in *[!0-9a-f]*) return 1 ;; esac
+
+          case "$ready_line4" in main.pid=*) ;; *) return 1 ;; esac
+          ready_main_pid=''${ready_line4#main.pid=}
+          case "$ready_main_pid" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_main_pid" -gt 1 ] || return 1
+          case "$ready_line5" in main.start=*) ;; *) return 1 ;; esac
+          ready_main_start=''${ready_line5#main.start=}
+          case "$ready_main_start" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_main_start" -gt 0 ] || return 1
+          case "$ready_line6" in main.executable=*) ;; *) return 1 ;; esac
+          ready_main_exe=''${ready_line6#main.executable=}
+          case "$ready_main_exe" in
+            /nix/store/*/lib/rustdesk/rustdesk) ;;
+            *) return 1 ;;
+          esac
+          case "$ready_line7" in main.uid=*) ;; *) return 1 ;; esac
+          ready_main_uid=''${ready_line7#main.uid=}
+          [ "$ready_main_uid" = 0 ] || return 1
+
+          case "$ready_line8" in server.pid=*) ;; *) return 1 ;; esac
+          ready_server_pid=''${ready_line8#server.pid=}
+          case "$ready_server_pid" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_server_pid" -gt 1 ] || return 1
+          case "$ready_line9" in server.start=*) ;; *) return 1 ;; esac
+          ready_server_start=''${ready_line9#server.start=}
+          case "$ready_server_start" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_server_start" -gt 0 ] || return 1
+          case "$ready_line10" in server.executable=*) ;; *) return 1 ;; esac
+          ready_server_exe=''${ready_line10#server.executable=}
+          case "$ready_server_exe" in
+            /nix/store/*/lib/rustdesk/rustdesk) ;;
+            *) return 1 ;;
+          esac
+          case "$ready_line11" in server.uid=*) ;; *) return 1 ;; esac
+          ready_server_uid=''${ready_line11#server.uid=}
+          case "$ready_server_uid" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_server_uid" -gt 0 ] || return 1
+
+          if [ "$ready_revision" = "$current_revision" ]; then
+            expected_server_uid=$(${pkgs.coreutils}/bin/id -u \
+              "$rustdesk_user" 2>/dev/null) || return 1
+            [ "$ready_main_exe" = "$rustdesk_server_exe" ] \
+              && [ "$ready_server_exe" = "$rustdesk_server_exe" ] \
+              && [ "$ready_server_uid" = "$expected_server_uid" ] \
+              || return 1
+            ready_state=current
+          else
+            ready_state=stale
+          fi
+        }
+
+        remove_ready_object() {
+          expected_ready_state=$1
+          inspect_ready_object "$ready" || return 1
+          [ "$ready_state" = "$expected_ready_state" ] || return 1
+          ${pkgs.coreutils}/bin/rm -f -- "$ready" || return 1
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$state" || return 1
+          inspect_ready_object "$ready" || return 1
+          [ "$ready_state" = absent ]
+        }
+
+        remove_current_ready() {
+          inspect_ready_object "$ready" || return 1
+          case "$ready_state" in
+            absent) return 0 ;;
+            current) remove_ready_object current ;;
+            *) return 1 ;;
+          esac
+        }
+
+        publish_ready_object() {
+          publish_main_pid=$1
+          publish_main_start=$2
+          publish_main_exe=$3
+          publish_main_uid=$4
+          publish_server_pid=$5
+          publish_server_start=$6
+          publish_server_exe=$7
+          publish_server_uid=$8
+
+          inspect_ready_object "$ready" || return 1
+          [ "$ready_state" = absent ] || return 1
+          ready_tmp=$(${pkgs.coreutils}/bin/mktemp \
+            "$state/ready-to-finalize.tmp.XXXXXX") || return 1
+          ${pkgs.coreutils}/bin/printf '%s\n' \
+            format=rustdesk-ready-v1 \
+            host=axiom \
+            "revision=$current_revision" \
+            "main.pid=$publish_main_pid" \
+            "main.start=$publish_main_start" \
+            "main.executable=$publish_main_exe" \
+            "main.uid=$publish_main_uid" \
+            "server.pid=$publish_server_pid" \
+            "server.start=$publish_server_start" \
+            "server.executable=$publish_server_exe" \
+            "server.uid=$publish_server_uid" > "$ready_tmp" || return 1
+          ${pkgs.coreutils}/bin/chmod 0600 "$ready_tmp" || return 1
+          ${pkgs.coreutils}/bin/chown root:root "$ready_tmp" || return 1
+          inspect_ready_object "$ready_tmp" || return 1
+          [ "$ready_state" = current ] || return 1
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$ready_tmp" || return 1
+          ready_cleanup_required=1
+          ${pkgs.coreutils}/bin/mv -fT -- "$ready_tmp" "$ready" || return 1
+          ready_tmp=
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$state" || return 1
+          inspect_ready_object "$ready" || return 1
+          [ "$ready_state" = current ]
         }
 
         resolve_secret() {
@@ -240,6 +591,82 @@ with builtins;
             || return 1
           [ -r "$target" ] || return 1
           printf '%s\n' "$target"
+        }
+
+        prepare_password_context() {
+          [ -d "$password_home" ] && [ ! -L "$password_home" ] \
+            || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g' \
+            -- "$password_home" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0 ] || return 1
+
+          if [ -e "$password_config_home" ] \
+            || [ -L "$password_config_home" ]; then
+            [ -d "$password_config_home" ] \
+              && [ ! -L "$password_config_home" ] || return 1
+          else
+            ${pkgs.coreutils}/bin/install -d -m 0700 -o root -g root \
+              "$password_config_home" || return 1
+          fi
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g' \
+            -- "$password_config_home" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0 ]
+        }
+
+        proc_start_identity() {
+          identity_pid=$1
+          identity_line=
+          IFS= read -r identity_line < "/proc/$identity_pid/stat" \
+            || [ -n "$identity_line" ] || return 1
+          identity_stat_pid=''${identity_line%% *}
+          [ "$identity_stat_pid" = "$identity_pid" ] || return 1
+          identity_tail=''${identity_line##*) }
+          [ "$identity_tail" != "$identity_line" ] || return 1
+          identity_old_ifs=$IFS
+          IFS=' '
+          set -f
+          # Word splitting is intentional for the fixed fields after comm.
+          # shellcheck disable=SC2086
+          set -- $identity_tail
+          set +f
+          IFS=$identity_old_ifs
+          [ "$#" -ge 20 ] || return 1
+          shift 19
+          identity_start=$1
+          case "$identity_start" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$identity_start" -gt 0 ] || return 1
+          ${pkgs.coreutils}/bin/printf '%s\n' "$identity_start"
+        }
+
+        validate_main_service() {
+          main_pid=$(${pkgs.systemd}/bin/systemctl show \
+            -p MainPID --value rustdesk.service 2>/dev/null) || return 1
+          case "$main_pid" in ""|0|1|*[!0-9]*) return 1 ;; esac
+          ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
+            || return 1
+
+          [ -d "/proc/$main_pid" ] && [ ! -L "/proc/$main_pid" ] \
+            || return 1
+          process_start=$(proc_start_identity "$main_pid") || return 1
+          process_uid=$(${pkgs.coreutils}/bin/stat --format='%u' \
+            -- "/proc/$main_pid" 2>/dev/null) || return 1
+          [ "$process_uid" = 0 ] || return 1
+          process_exe=$(${pkgs.coreutils}/bin/readlink -e \
+            -- "/proc/$main_pid/exe" 2>/dev/null) || return 1
+          [ "$process_exe" = "$rustdesk_server_exe" ] || return 1
+
+          process_args=()
+          while IFS= read -r -d "" arg; do
+            process_args+=("$arg")
+          done < "/proc/$main_pid/cmdline"
+          [ "''${#process_args[@]}" -eq 2 ] \
+            && [ "''${process_args[1]}" = --service ] || return 1
+          process_start_after=$(proc_start_identity "$main_pid") || return 1
+          [ "$process_start_after" = "$process_start" ] || return 1
+          validated_main_pid=$main_pid
+          validated_main_start=$process_start
+          validated_main_exe=$process_exe
+          validated_main_uid=$process_uid
         }
 
         validate_user_server() {
@@ -274,6 +701,7 @@ with builtins;
 
           [ -d "/proc/$server_pid" ] && [ ! -L "/proc/$server_pid" ] \
             || return 1
+          process_start=$(proc_start_identity "$server_pid") || return 1
           process_uid=$(${pkgs.coreutils}/bin/stat --format='%u' -- "/proc/$server_pid" 2>/dev/null) \
             || return 1
           [ "$process_uid" = "$uid" ] || return 1
@@ -291,37 +719,185 @@ with builtins;
           socket_pid=$(${pkgs.lsof}/bin/lsof -nP -t -a \
             -p "$server_pid" -U -- "$ipc" 2>/dev/null) || return 1
           [ "$socket_pid" = "$server_pid" ] || return 1
+          process_start_after=$(proc_start_identity "$server_pid") || return 1
+          [ "$process_start_after" = "$process_start" ] || return 1
           validated_server_pid=$server_pid
+          validated_server_start=$process_start
+          validated_server_exe=$process_exe
+          validated_server_uid=$process_uid
         }
 
-        rustdesk_ready() {
-          main_pid=$(${pkgs.systemd}/bin/systemctl show \
-            -p MainPID --value rustdesk.service 2>/dev/null) || return 1
-          case "$main_pid" in ""|0|*[!0-9]*) return 1 ;; esac
-          ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
+        validate_runtime_pids() {
+          expected_main_pid=$1
+          expected_server_pid=$2
+          validate_main_service || return 1
+          [ "$validated_main_pid" = "$expected_main_pid" ] || return 1
+          validate_user_server || return 1
+          [ "$validated_server_pid" = "$expected_server_pid" ]
+        }
+
+        validate_ready_runtime() {
+          validate_main_service || return 1
+          [ "$validated_main_pid" = "$ready_main_pid" ] \
+            && [ "$validated_main_start" = "$ready_main_start" ] \
+            && [ "$validated_main_exe" = "$ready_main_exe" ] \
+            && [ "$validated_main_uid" = "$ready_main_uid" ] \
             || return 1
           validate_user_server || return 1
-          ready_server_pid=$validated_server_pid
-          ${rustdeskPublicConfig} --check || return 1
-          validate_user_server || return 1
-          [ "$validated_server_pid" = "$ready_server_pid" ]
+          [ "$validated_server_pid" = "$ready_server_pid" ] \
+            && [ "$validated_server_start" = "$ready_server_start" ] \
+            && [ "$validated_server_exe" = "$ready_server_exe" ] \
+            && [ "$validated_server_uid" = "$ready_server_uid" ]
         }
 
-        wait_ready() {
+        runtime_ready() {
+          validate_main_service || return 1
+          ready_main_pid=$validated_main_pid
+          ready_main_start=$validated_main_start
+          validate_user_server || return 1
+          ready_server_pid=$validated_server_pid
+          ready_server_start=$validated_server_start
+        }
+
+        wait_runtime() {
           attempt=0
           while [ "$attempt" -lt 60 ]; do
-            rustdesk_ready && return 0
+            if runtime_ready; then
+              candidate_main_pid=$ready_main_pid
+              candidate_main_start=$ready_main_start
+              candidate_server_pid=$ready_server_pid
+              candidate_server_start=$ready_server_start
+              ${pkgs.coreutils}/bin/sleep 2
+              if validate_runtime_pids \
+                "$candidate_main_pid" "$candidate_server_pid" \
+                && [ "$validated_main_start" = "$candidate_main_start" ] \
+                && [ "$validated_server_start" = "$candidate_server_start" ]; then
+                ready_main_pid=$candidate_main_pid
+                ready_main_start=$candidate_main_start
+                ready_server_pid=$candidate_server_pid
+                ready_server_start=$candidate_server_start
+                return 0
+              fi
+            fi
             attempt=$((attempt + 1))
-            ${pkgs.coreutils}/bin/sleep 1
+            ${pkgs.coreutils}/bin/sleep 2
           done
           return 1
         }
 
-        if stamp_is_current; then
-          exit 0
-        fi
+        run_public_step() {
+          expected_main_pid=$1
+          expected_server_pid=$2
+          public_mode=$3
+          validate_runtime_pids \
+            "$expected_main_pid" "$expected_server_pid" || return 1
+          public_value=
+          public_status=0
+          public_value=$(${rustdeskPublicConfig} "$public_mode") \
+            || public_status=$?
+          validate_runtime_pids \
+            "$expected_main_pid" "$expected_server_pid" || return 1
+          [ "$public_status" -eq 0 ]
+        }
 
-        wait_ready || fail readiness
+        prove_public_config() {
+          expected_main_pid=$1
+          expected_server_pid=$2
+
+          run_public_step "$expected_main_pid" "$expected_server_pid" \
+            query-host || return 1
+          [ "$public_value" = ${escapeShellArg rustdeskHost} ] || return 1
+          run_public_step "$expected_main_pid" "$expected_server_pid" \
+            query-key || return 1
+          [ "$public_value" = ${escapeShellArg rustdeskPublicKey} ] || return 1
+          run_public_step "$expected_main_pid" "$expected_server_pid" \
+            query-relay || return 1
+          [ "$public_value" = ${escapeShellArg rustdeskHost} ] || return 1
+          run_public_step "$expected_main_pid" "$expected_server_pid" \
+            query-verification-method || return 1
+          [ "$public_value" = use-permanent-password ] || return 1
+          run_public_step "$expected_main_pid" "$expected_server_pid" \
+            query-approve-mode || return 1
+          [ "$public_value" = password ] || return 1
+          run_public_step "$expected_main_pid" "$expected_server_pid" \
+            query-auto-update || return 1
+          [ "$public_value" = N ]
+        }
+
+        apply_and_prove_public_config() {
+          expected_main_pid=$1
+          expected_server_pid=$2
+          for public_mode in \
+            apply-server \
+            apply-verification-method \
+            apply-approve-mode \
+            apply-auto-update; do
+            run_public_step "$expected_main_pid" "$expected_server_pid" \
+              "$public_mode" || return 1
+          done
+          prove_public_config "$expected_main_pid" "$expected_server_pid"
+        }
+
+        acquire_operation_lock || fail operation-lock
+        inspect_revision_object "$stamp" || fail stamp
+        case "$object_state" in
+          current) exit 0 ;;
+          absent|stale) ;;
+          *) fail stamp ;;
+        esac
+
+        inspect_revision_object "$reservation" || fail reservation
+        reservation_state=$object_state
+        inspect_ready_object "$ready" || fail ready
+        initial_ready_state=$ready_state
+        if [ "$reservation_state" = current ]; then
+          case "$initial_ready_state" in
+            absent|current) fail attempt-used ;;
+            *) fail ready-revision ;;
+          esac
+        fi
+        case "$object_state" in
+          absent|stale) ;;
+          *) fail reservation ;;
+        esac
+        case "$initial_ready_state" in
+          absent|stale) ;;
+          current) fail ready-without-current-attempt ;;
+          *) fail ready ;;
+        esac
+
+        wait_runtime || fail readiness
+        provision_main_pid=$ready_main_pid
+        provision_server_pid=$ready_server_pid
+        apply_and_prove_public_config \
+          "$provision_main_pid" "$provision_server_pid" \
+          || fail public-config
+
+        inspect_revision_object "$reservation" || fail reservation
+        case "$object_state" in
+          absent|stale) ;;
+          *) fail reservation-changed ;;
+        esac
+        inspect_ready_object "$ready" || fail ready
+        case "$ready_state" in
+          absent|stale) ;;
+          *) fail ready-changed ;;
+        esac
+        publish_revision_object "$reservation" attempt \
+          || fail reservation-publish
+        inspect_revision_object "$reservation" || fail reservation
+        [ "$object_state" = current ] || fail reservation
+        inspect_ready_object "$ready" || fail ready
+        case "$ready_state" in
+          absent) ;;
+          stale) remove_ready_object stale || fail ready-remove ;;
+          *) fail ready-changed ;;
+        esac
+        inspect_ready_object "$ready" || fail ready
+        [ "$ready_state" = absent ] || fail ready
+        validate_runtime_pids \
+          "$provision_main_pid" "$provision_server_pid" \
+          || fail runtime-changed-before-secret
 
         secret=$(resolve_secret) || fail secret
         bytes=$(${pkgs.coreutils}/bin/wc -c < "$secret")
@@ -332,27 +908,467 @@ with builtins;
           || fail secret-format
         case "$password" in *[!A-Za-z0-9_-]*) fail secret-format ;; esac
 
+        prepare_password_context || {
+          unset password
+          fail password-context
+        }
+        inspect_revision_object "$reservation" || {
+          unset password
+          fail reservation
+        }
+        [ "$object_state" = current ] || {
+          unset password
+          fail reservation
+        }
+        inspect_ready_object "$ready" || {
+          unset password
+          fail ready
+        }
+        [ "$ready_state" = absent ] || {
+          unset password
+          fail ready
+        }
+        validate_runtime_pids \
+          "$provision_main_pid" "$provision_server_pid" || {
+          unset password
+          fail runtime-changed-before-password
+        }
         result=$(${pkgs.coreutils}/bin/mktemp "$state/result.XXXXXX")
         status=0
-        ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
-          "$rustdesk" --password "$password" > "$result" 2>&1 || status=$?
+        HOME="$password_home" XDG_CONFIG_HOME="$password_config_home" \
+          ${pkgs.coreutils}/bin/env \
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+          "$rustdesk" --password "$password" > "$result" 2>&1 \
+          || status=$?
         unset password
         [ "$status" -eq 0 ] || fail password-command
+        result_bytes=$(${pkgs.coreutils}/bin/wc -c < "$result") \
+          || fail password-result
+        [ "$result_bytes" -eq 6 ] || fail password-result
         exec 3< "$result"
         IFS= read -r line <&3 || fail password-result
         if IFS= read -r _ <&3; then fail password-result; fi
         exec 3<&-
         [ "$line" = "Done!" ] || fail password-result
         unset line
+        unset result_bytes
         ${pkgs.coreutils}/bin/rm -f "$result"
         result=
 
+        validate_runtime_pids \
+          "$provision_main_pid" "$provision_server_pid" \
+          || fail runtime-changed-during-password
         ${pkgs.systemd}/bin/systemctl restart rustdesk.service
-        wait_ready || fail restart
-        ${pkgs.coreutils}/bin/install -m 0600 ${rustdeskRevision} "$stamp_tmp"
-        ${pkgs.coreutils}/bin/mv -f "$stamp_tmp" "$stamp"
+        wait_runtime || fail restart
+        [ "$ready_main_pid" != "$provision_main_pid" ] \
+          || fail service-not-restarted
+        [ "$ready_server_pid" != "$provision_server_pid" ] \
+          || fail server-not-restarted
+        prove_public_config "$ready_main_pid" "$ready_server_pid" \
+          || fail public-config-after-restart
+        validate_runtime_pids "$ready_main_pid" "$ready_server_pid" \
+          || fail runtime-changed-after-restart
+        post_main_pid=$validated_main_pid
+        post_main_start=$validated_main_start
+        post_main_exe=$validated_main_exe
+        post_main_uid=$validated_main_uid
+        post_server_pid=$validated_server_pid
+        post_server_start=$validated_server_start
+        post_server_exe=$validated_server_exe
+        post_server_uid=$validated_server_uid
+        inspect_revision_object "$reservation" || fail reservation
+        [ "$object_state" = current ] || fail reservation
+        inspect_ready_object "$ready" || fail ready
+        [ "$ready_state" = absent ] || fail ready
+        publish_ready_object \
+          "$post_main_pid" "$post_main_start" \
+          "$post_main_exe" "$post_main_uid" \
+          "$post_server_pid" "$post_server_start" \
+          "$post_server_exe" "$post_server_uid" \
+          || fail ready-publish
+        inspect_ready_object "$ready" || fail ready
+        [ "$ready_state" = current ] || fail ready
+        validate_ready_runtime || fail runtime-changed-after-ready
+        ready_cleanup_required=0
         trap - EXIT HUP INT TERM
       '';
+      rustdeskFinalizeScript = ''
+        set -eu
+        umask 077
+
+        rustdesk_server_exe=${rustdeskPackage}/lib/rustdesk/rustdesk
+        rustdesk_user=${escapeShellArg userName}
+        state=/var/lib/rustdesk-provision
+        stamp=$state/stamp
+        reservation=$state/attempt
+        ready=$state/ready-to-finalize
+        operation_lock=$state/operation.lock
+        revision_prefix=axiom-rustdesk-provision-v4:
+        current_revision=${escapeShellArg rustdeskRevisionValue}
+        object_tmp=
+        cleanup() {
+          [ -z "$object_tmp" ] || ${pkgs.coreutils}/bin/rm -f "$object_tmp"
+        }
+        trap cleanup EXIT
+        trap 'exit 1' HUP INT TERM
+        fail() { echo "RustDesk finalization failed: $1" >&2; exit 1; }
+
+        [ "$#" -eq 1 ] && [ "$1" = --confirm-remote-auth ] \
+          || fail confirmation-required
+        [ "$(${pkgs.coreutils}/bin/id -u)" = 0 ] || fail root-required
+
+        validate_state_directory() {
+          [ -d "$state" ] && [ ! -L "$state" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$state" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0:700 ]
+        }
+
+        validate_operation_lock() {
+          [ -f "$operation_lock" ] && [ ! -L "$operation_lock" ] \
+            || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat \
+            --format='%u:%g:%a:%s:%h' -- "$operation_lock" 2>/dev/null) \
+            || return 1
+          [ "$metadata" = 0:0:600:0:1 ]
+        }
+
+        acquire_operation_lock() {
+          validate_state_directory || return 1
+          if [ ! -e "$operation_lock" ] && [ ! -L "$operation_lock" ]; then
+            ( set -C; : > "$operation_lock" ) 2>/dev/null || true
+          fi
+          validate_operation_lock || return 1
+          exec 9<> "$operation_lock" || return 1
+          ${pkgs.util-linux}/bin/flock --nonblock 9 || {
+            exec 9>&-
+            return 1
+          }
+          path_identity=$(${pkgs.coreutils}/bin/stat \
+            --format='%d:%i:%u:%g:%a:%s:%h' \
+            -- "$operation_lock" 2>/dev/null) || return 1
+          fd_identity=$(${pkgs.coreutils}/bin/stat --dereference \
+            --format='%d:%i:%u:%g:%a:%s:%h' \
+            -- /proc/self/fd/9 2>/dev/null) || return 1
+          [ "$path_identity" = "$fd_identity" ] \
+            && validate_operation_lock
+        }
+
+        inspect_revision_object() {
+          object_path=$1
+          object_state=
+          if [ ! -e "$object_path" ] && [ ! -L "$object_path" ]; then
+            object_state=absent
+            return 0
+          fi
+          [ -f "$object_path" ] && [ ! -L "$object_path" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$object_path" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0:600 ] || return 1
+          bytes=$(${pkgs.coreutils}/bin/wc -c < "$object_path") || return 1
+          object_value=
+          IFS= read -r object_value < "$object_path" || return 1
+          [ "$bytes" -eq $(( ''${#object_value} + 1 )) ] || return 1
+          case "$object_value" in
+            "$revision_prefix"*)
+              object_digest=''${object_value#"$revision_prefix"}
+              ;;
+            *) return 1 ;;
+          esac
+          [ "''${#object_digest}" -eq 64 ] || return 1
+          case "$object_digest" in *[!0-9a-f]*) return 1 ;; esac
+          if ${pkgs.diffutils}/bin/cmp -s \
+            "$object_path" ${rustdeskRevision}; then
+            object_state=current
+          else
+            object_state=stale
+          fi
+        }
+
+        publish_revision_object() {
+          publish_object_path=$1
+          object_name=$2
+          object_tmp=$(${pkgs.coreutils}/bin/mktemp \
+            "$state/$object_name.tmp.XXXXXX") || return 1
+          ${pkgs.coreutils}/bin/install -m 0600 -o root -g root \
+            ${rustdeskRevision} "$object_tmp" || return 1
+          inspect_revision_object "$object_tmp" || return 1
+          [ "$object_state" = current ] || return 1
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$object_tmp" || return 1
+          ${pkgs.coreutils}/bin/mv -fT -- "$object_tmp" "$publish_object_path" \
+            || return 1
+          object_tmp=
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$state" || return 1
+          inspect_revision_object "$publish_object_path" || return 1
+          [ "$object_state" = current ]
+        }
+
+        inspect_ready_object() {
+          ready_path=$1
+          ready_state=
+          if [ ! -e "$ready_path" ] && [ ! -L "$ready_path" ]; then
+            ready_state=absent
+            return 0
+          fi
+          [ -f "$ready_path" ] && [ ! -L "$ready_path" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a:%h' \
+            -- "$ready_path" 2>/dev/null) || return 1
+          [ "$metadata" = 0:0:600:1 ] || return 1
+          ready_line_count=$(${pkgs.coreutils}/bin/wc -l < "$ready_path") \
+            || return 1
+          [ "$ready_line_count" -eq 11 ] || return 1
+          exec 4< "$ready_path" || return 1
+          IFS= read -r ready_line1 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line2 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line3 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line4 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line5 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line6 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line7 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line8 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line9 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line10 <&4 || { exec 4<&-; return 1; }
+          IFS= read -r ready_line11 <&4 || { exec 4<&-; return 1; }
+          if IFS= read -r _ <&4; then
+            exec 4<&-
+            return 1
+          fi
+          exec 4<&-
+          ready_bytes=$(${pkgs.coreutils}/bin/wc -c < "$ready_path") \
+            || return 1
+          ready_expected_bytes=$((
+            ''${#ready_line1} + ''${#ready_line2} + ''${#ready_line3} \
+            + ''${#ready_line4} + ''${#ready_line5} + ''${#ready_line6} \
+            + ''${#ready_line7} + ''${#ready_line8} + ''${#ready_line9} \
+            + ''${#ready_line10} + ''${#ready_line11} + 11
+          ))
+          [ "$ready_bytes" -eq "$ready_expected_bytes" ] || return 1
+          [ "$ready_line1" = format=rustdesk-ready-v1 ] || return 1
+          [ "$ready_line2" = host=axiom ] || return 1
+          case "$ready_line3" in revision=*) ;; *) return 1 ;; esac
+          ready_revision=''${ready_line3#revision=}
+          case "$ready_revision" in
+            "$revision_prefix"*)
+              ready_digest=''${ready_revision#"$revision_prefix"}
+              ;;
+            *) return 1 ;;
+          esac
+          [ "''${#ready_digest}" -eq 64 ] || return 1
+          case "$ready_digest" in *[!0-9a-f]*) return 1 ;; esac
+          case "$ready_line4" in main.pid=*) ;; *) return 1 ;; esac
+          ready_main_pid=''${ready_line4#main.pid=}
+          case "$ready_main_pid" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_main_pid" -gt 1 ] || return 1
+          case "$ready_line5" in main.start=*) ;; *) return 1 ;; esac
+          ready_main_start=''${ready_line5#main.start=}
+          case "$ready_main_start" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_main_start" -gt 0 ] || return 1
+          case "$ready_line6" in main.executable=*) ;; *) return 1 ;; esac
+          ready_main_exe=''${ready_line6#main.executable=}
+          case "$ready_main_exe" in
+            /nix/store/*/lib/rustdesk/rustdesk) ;;
+            *) return 1 ;;
+          esac
+          case "$ready_line7" in main.uid=*) ;; *) return 1 ;; esac
+          ready_main_uid=''${ready_line7#main.uid=}
+          [ "$ready_main_uid" = 0 ] || return 1
+          case "$ready_line8" in server.pid=*) ;; *) return 1 ;; esac
+          ready_server_pid=''${ready_line8#server.pid=}
+          case "$ready_server_pid" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_server_pid" -gt 1 ] || return 1
+          case "$ready_line9" in server.start=*) ;; *) return 1 ;; esac
+          ready_server_start=''${ready_line9#server.start=}
+          case "$ready_server_start" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_server_start" -gt 0 ] || return 1
+          case "$ready_line10" in server.executable=*) ;; *) return 1 ;; esac
+          ready_server_exe=''${ready_line10#server.executable=}
+          case "$ready_server_exe" in
+            /nix/store/*/lib/rustdesk/rustdesk) ;;
+            *) return 1 ;;
+          esac
+          case "$ready_line11" in server.uid=*) ;; *) return 1 ;; esac
+          ready_server_uid=''${ready_line11#server.uid=}
+          case "$ready_server_uid" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$ready_server_uid" -gt 0 ] || return 1
+          if [ "$ready_revision" = "$current_revision" ]; then
+            expected_server_uid=$(${pkgs.coreutils}/bin/id -u \
+              "$rustdesk_user" 2>/dev/null) || return 1
+            [ "$ready_main_exe" = "$rustdesk_server_exe" ] \
+              && [ "$ready_server_exe" = "$rustdesk_server_exe" ] \
+              && [ "$ready_server_uid" = "$expected_server_uid" ] \
+              || return 1
+            ready_state=current
+          else
+            ready_state=stale
+          fi
+        }
+
+        remove_ready_object() {
+          inspect_ready_object "$ready" || return 1
+          [ "$ready_state" = current ] || return 1
+          ${pkgs.coreutils}/bin/rm -f -- "$ready" || return 1
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$state" || return 1
+          inspect_ready_object "$ready" || return 1
+          [ "$ready_state" = absent ]
+        }
+
+        proc_start_identity() {
+          identity_pid=$1
+          identity_line=
+          IFS= read -r identity_line < "/proc/$identity_pid/stat" \
+            || [ -n "$identity_line" ] || return 1
+          identity_stat_pid=''${identity_line%% *}
+          [ "$identity_stat_pid" = "$identity_pid" ] || return 1
+          identity_tail=''${identity_line##*) }
+          [ "$identity_tail" != "$identity_line" ] || return 1
+          identity_old_ifs=$IFS
+          IFS=' '
+          set -f
+          # Word splitting is intentional for the fixed fields after comm.
+          # shellcheck disable=SC2086
+          set -- $identity_tail
+          set +f
+          IFS=$identity_old_ifs
+          [ "$#" -ge 20 ] || return 1
+          shift 19
+          identity_start=$1
+          case "$identity_start" in ""|*[!0-9]*) return 1 ;; esac
+          [ "$identity_start" -gt 0 ] || return 1
+          ${pkgs.coreutils}/bin/printf '%s\n' "$identity_start"
+        }
+
+        validate_main_service() {
+          main_pid=$(${pkgs.systemd}/bin/systemctl show \
+            -p MainPID --value rustdesk.service 2>/dev/null) || return 1
+          case "$main_pid" in ""|0|1|*[!0-9]*) return 1 ;; esac
+          ${pkgs.systemd}/bin/systemctl is-active --quiet rustdesk.service \
+            || return 1
+          [ -d "/proc/$main_pid" ] && [ ! -L "/proc/$main_pid" ] \
+            || return 1
+          process_start=$(proc_start_identity "$main_pid") || return 1
+          process_uid=$(${pkgs.coreutils}/bin/stat --format='%u' \
+            -- "/proc/$main_pid" 2>/dev/null) || return 1
+          [ "$process_uid" = 0 ] || return 1
+          process_exe=$(${pkgs.coreutils}/bin/readlink -e \
+            -- "/proc/$main_pid/exe" 2>/dev/null) || return 1
+          [ "$process_exe" = "$rustdesk_server_exe" ] || return 1
+          process_args=()
+          while IFS= read -r -d "" arg; do
+            process_args+=("$arg")
+          done < "/proc/$main_pid/cmdline"
+          [ "''${#process_args[@]}" -eq 2 ] \
+            && [ "''${process_args[1]}" = --service ] || return 1
+          process_start_after=$(proc_start_identity "$main_pid") || return 1
+          [ "$process_start_after" = "$process_start" ] || return 1
+          validated_main_pid=$main_pid
+          validated_main_start=$process_start
+          validated_main_exe=$process_exe
+          validated_main_uid=$process_uid
+        }
+
+        validate_user_server() {
+          uid=$(${pkgs.coreutils}/bin/id -u "$rustdesk_user" 2>/dev/null) \
+            || return 1
+          gid=$(${pkgs.coreutils}/bin/id -g "$rustdesk_user" 2>/dev/null) \
+            || return 1
+          ipc_parent=/tmp/RustDesk-$uid
+          ipc=$ipc_parent/ipc
+          pid_file=$ipc.pid
+          [ -d "$ipc_parent" ] && [ ! -L "$ipc_parent" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$ipc_parent" 2>/dev/null) || return 1
+          [ "$metadata" = "$uid:$gid:700" ] || return 1
+          [ -S "$ipc" ] && [ ! -L "$ipc" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$ipc" 2>/dev/null) || return 1
+          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          [ -f "$pid_file" ] && [ ! -L "$pid_file" ] || return 1
+          metadata=$(${pkgs.coreutils}/bin/stat --format='%u:%g:%a' \
+            -- "$pid_file" 2>/dev/null) || return 1
+          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          pid_bytes=$(${pkgs.coreutils}/bin/wc -c < "$pid_file") || return 1
+          server_pid=
+          IFS= read -r server_pid < "$pid_file" \
+            || [ -n "$server_pid" ] || return 1
+          [ "$pid_bytes" -eq "''${#server_pid}" ] || return 1
+          case "$server_pid" in ""|0|1|*[!0-9]*) return 1 ;; esac
+          [ -d "/proc/$server_pid" ] && [ ! -L "/proc/$server_pid" ] \
+            || return 1
+          process_start=$(proc_start_identity "$server_pid") || return 1
+          process_uid=$(${pkgs.coreutils}/bin/stat --format='%u' \
+            -- "/proc/$server_pid" 2>/dev/null) || return 1
+          [ "$process_uid" = "$uid" ] || return 1
+          process_exe=$(${pkgs.coreutils}/bin/readlink -e \
+            -- "/proc/$server_pid/exe" 2>/dev/null) || return 1
+          [ "$process_exe" = "$rustdesk_server_exe" ] || return 1
+          process_args=()
+          while IFS= read -r -d "" arg; do
+            process_args+=("$arg")
+          done < "/proc/$server_pid/cmdline"
+          [ "''${#process_args[@]}" -eq 2 ] \
+            && [ "''${process_args[1]}" = --server ] || return 1
+          socket_pid=$(${pkgs.lsof}/bin/lsof -nP -t -a \
+            -p "$server_pid" -U -- "$ipc" 2>/dev/null) || return 1
+          [ "$socket_pid" = "$server_pid" ] || return 1
+          process_start_after=$(proc_start_identity "$server_pid") || return 1
+          [ "$process_start_after" = "$process_start" ] || return 1
+          validated_server_pid=$server_pid
+          validated_server_start=$process_start
+          validated_server_exe=$process_exe
+          validated_server_uid=$process_uid
+        }
+
+        validate_ready_runtime() {
+          validate_main_service || return 1
+          [ "$validated_main_pid" = "$ready_main_pid" ] \
+            && [ "$validated_main_start" = "$ready_main_start" ] \
+            && [ "$validated_main_exe" = "$ready_main_exe" ] \
+            && [ "$validated_main_uid" = "$ready_main_uid" ] \
+            || return 1
+          validate_user_server || return 1
+          [ "$validated_server_pid" = "$ready_server_pid" ] \
+            && [ "$validated_server_start" = "$ready_server_start" ] \
+            && [ "$validated_server_exe" = "$ready_server_exe" ] \
+            && [ "$validated_server_uid" = "$ready_server_uid" ]
+        }
+
+        acquire_operation_lock || fail operation-lock
+        inspect_revision_object "$stamp" || fail stamp
+        case "$object_state" in
+          current)
+            inspect_ready_object "$ready" || fail ready
+            case "$ready_state" in
+              absent) exit 0 ;;
+              current)
+                remove_ready_object || fail ready-remove
+                exit 0
+                ;;
+              *) fail ready ;;
+            esac
+            ;;
+          absent|stale) ;;
+          *) fail stamp ;;
+        esac
+        inspect_revision_object "$reservation" || fail reservation
+        [ "$object_state" = current ] || fail reservation-not-current
+        inspect_ready_object "$ready" || fail ready
+        [ "$ready_state" = current ] || fail ready-not-current
+        validate_ready_runtime || fail process-identity
+        ${pkgs.coreutils}/bin/sleep 2
+        inspect_revision_object "$reservation" || fail reservation
+        [ "$object_state" = current ] || fail reservation-not-current
+        inspect_ready_object "$ready" || fail ready
+        [ "$ready_state" = current ] || fail ready-not-current
+        validate_ready_runtime || fail process-identity
+        publish_revision_object "$stamp" stamp || fail stamp-publish
+        remove_ready_object || fail ready-remove
+        trap - EXIT HUP INT TERM
+      '';
+      rustdeskFinalize = pkgs.writeShellScriptBin
+        "rustdesk-provision-finalize" rustdeskFinalizeScript;
       gatusPort = 8080;
       feishuLauncherId = "bytedance-feishu";
       legacyFeishuDesktopId = "bytedance-feishu.desktop";
@@ -426,7 +1442,7 @@ with builtins;
       comment = "Allow the local research workbench only from the home LAN.";
     }];
 
-    environment.systemPackages = [ c1ctl ];
+    environment.systemPackages = [ c1ctl rustdeskFinalize ];
 
     user.packages = with pkgs; [
       unstable.antigravity-fhs
@@ -466,10 +1482,29 @@ with builtins;
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
 
-    assertions = [{
-      assertion = rustdeskPackage.version == "1.4.8";
-      message = "axiom RustDesk client must remain pinned to 1.4.8";
-    }];
+    assertions = [
+      {
+        assertion = rustdeskPackage.version == "1.4.9";
+        message = "axiom RustDesk client must remain pinned to 1.4.9";
+      }
+      {
+        assertion = rustdeskPackage.src.drvPath == rustdeskSource.drvPath;
+        message = "axiom RustDesk must use the bound 1.4.9 source";
+      }
+      {
+        assertion = rustdeskPackage.cargoDeps.drvPath == rustdeskCargoDeps.drvPath;
+        message = "axiom RustDesk cargoDeps must be rebuilt from the bound 1.4.9 source";
+      }
+      {
+        assertion = all (needle: !(hasInfix needle rustdeskFinalizeScript)) [
+          (toString rustdeskSecret.path)
+          "--password"
+          "resolve_secret"
+          "agenix"
+        ];
+        message = "axiom RustDesk finalizer must not contain a secret path, password invocation, or secret resolver";
+      }
+    ];
 
     age.secrets.rustdesk-password = {
       owner = "root";
@@ -477,39 +1512,27 @@ with builtins;
       mode = "0400";
     };
 
-    systemd.services.rustdesk-config = {
-      description = "Configure RustDesk public self-host parameters";
-      before = [ "rustdesk.service" ];
-      requiredBy = [ "rustdesk.service" ];
-      restartTriggers = [ rustdeskRevision ];
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = rustdeskPublicConfig;
-        RemainAfterExit = true;
-        UMask = "0077";
-        LimitCORE = 0;
-      };
-    };
-
     systemd.services.rustdesk = {
       description = "RustDesk system service";
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
-      requires = [ "rustdesk-config.service" frpcDirectRouteUnit ];
+      requires = [ frpcDirectRouteUnit ];
       after = [
         "network-online.target"
         "systemd-user-sessions.service"
-        "rustdesk-config.service"
         frpcDirectRouteUnit
       ];
       path = with pkgs; [ bash coreutils gawk gnugrep gnused procps sudo systemd util-linux ];
       environment = {
+        HOME = "/root";
+        XDG_CONFIG_HOME = "/root/.config";
         PIPEWIRE_LATENCY = "1024/48000";
         PULSE_LATENCY_MSEC = "60";
       };
       serviceConfig = {
         Type = "simple";
         ExecStart = "${rustdeskPackage}/bin/rustdesk --service";
+        ExecStop = "${pkgs.procps}/bin/pkill -f \"rustdesk --\"";
         User = "root";
         KillMode = "mixed";
         LimitNOFILE = 100000;
@@ -533,7 +1556,7 @@ with builtins;
         StateDirectory = "rustdesk-provision";
         StateDirectoryMode = "0700";
         UMask = "0077";
-        TimeoutStartSec = "4min";
+        TimeoutStartSec = "8min";
         LimitCORE = 0;
       };
     };

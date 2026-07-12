@@ -12,11 +12,11 @@
 
 - [ ] acorn 运行 NixOS 原生 hbbs 与 hbbr，使用独立 RustDesk 密钥并通过 agenix 提供私钥
 - [ ] acorn 的 NixOS 防火墙和阿里云安全组所需端口已配置或明确验证，RustDesk 服务部署后健康
-- [ ] charlie 与 axiom 安装当前锁定的 RustDesk 1.4.8 客户端，固定使用 acorn ID server 与匹配公钥，并启用系统服务
+- [ ] charlie 与 axiom 安装 RustDesk 1.4.9 客户端，固定使用 acorn ID server 与匹配公钥，并启用系统服务；不得部署或回滚到受 CVE-2026-57850 影响的 1.4.8
 - [ ] charlie 与 axiom 使用不同的高熵永久密码，明文不进入 Git 或 Nix store
 - [ ] 配置与安全评审 PR 先合并，三台主机只从 clean merged commit 执行生产 switch
 - [ ] acorn、axiom 和 charlie 均完成实际 switch，服务端与客户端运行状态得到验证
-- [ ] Nix eval/build、密钥权限、安全审查、回滚说明和部署后人工验收项通过 follow-up evidence PR 留下可追踪证据
+- [ ] Nix eval/build、密钥权限、安全审查、回滚说明和部署后人工验收项通过 follow-up evidence PR 留下可追踪证据；两端stamp只在外部新密码正测/旧密码负测后显式finalize
 
 ## 假设 / 约束 / 风险
 
@@ -38,6 +38,7 @@
 - **风险**: Hyprland/Wayland portal、锁屏和登录屏可能无法可靠被控
 - **风险**: 跨三台主机 switch 可能出现部分成功，需要逐台可回滚
 - **风险**: RustDesk 上游 CLI 仅支持 argv 设置永久密码；在已接受的简化边界内，极低概率的崩溃可能把该 argv 持久化为非核心 crash metadata
+- **风险**: 1.4.8 及更早版本缺少完整 session-scope authorization；1.4.9 是当前最低允许 client 版本
 
 ## 要点
 
@@ -62,7 +63,7 @@
 
 **摘要**:
 - acorn 使用 NixOS services.rustdesk-server，RustDesk 专用密钥由 agenix 解密给最小权限服务
-- 客户端使用当前锁定的 1.4.8，固定 ID server 与公钥；永久密码按主机独立生成，并由有限的 runtime-secret oneshot通过上游 CLI 初始化
+- 客户端使用 1.4.9：axiom 基于现有 nixpkgs derivation 更新 version/source/cargo hash并从同一source重建cargo vendor derivation，charlie pin 官方 ARM64 DMG；永久密码按主机独立生成，并由有限的 runtime-secret oneshot通过上游 CLI 初始化
 - 按 acorn、axiom、charlie 分阶段部署与验证，任何失败均保留 SSH/ToDesk 回退
 
 ## 阶段概览
@@ -74,4 +75,4 @@
 
 ---
 
-*创建于: 2026-07-11 | 最后更新: 2026-07-11*
+*创建于: 2026-07-11 | 最后更新: 2026-07-12*

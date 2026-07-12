@@ -1,20 +1,72 @@
 # Review RFC: RustDesk 自托管远程访问（简化自动部署）
 
-> **Current final verdict**: **PASS**
-> **Current review round**: 4（RustDesk Server 1.1.14 / Client 1.4.8 简化方案）
-> **Engineer gate**: **允许进入 `engineer`**
+> **Current final verdict**: **PASS — design only**
+> **Current review round**: 7（manual-finalize ACK durability revision）
+> **Engineer gate**: **允许回到 `engineer`；不批准现有1.4.8实现、merge或deploy**
 > **Current sources of truth**: 最新 `../plan.md`、`rfc.md`、`research.md`
-> **Supersedes**: 下文历史 review 中的 1.4.3、`--password-file`、exact-OS crash attestation、synthetic crash framework 与相关 18 项 hard requirements
+> **Supersedes**: Round 6在ACK durability上的旧handoff；Round 4的1.4.8 PASS与全部1.4.8 build/signature evidence仍保持superseded
 > **Secret boundary**: 本轮未打开任何 `.age` plaintext，未读取未跟踪凭据，也未输出 server public-key value、ciphertext 或 secret-derived value
-> **Reviewed**: 2026-07-11
+> **Reviewed**: 2026-07-12
 
-## Current final decision
+## Round 7 current decision
 
-**PASS**。新 RFC 已把用户选择的简化风险边界、最小实现、验证和逐机回滚闭环；本轮没有发现会使设计不可实现、不可验证或不可回滚的 blocking finding。
+**PASS — design only.** Manual-finalize protocol prevents a `Done!` ACK from directly becoming a success stamp. Provision retains the current reservation, replaces every auth-serving process, re-proves public state, and publishes a host/revision/PID-start-bound `ready-to-finalize` record. After fresh external new-password success and old/wrong-password rejection, the shared-lock finalizer requires explicit `--confirm-remote-auth`, revalidates reservation/ready/process identities, reads no secret, and only then commits the stamp.
 
-本 PASS 只批准当前设计进入实现，不批准 worktree 中仍存在的旧 1.4.3/patch/attestation 实现，也不批准生产部署。
+This closes the normal restart ACK-durability gap without an automatic history framework. Sudden power/storage uncertainty remains fail-closed. Once a reservation is published, older RustDesk generations are prohibited; failure means stop RustDesk and fixed-forward to a new revision.
 
-旧 `review-rfc` / `review-change` 对 password-file patch 和企业级 crash attestation 的要求现在只具有历史可追踪性，**不是当前 engineer gate**。仍然有效的结论只有已被新 RFC 明确保留的基础约束，例如 Axiom 的 `Wants=` + `After=`、merge-before-switch、最小防火墙、官方签名和逐机回滚。
+Implementation gates：ready只能在全部post-ACK local gates后发布；provision/finalize/reset共享锁；finalizer必须zero secret read/zero password API；两端所有auth-serving process必须replacement并以PID/start identity绑定；外部auth必须区分认证拒绝与transport失败。Current code、runtime auth、build/signature、merge和deployment尚未获批。
+
+---
+
+## Round 6 current decision
+
+> **Historical**：以下Round 6正文已被本节前新增的Round 7 manual-finalize decision取代。
+
+**PASS — design only.** Round 5的cargo vendor、fallback-resistant public-config proof、attempt/stamp状态机、安全版本rollback和stale-evidence blockers已关闭。允许进入1.4.9实现；当前production code、旧build/signature、merge和deployment均未获批准。
+
+Public config proof成立的前提是exact helper每次query使用彼此不同的新空root-owned HOME/XDG context。IPC负控必须区分：raw CLI在同一context可重现fallback假阳性；exact helper改用另一新空context后必须失败，且不得读取secret或发布reservation。
+
+状态表以current valid stamp fast-skip为最高优先级，此路径不检查reservation。没有current valid stamp时才执行reservation metadata/state machine。
+
+### Round 6 implementation gates
+
+1. Effective Axiom `src`与`cargoDeps`都绑定固定1.4.9 source，保留nixpkgs patch/integration并通过full build。
+2. Exact generated public-config helper通过fresh-context正测、raw fallback control与IPC-negative control；失败路径zero secret open、zero reservation、zero password call。
+3. Attempt/stamp每个matrix row、malformed object、stale revision、reset、restart、reboot和publish kill boundary均通过；reservation在secret access前durably published。
+4. Password `Done!` ACK后必须证明persistent config在required service restart后仍生效。
+5. Charlie完成1.4.9 Darwin build、bundle/team/origin identity、Gatekeeper，以及service/user-agent完整fixture的brace-depth parser验证。
+6. Switch前记录预验证`>=1.4.9`或RustDesk absent/disabled rollback target；禁止generic rollback。
+7. 生成全新1.4.9 test report并取得review-change PASS；旧1.4.8 evidence继续不可用。
+
+---
+
+## Historical Round 5 — superseded design FAIL
+
+**FAIL**。1.4.9 security floor与Charlie DMG pin方向正确，但当前RFC仍须关闭cargo vendor override、public-config IPC proof、attempt状态机、安全版本rollback和stale evidence五项design blocker。实现不得继续，直到修订后取得新的review-rfc PASS。
+
+Round 4只作为历史记录保留。任何“允许engineer”、1.4.8 PASS、1.4.8签名或rollback指令均已失效。
+
+当前修订必须明确：1.4.9 source/vendor immutable identity；active-user IPC失败时public config proof必失败；reservation/stamp完整状态机；rollback不得激活`<1.4.9`；旧test/review gate显式superseded。仍有效的基础约束包括`Wants=` + `After=`、merge-before-switch、最小防火墙、签名/TCC和逐机stop boundary。
+
+### Round 5 blocking findings
+
+1. Axiom只override `version/src/cargoHash`会保留1.4.8 `cargoDeps`；必须显式以1.4.9 source和vendor SRI重建cargo vendor derivation。
+2. RustDesk `--option`在IPC失败时回退caller-local config；必须采用fresh-empty fallback context与IPC负控，不能只比较value。
+3. Attempt/reservation对absent/current/stale/malformed状态、operator reset、reboot和power-loss语义必须唯一确定。
+4. Axiom/Charlie generic rollback可能重新激活1.4.8；只允许预验证`>=1.4.9`或RustDesk absent/disabled target。
+5. `review-rfc.md`、`test-report.md`、`review-change.md`和`tasks.md`中的1.4.8 current gate必须显式失效。
+
+### Confirmed evidence
+
+- Tag commit `6c578292e8ebbbec708b76986ba8c4bc7c509747`；submodule `libs/hbb_common` at `7e1c392c62d39c364127307cd408421dd5f8cfb0`。
+- Source SRI `sha256-AnwdIO4TveC48uMioBCvH60xun24ckK420ONSEB9lQI=`；cargo vendor SRI `sha256-HPvvsTcjSErGfdNwsHgWhs930Fe0hmK1g5J/ngtlkKM=`。
+- Official 1.4.9 ARM64 DMG digest/SRI正确；1.4.9保留password ACK语义并包含session-scope修复。
+
+---
+
+## Historical Round 4 — superseded 1.4.8 gate
+
+> Everything below this heading is historical unless Round 5 explicitly carries it forward. Its PASS and engineer handoff are not current.
 
 ## Findings
 

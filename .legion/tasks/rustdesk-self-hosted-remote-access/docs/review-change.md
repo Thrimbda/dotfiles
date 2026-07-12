@@ -1,5 +1,7 @@
 # Review Change：RustDesk 自托管远程访问
 
+> **SUPERSEDED / HISTORICAL**：本文件评审的是旧1.4.8及更早实现，不能作为当前1.4.9配置PR gate。Round 6 design已PASS；必须在1.4.9实现和新test report完成后重新运行`review-change`。
+
 > **Verdict**: **FAIL**
 > **Gate**: 当前变更不能进入可合并的配置 PR；阻塞项退回 `engineer`
 > **Review target**: 配置 PR readiness，不代表生产部署完成

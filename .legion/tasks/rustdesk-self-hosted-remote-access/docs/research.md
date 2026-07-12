@@ -1,8 +1,8 @@
-# Research: RustDesk 自托管远程访问（1.4.8 简化设计）
+# Research: RustDesk 自托管远程访问（1.4.9 security revision）
 
 > **Purpose**: 为当前 RFC 提供最短、可追溯的版本与平台证据。
 > **Contract source**: `../plan.md`
-> **Checked**: 2026-07-11
+> **Checked**: 2026-07-12
 > **Secret handling**: 未打开任何 `.age` payload，未读取未跟踪密码文件。
 
 ## 1. Current Conclusion
@@ -10,10 +10,11 @@
 | Area | Current evidence | Design consequence |
 |---|---|---|
 | Acorn | `services.rustdesk-server.package.version` 求值为 1.1.14 | 保留 NixOS 原生 module、独立 key、fail-closed preflight 和最小端口 |
-| Axiom | `pkgs.unstable.rustdesk.version` 求值为 1.4.8 | 直接使用锁定 package；不维护 1.4.3 或 task-owned source patch |
-| 1.4.8 IPC | Upstream service-scoped IPC 校验 peer uid、active uid 和 peer executable，并限制 `_service` 消息面 | 使用上游 hardening；不再沿用 1.4.3 的 world-accessible IPC 风险描述 |
-| Password CLI | 1.4.8 `core_main.rs` 仍只实现 `--password <value>` | 自动部署必须接受 bounded argv，或退回人工；当前 contract 选择前者 |
-| Charlie | nixpkgs RustDesk 仍标记 Darwin unsupported；官方有 1.4.8 ARM64 DMG | Pin 官方 DMG，保持签名、固定 app path 和上游 launchd topology |
+| Security floor | 1.4.9 于 2026-07-06 发布并包含 PR #15469；CVE-2026-57850 影响 1.4.9 之前版本 | 1.4.8 禁止部署、fallback 和 rollback；两端升级到 1.4.9 |
+| Axiom | `pkgs.unstable.rustdesk.version` 仍求值为 1.4.8 | 保留该 derivation，override version/source/cargo hash并从同一source重建cargo vendor derivation；不维护功能 patch |
+| 1.4.9 IPC | Tag 保留 upstream service-scoped peer uid/executable hardening；实现时重新确认 per-user IPC/PID 与 CLI call sites | 继续使用上游 hardening，并增加真实 process/socket readiness |
+| Password CLI | 1.4.9 仍使用 `--password <value>` | 自动部署继续接受 bounded argv；实现时精确复核成功输出语义 |
+| Charlie | nixpkgs RustDesk 仍标记 Darwin unsupported；官方有 1.4.9 ARM64 DMG | Pin 官方 DMG，保持签名、固定 app path 和上游 launchd topology |
 | Crash controls | Linux/macOS resource limit 不等于关闭 crash metadata | `LimitCORE=0`/`Core=0` 只作低成本 hardening；不做 attestation 或全局 handler |
 | Delivery | 最新 plan 要求 merge-before-switch 和 follow-up evidence PR | 配置 PR 与生产证据分离，三台只从 clean merged baseline 部署 |
 
@@ -26,11 +27,20 @@
 - 当前 eval：
   - `nix eval --raw .#nixosConfigurations.axiom.pkgs.unstable.rustdesk.version` -> `1.4.8`
   - `nix eval --raw .#nixosConfigurations.acorn.config.services.rustdesk-server.package.version` -> `1.1.14`
-- 锁定 unstable `pkgs/by-name/ru/rustdesk/package.nix`：
+- 锁定 unstable `pkgs/by-name/ru/rustdesk/package.nix` 当前仍为 1.4.8；它作为 1.4.9 override 的集成基线：
   - `version = "1.4.8"`
   - source 为 GitHub tag 1.4.8，fetch submodules
   - `meta.badPlatforms = lib.platforms.darwin`
-  - package 自带 nixpkgs 的 reproducibility patch；新设计禁止的是本任务维护的 password-file patch/override，不是修改 nixpkgs 自身定义。
+  - package 自带 nixpkgs 的 reproducibility patch、postPatch、依赖与 wrapper；1.4.9 override 只允许改变 version/source/cargo hash，以及显式重建对应 `cargoDeps`。
+
+### 1.4.9 immutable source/vendor identity
+
+- Tag commit：`6c578292e8ebbbec708b76986ba8c4bc7c509747`
+- 唯一 submodule：`libs/hbb_common` at `7e1c392c62d39c364127307cd408421dd5f8cfb0`；无 nested submodules
+- Source SRI（含 submodule）：`sha256-AnwdIO4TveC48uMioBCvH60xun24ckK420ONSEB9lQI=`
+- Cargo vendor SRI：`sha256-HPvvsTcjSErGfdNwsHgWhs930Fe0hmK1g5J/ngtlkKM=`
+- 只 override `cargoHash` 会保留已生成的1.4.8 `cargoDeps`并build失败；effective package必须显式从1.4.9 source重建vendor derivation。
+- 锁定nixpkgs reproducibility patch可应用，`webm 1.1.0`与`webm-sys 1.0.4`仍存在。
 
 ### Existing host conventions
 
@@ -39,9 +49,9 @@
 - `hosts/axiom/default.nix` 已有 Hyprland、ToDesk、Clash/direct-route 相关配置；RustDesk 需真机验证 active Wayland session，不能移除现有回退。
 - `hosts/charlie/default.nix` 是 `aarch64-darwin`，已有 nix-darwin launchd/agenix 模式；TCC 仍需人工授权。
 
-## 3. RustDesk Client 1.4.8 Evidence
+## 3. RustDesk Client 1.4.9 Evidence
 
-锁定 source path 由 `pkgs.unstable.rustdesk.src.outPath` 得到；以下引用均来自未应用本任务 patch 的 tag 1.4.8 source。
+Tag `1.4.9` 解析到 commit `6c578292e8ebbbec708b76986ba8c4bc7c509747`。现有证据确认原 nixpkgs patch target 与 `webm 1.1.0`/`webm-sys 1.0.4` 依赖仍存在；实现必须在实际 fetched source 上重新确认下列 call sites与语义。
 
 ### Password CLI remains argv-only
 
@@ -50,7 +60,22 @@
 - `src/ipc.rs:1591-1626` 发送 password 后等待 daemon ACK；CLI success 输出 `Done!`。
 - Context7 检索到的官方 RustDesk wiki/Linux headless 文档也仍示例 `sudo rustdesk --password <password>`。
 
-**结论**：使用官方 1.4.8 package/bundle 时，自动设置永久密码会产生短暂 secret argv。当前 contract 已接受该 residual，但仍要求不把值写入 unit、environment 或日志。
+**结论**：使用官方 1.4.9 package/bundle 时，自动设置永久密码仍会产生短暂 secret argv。当前 contract 已接受该 residual，但仍要求不把值写入 unit、environment 或日志。
+
+### Password ACK is not a durability proof
+
+- `src/ipc.rs:1607-1626` 在daemon返回ACK后输出成功；后续storage sync失败只记录warning，不改变ACK。
+- `hbb_common` config write错误也不会通过该ACK路径传播给CLI。因此精确`Done!`只能证明daemon接受了请求，不能证明restart后新密码仍持久化。
+- 当前设计在ACK和全部auth-serving process restart/replacement及public proof后发布绑定revision/PID/start identity的非秘密ready记录，保留current reservation且不自动写stamp。从另一台设备完成新密码正测和旧密码负测后，operator运行不读取secret的`rustdesk-provision-finalize --confirm-remote-auth`提交stamp。
+- 未finalize的current reservation跨service restart/reboot阻止自动重放；测试失败时保持pending/failed状态并按rotation或显式reset流程处理。
+- 用户在2026-07-12明确选择简化的“远测后手动finalize”边界，而不是ticket/history驱动的自动反回滚框架。Provision/finalize用同一小型operation lock串行化；一旦新revision已attempt，旧generation禁止rollback，只能保持RustDesk停止并fixed-forward。
+
+### Public option fallback requires a negative control
+
+- `src/ipc.rs:1721-1768` 的 `get_options` 在IPC失败时回退caller-local config；`set_options`即使IPC连接失败也会写caller-local config。
+- 因此“调用`--option`后比较值”本身不能证明active-user server已接收配置。
+- Current design为每次apply/query提供独立root-owned临时`HOME`/`XDG_CONFIG_HOME`。Query使用新的空fallback home；IPC失败只能得到空/default，不能满足非默认host/key/relay。
+- Verification还必须阻断IPC并预置caller-local expected values，证明helper不会从该fallback context误判成功。
 
 ### Service IPC hardening is upstream
 
@@ -61,7 +86,7 @@
 - `src/ipc.rs:620-641`：service sockets 虽为 active user 可连接而设为 `0666`，但授权在 accept-time 执行；非 service socket 为 `0600`。
 - `src/ipc/fs.rs:195-386`：IPC parent directory 使用 no-follow fd、owner/mode 检查与 hardening。
 
-**结论**：1.4.8 已解决旧设计关注的 service IPC peer authorization 问题。该事实支持删除本任务的 enterprise-style IPC/crash framework，但不创造 password-file CLI，也不改变 argv residual。
+**结论**：1.4.9 保留 service IPC peer authorization，并新增 session-scope authorization 修复。该事实支持使用上游安全边界，但不创造 password-file CLI，也不改变 argv residual。
 
 ### Upstream service shapes
 
@@ -85,22 +110,22 @@
 - NixOS module `openFirewall=true` 会开放 21115-21119/TCP 与 21116/UDP，因此当前设计必须设 false 并手工声明最小集合。
 - Module 未提供 restart policy；host override 需要 `Restart=on-failure`。
 
-## 5. Official Charlie 1.4.8 Artifact
+## 5. Official Charlie 1.4.9 Artifact
 
-GitHub official release API（tag `1.4.8`）在 2026-07-11 查询到：
+GitHub official release API（tag `1.4.9`）在 2026-07-12 查询到：
 
 | Field | Value |
 |---|---|
-| Published | `2026-06-21T09:12:23Z` |
-| Asset | `rustdesk-1.4.8-aarch64.dmg` |
-| URL | `https://github.com/rustdesk/rustdesk/releases/download/1.4.8/rustdesk-1.4.8-aarch64.dmg` |
-| Size | `25889107` bytes |
-| GitHub digest | `sha256:7f8acfb0dcab21d4c8fe570902be70a02ed0db007daa5ebfe1e0119487a5fc17` |
-| Nix SRI | `sha256-f4rPsNyrIdTI/lcJAr5woC7Q2wB9ql6/4eARlIel/Bc=` |
+| Published | `2026-07-06T10:02:30Z` |
+| Asset | `rustdesk-1.4.9-aarch64.dmg` |
+| URL | `https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-aarch64.dmg` |
+| Size | `25906851` bytes |
+| GitHub digest | `sha256:f7935597b247d42c8f2a2ed71176a9f5868018cd9e1a33b8096418a668c8caf0` |
+| Nix SRI | `sha256-95NVl7JH1CyPKi7XEXap9YaAGM2eGjO4CWQYpmjIyvA=` |
 
 SRI 由以下命令对 GitHub digest 做格式转换，未改变 digest：
 
-`nix hash convert --hash-algo sha256 --to sri 7f8acfb0dcab21d4c8fe570902be70a02ed0db007daa5ebfe1e0119487a5fc17`
+`nix hash convert --hash-algo sha256 --to sri f7935597b247d42c8f2a2ed71176a9f5868018cd9e1a33b8096418a668c8caf0`
 
 Linux 侧的 digest 不能替代 Darwin Gatekeeper 验证。Store bundle 与 `/Applications/RustDesk.app` destination 仍须在 Charlie 上执行 `codesign --verify --deep --strict` 和 `spctl`；失败不得 ad-hoc re-sign 后继续。
 
@@ -127,9 +152,10 @@ Linux 侧的 digest 不能替代 Darwin Gatekeeper 验证。Store bundle 与 `/A
 
 | Historical finding/design | Current status |
 |---|---|
-| Stable `pkgs.rustdesk` 1.4.3 | **Superseded**：Axiom 改用 locked `pkgs.unstable.rustdesk` 1.4.8 |
-| Official 1.4.3 ARM64 DMG 与旧 SRI | **Superseded**：不得用于实现；使用本文件的 1.4.8 asset/digest/SRI |
-| 1.4.3 service IPC 缺少 peer credential authorization | **Version-specific history**：1.4.8 已有 peer-uid/executable/message hardening |
+| RustDesk 1.4.8 client | **Prohibited**：CVE-2026-57850 影响 1.4.9 之前版本，不得部署或回滚 |
+| Stable `pkgs.rustdesk` 1.4.3 | **Superseded**：Axiom 基于 locked unstable derivation source-build 1.4.9 |
+| Official 1.4.3/1.4.8 ARM64 DMG 与旧 SRI | **Superseded**：不得用于实现；使用本文件的 1.4.9 asset/digest/SRI |
+| 1.4.3 service IPC 缺少 peer credential authorization | **Version-specific history**：1.4.9 有 peer-uid/executable/message hardening |
 | Local `--password-file` patch 可行性 | **Rejected option**：维护成本高且不能用于签名 macOS bundle |
 | Exact-OS crash attestation、synthetic marker、全树 crash scan | **Removed requirement**：用户已接受 bounded argv/crash-metadata residual |
 | Global `core_pattern` handler 或全局关闭 crash reporting | **Rejected option**：影响面和维护成本不成比例 |
@@ -168,14 +194,16 @@ Linux 侧的 digest 不能替代 Darwin Gatekeeper 验证。Store bundle 与 `/A
 - Locked nixpkgs：
   - `pkgs/by-name/ru/rustdesk/package.nix`
   - `nixos/modules/services/monitoring/rustdesk-server.nix`
-- RustDesk 1.4.8 source：
+- RustDesk 1.4.9 source：
   - `src/core_main.rs`
   - `src/ipc.rs`, `src/ipc/{auth,fs}.rs`
   - `src/platform/macos.rs`
   - `src/platform/privileges_scripts/{agent,daemon}.plist`
   - `res/rustdesk.service`
 - RustDesk Server 1.1.14 source：`src/{common,rendezvous_server,relay_server}.rs`
-- Official release API/tag：`https://github.com/rustdesk/rustdesk/releases/tag/1.4.8`
+- Official release API/tag：`https://github.com/rustdesk/rustdesk/releases/tag/1.4.9`
+- Session-scope fix：`https://github.com/rustdesk/rustdesk/pull/15469`
+- CVE：`https://www.cve.org/CVERecord?id=CVE-2026-57850`
 - Official docs：
   - `https://rustdesk.com/docs/en/self-host/client-configuration/`
   - `https://rustdesk.com/docs/en/client/linux/`
