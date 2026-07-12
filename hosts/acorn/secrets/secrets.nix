@@ -9,4 +9,5 @@ in {
   "cloudflare-dns.env.age".publicKeys = [ acorn ];
   "auth-mini-gateway-env.age".publicKeys = [ acorn ];
   "auth-mini-resend-api-key.age".publicKeys = [ acorn ];
+  "rustdesk-server-key.age".publicKeys = [ acorn ];
 }

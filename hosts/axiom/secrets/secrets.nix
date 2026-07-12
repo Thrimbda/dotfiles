@@ -3,4 +3,5 @@ let
   axiom = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMbq2TSxnl6D4oEdKGNNk1C71QCPN+xPCvCT6KvPhsws axiom.local";
 in {
   "frp-token.age".publicKeys = [ acorn axiom ];
+  "rustdesk-password.age".publicKeys = [ axiom ];
 }
