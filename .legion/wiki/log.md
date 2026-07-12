@@ -264,3 +264,4 @@
 - Added task summary for `dotfiles-caelestia-only-bluetooth`.
 - Updated current desktop decisions so Caelestia is the only visible Bluetooth control surface while a narrow user AuthAgent preserves PIN/passkey support globally.
 - Added reusable Bluetooth control-surface, Agent1 privacy, rfkill/TLP graph-validation, and device-name-list patterns plus deploy-only hardware follow-up.
+- Marked `dotfiles-caelestia-only-bluetooth` completed after implementation PR #136 merged and the implementation worktree was removed.

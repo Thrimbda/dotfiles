@@ -12,10 +12,13 @@
 - 完成全局共享 profile、headless AuthAgent、ordinary/TLP rfkill 与 Caelestia policy 实现
 - 完成 fresh NixOS VM、五主机、synthetic boundary 与 Axiom toplevel 验证，结论 PASS
 - 完成 security-focused review-change 与 reviewer walkthrough，结论 PASS
+- 实现 PR #136 已 squash merge 到 origin/master，merge commit fee6edab
+- 实现 PR 无 required checks、无 blocking review，auto-merge 请求后直接到达 MERGED
+- 原实现 worktree 已删除
+- walkthrough、HTML artifact、PR body 与 wiki writeback 已进入 master
 ### 🟡 进行中
 
-- 编写唯一控制面、headless AuthAgent、名称策略与迁移验证 RFC。
-- 提交最终证据，push PR 分支并跟进 checks/review/merge/cleanup/wiki
+- (无；仓库交付已完成，剩余仅为 closeout 元数据 PR 生命周期。)
 ### ⚠️ 阻塞/待定
 
 - 无。
@@ -23,33 +26,36 @@
 
 ## 关键文件
 
-(暂无)
-
-- `modules/profiles/hardware/bluetooth.nix` - 共享 BlueZ、Blueman 与恢复策略。
-- `modules/desktop/apps/rofi.nix` - Rofi Bluetooth 可见入口。
-- `modules/desktop/caelestia.nix` - Caelestia 包装、运行环境与潜在上游补丁入口。
+- `modules/profiles/hardware/bluetooth.nix` - 共享 BlueZ、headless AuthAgent 与 ordinary/TLP rfkill 策略。
+- `modules/desktop/apps/rofi.nix` - 删除 Rofi Bluetooth 可见入口。
+- `modules/desktop/caelestia.nix` - Caelestia package policy patch 与验证接线。
 ---
 
 ## 关键决策
 
 | 决策 | 原因 | 替代方案 | 日期 |
 |------|------|----------|------|
-| (暂无) | - | - | - |
+| 所有 Bluetooth profile 主机移除 Caelestia 以外的可见控制面 | 避免 Blueman/Rofi/Caelestia 状态竞争 | 仅修复 Axiom | 2026-07-11 |
+| 保留 user-scoped headless AuthAgent | Quickshell 不提供 BlueZ Agent1 PIN/passkey 交互 | 完全删除 Blueman runtime 并接受配对回退 | 2026-07-11 |
+| ordinary 与 TLP rfkill 分流 | 保留 WLAN/TLP 语义并保证 Bluetooth final writer | 全局禁用 systemd-rfkill | 2026-07-12 |
+| HTML walkthrough 采用仓库内 artifact-only 交接 | 仓库没有 Pages workflow，避免扩大公开发布基础设施 | 新增 GitHub Pages PR preview | 2026-07-12 |
 ---
 
 ## 快速交接
 
 **下次继续从这里开始：**
 
-1. 提交最终文档和 Revision 5 修复
-2. push 分支并创建 PR
-3. 尝试 auto-merge 并跟进终态
-4. 合并后清理 worktree、刷新主工作区并写回 wiki
+1. 合并 closeout PR
+2. 删除 closeout worktree
+3. 刷新主工作区到 origin/master
 
 **注意事项：**
 
-- HTML walkthrough 采用仓库内 artifact 路径；仓库当前没有 Pages workflow，为避免引入任务外公开发布基础设施，不新增 hosted preview。
-- 没有部署 generation，也没有改变宿主 live Bluetooth/rfkill 状态；真实 Axiom/Ramen hardware smoke 保持 deploy-only gate。
+- 实现 PR: https://github.com/Thrimbda/dotfiles/pull/136
+- 实现 PR mergedAt: 2026-07-12T02:09:51Z
+- 实现 PR merge commit: fee6edab5c41f77cd63c8db569300ff2e21b2929
+- No required checks reported; no reviews or blocking comments.
+- Deploy-only Axiom/Ramen hardware smoke remains documented in wiki maintenance and does not block repository delivery.
 ---
 
-*最后更新: 2026-07-12 02:06 by Legion CLI*
+*最后更新: 2026-07-12 02:11 by Legion CLI*
