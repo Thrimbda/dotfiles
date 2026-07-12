@@ -102,3 +102,10 @@
 - `ditto`临时copy保持recursive content、CDHash、签名与Gatekeeper identity；临时copy已删除，未安装到`/Applications`。
 - Generated brace-depth parser在Charlie真实完整`launchctl print`输出上通过2-argument server和3-argument service形状，正确忽略nested coalition states；临时jobs均已移除。目标`ps` PID/start identity格式稳定，generated provision/finalizer/activate通过Charlie `/bin/bash -n`。
 - 无deploy/switch、无RustDesk app/jobs/mutable state变更、无RustDesk secret读取。隔离worktree仍是detached dirty verification tree并保留`.cache/`，不得用于switch。
+
+## 2026-07-12 final rebase and review
+
+- Feature无冲突rebase到live `origin/master` `0d61c714`并推送新v3 branch，未force-push旧remote history。最终HEAD为`3db55d1c`，ahead 5/behind 0。
+- Rebased Acorn、Axiom、Charlie full systems全部build PASS；Charlie final closure继续引用同一已验证RustDesk 1.4.9 store app，exact app verifier与final activation syntax再次PASS。
+- Charlie隔离worktree已fetch并detached到exact `3db55d1c`；tracked tree clean，仅有`.cache/`，继续禁止用于switch。
+- Final `review-change`无blocking finding并给出**PASS for configuration PR**。DNS/SG、destination install/signature、runtime jobs、password正负测、manual finalize、Wayland/TCC/sleep仍是merge后gate。

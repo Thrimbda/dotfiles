@@ -3,15 +3,17 @@
 ## Current report — RustDesk Client 1.4.9 pre-merge candidate
 
 > 日期：2026-07-12
-> Target：当前未提交worktree及逐字一致的Charlie隔离worktree host files
+> Target：`origin/master` `0d61c714` + feature HEAD `3db55d1c`；Charlie隔离worktree为同一commit
 > Verdict：**PASS — pre-merge implementation/build/signature evidence**
-> Deployment：**NOT RUN**；未commit、push、install、deploy或switch，未读取任何RustDesk secret
+> Deployment：**NOT RUN**；feature已push但未install、deploy或switch，未读取任何RustDesk secret
 
 ### Candidate and build evidence
 
+- Feature已无冲突rebase到live `origin/master`，ahead 5/behind 0；`git diff --check`：**PASS**。
 - `nix-instantiate --parse hosts/{acorn,axiom,charlie}/default.nix`，并eval三台system derivation：**PASS**。
-- Axiom effective service为`/nix/store/...-rustdesk-1.4.9/bin/rustdesk --service`；完整NixOS toplevel build：**PASS**，output `/nix/store/qd11d8v18lqq6ghwwlv3mwk26d0i0ajn-nixos-system-axiom-25.11.20260630.b6018f8`。
-- Charlie完整`aarch64-darwin` system build：**PASS**，output `/nix/store/wva41w464n1qmm6bvg2c1lhv7mp8jjay-darwin-system-25.11.ebec37a`。
+- Acorn完整NixOS toplevel build：**PASS**，output `/nix/store/lbhi1fgapnhqj3z9xsajbcqg1bp17l8s-nixos-system-acorn-25.11.20260630.b6018f8`。
+- Axiom effective service为`/nix/store/...-rustdesk-1.4.9/bin/rustdesk --service`；完整NixOS toplevel build：**PASS**，output `/nix/store/vq8y7x0bi84cpx9hp3yfcg82d6niy8pf-nixos-system-axiom-25.11.20260630.b6018f8`。
+- Charlie完整`aarch64-darwin` system build：**PASS**，drv `/nix/store/xnvfw9fzv1929cpwiw6armin79gvzwqj-darwin-system-25.11.ebec37a.drv`，output `/nix/store/9g2l5777jh51q9wzrr5yvywymgz6pmym-darwin-system-25.11.ebec37a`。
 - Charlie store app `/nix/store/ll7kiyvhxzqs0j9clqf66a08s262szq0-rustdesk-macos-1.4.9/Applications/RustDesk.app`：arm64、version `1.4.9`、bundle id `com.carriez.rustdesk`：**PASS**。
 - Store app `codesign --verify --deep --strict`：**PASS**；Identifier `com.carriez.rustdesk`、TeamIdentifier `HZF9JMC8YN`、Authority/origin `Developer ID Application: zhou huabing (HZF9JMC8YN)`：**PASS**。
 - Store app `spctl -a -vv -t execute`：**accepted**，source `Notarized Developer ID`。Generated `rustdeskAppVerify`对同一store app：**PASS**。
@@ -32,17 +34,16 @@
 - Server形状`/bin/sleep 120`与service形状`/bin/sh -c /usr/bin/yes`均返回唯一真实PID；完整输出含nested environment、resource coalition与jetsam coalition `state`，未误取嵌套字段。两个临时jobs均已移除。
 - Charlie `/bin/ps -ww -p PID -o pid= -o uid= -o ruid= -o lstart= -o comm= -o command=`连续两次输出一致，确认ready使用的PID/start identity格式在目标系统可用：**PASS**。
 - Exact generated provision/finalizer及完整Darwin activation在Charlie `/bin/bash -n`：**PASS**。
-- Charlie隔离worktree已清除旧1.4.8 cumulative patch，并应用当前host diff；Acorn/Axiom/Charlie三个host file的本地与远端SHA-256逐字一致。隔离tree仍为detached dirty verification tree并保留untracked `.cache/`，不得用于switch。
+- Charlie隔离worktree已清除旧1.4.8 temporary patch，fetch feature v3并detached在exact `3db55d1c`；tracked tree clean，仅保留untracked `.cache/`，不得用于switch。
 
 ### Remaining gates
 
-1. Reconcile current candidate with live `origin/master`，重新运行eval/build/review并提交、push、创建配置PR。
-2. 配置PR merge后只从同一clean merged commit部署；不得从Charlie detached verification tree switch。
-3. DNS、Aliyun SG、Acorn/Axiom/Charlie runtime、destination signature、launchd/systemd PID、Wayland/TCC及direct/relay仍需逐机验证。
-4. 两端password ACK后先保持reservation+ready、无stamp；从fresh controller完成新密码成功与旧/错误/跨机密码认证拒绝后，才运行`rustdesk-provision-finalize --confirm-remote-auth`。
-5. 任一reservation发布后的失败都禁止generation rollback；保持RustDesk停止并fixed-forward到全新revision。
+1. 创建并完成配置PR；merge后只从同一clean merged commit部署，不得从Charlie detached verification tree switch。
+2. DNS、Aliyun SG、Acorn/Axiom/Charlie runtime、destination signature、launchd/systemd PID、Wayland/TCC及direct/relay仍需逐机验证。
+3. 两端password ACK后先保持reservation+ready、无stamp；从fresh controller完成新密码成功与旧/错误/跨机密码认证拒绝后，才运行`rustdesk-provision-finalize --confirm-remote-auth`。
+4. 任一reservation发布后的失败都禁止generation rollback；保持RustDesk停止并fixed-forward到全新revision。
 
-本PASS只授权candidate进入最终`review-change`，不授权merge或deployment。
+最终`review-change`已PASS；本报告与评审共同授权创建配置PR，但不授权deployment。
 
 ---
 
