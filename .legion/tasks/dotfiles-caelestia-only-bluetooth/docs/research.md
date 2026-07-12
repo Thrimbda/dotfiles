@@ -1,7 +1,7 @@
 # Research：全局收敛到 Caelestia 蓝牙控制面
 
 > **RFC 档位**：Heavy
-> **修订**：2026-07-12，Revision 4；只替换普通主机 rfkill final-writer，保留已关闭 privacy 等边界
+> **修订**：2026-07-12，Revision 5；只修订 TLP boot/add/resume wiring，保留 Revision 4 ordinary finalizer 与其他已关闭边界
 > **用途**：给 RFC 复审和实现者提供可追溯事实；不修改 `plan.md` 契约。
 
 ## 1. 调研结论
@@ -11,7 +11,7 @@
 - runner 仍有必要：Quickshell 没有 Agent1；stock applet 会加载 PowerManager/KillSwitch。runner 的边界限于 GTK readiness、安全日志/通知适配、单连接 Agent1 状态机，不复制配对协议或 UI。
 - user service 必须同时 `WantedBy/PartOf/After=graphical-session.target`。UWSM 在该 target 前完成 `WAYLAND_DISPLAY` 等环境同步；显式 `After` 不会与 `WantedBy` 形成 ordering cycle。
 - Agent1 注册的 sender identity 是 system-bus unique name。对象导出、`RegisterAgent`、`RequestDefaultAgent`、`UnregisterAgent` 必须使用同一条持续存活的 `Gio.DBusConnection`，并对 Release、name vanish、部分失败和信号做逆序幂等清理。
-- 普通主机不再猜测某次ADD属于哪个active instance：给`systemd-rfkill.service`追加唯一的`ExecStopPost`，每个正常、失败、restart或socket-reactivated invocation结束后都运行同一个Bluetooth-only idempotent finalizer。TLP主机不生成该drop-in，继续独立处理boot/add/resume。
+- 普通主机的 Revision 4 `systemd-rfkill.service` ExecStopPost finalizer保持不变。TLP主机改为cycle-free共享profile投影：generic helper不再`WantedBy=multi-user.target`；`tlp.service Wants=`它且helper `After=tlp.service`，所以成功boot时只在pinned TLP init完成后运行。add使用独立`@%k`template，resume恢复既有`post-resume.service`触发；不修改`tlp-sleep`。
 - 五主机完整构建不是稳定 contract，且当前四台有无关基线失败。正确 gate 是五主机 Bluetooth 专项 eval/assertion + 相关 derivation build、Axiom 完整 toplevel、synthetic non-Caelestia boundary，以及部署后的硬件 gate。
 - Pinned Blueman 会在 INFO 日志写明文 passkey/PIN 和含 MAC 的 object path；其 notification body 还会被 Caelestia 写入 `notifs.json`。runner 必须压低日志，并把所有 pairing notification 调用直接绑定到本地 `_NotificationDialog`，完全绕开 desktop notification daemon。
 
@@ -238,26 +238,85 @@ Pinned systemd 258.7对`ExecStopPost=`的保证：
 
 这消除了event-specific causal matching：不需要知道某个ADD属于旧或新instance，因为**所有可能执行restore且最终停止的instance都有自己的post-exit finalizer**。无限外部event stream没有“完成的activation”，因此不宣称其间已收敛；显式stop/restart/shutdown仍会进入finalizer。这是可观察的外部持续输入，不靠production polling伪造完成。
 
-### 7.5 ordinary与TLP触发矩阵
+### 7.5 Revision 4 ordinary fixture（不变）
 
-共同的简单`bluetooth-rfkill-unblock.service`复用同一finalizer source，只作为boot/resume safety net，不依赖systemd-rfkill。udev rule保持`TAG+="systemd"`，但target按host条件生成：
-
-- ordinary（Axiom/Azar/Harusame/Udon）：late Bluetooth add `SYSTEMD_WANTS=systemd-rfkill.service`；stock socket也可自然activation；每个instance由ExecStopPost收尾。boot/resume safety helper可先或后运行，后续任何restore instance仍会自行finalize。
-- TLP（Ramen）：不生成systemd-rfkill drop-in，udev add `SYSTEMD_WANTS=bluetooth-rfkill-unblock.service`；boot `WantedBy=multi-user.target`、resume仍由`post-resume.service`启动该helper。
-
-Pinned NixOS TLP module继续mask `systemd-rfkill.service/socket`（`nixos/modules/services/hardware/tlp.nix:109-120`）。TLP `tlp-sleep.service` stop时运行`tlp resume`/`restore_device_states`（TLP `sbin/tlp:430-468`），NixOS `post-resume.service After=suspend.target`之后才执行`resumeCommands`（`power-management.nix:65-97`）；所以Ramen helper晚于TLP restore。没有drop-in、Wants/After或unmask，WLAN/TLP语义不变。
-
-### 7.6 deterministic adversarial fixture
-
-Fixture使用真实isolated systemd manager和socket-reactivated fake systemd-rfkill unit，复用同一finalizer source。预置Bluetooth persisted/live=1与WLAN live/persisted唯一sentinel。必须覆盖：
+Ordinary fixture使用真实isolated systemd manager和socket-reactivated fake systemd-rfkill unit，复用同一finalizer source。预置Bluetooth persisted/live=1与WLAN live/persisted唯一sentinel，继续覆盖：
 
 1. normal ADD restore→main exit→finalizer 0；
-2. **旧instance接近idle expiry；Bluetooth sysfs entry/udev先可见，但fixture把匹配ADD投递hold到old ExecStopPost完成后**；随后socket启动新instance，断言其restore 1后自己的ExecStopPost再写0；
-3. explicit restart、startup failure、runtime failure、shutdown stop；
-4. no-Bluetooth与already-unblocked路径的rfkill write count=0；
-5. repeated ADD/CHANGE/reactivation最终静默，且每个invocation恰有一个finalizer completion record。
+2. 旧instance接近idle expiry，Bluetooth sysfs/udev先可见但matching ADD hold到old ExecStopPost完成后，随后新instance restore 1并由自己的ExecStopPost写0；
+3. explicit restart、startup/runtime failure、shutdown stop；
+4. no-Bluetooth与already-unblocked零write；
+5. repeated ADD/CHANGE/reactivation最终静默且每个invocation恰有一个finalizer completion record。
 
-每个有Bluetooth entry的invocation都断言soft=0于finalizer完成时成立；no-device case断言零写；WLAN live value、persisted bytes/hash全程逐位不变。测试还必须确认普通unit的ExecStopPost list恰好只有本finalizer，Ramen unit没有该drop-in且从不加载masked systemd-rfkill。
+每个有Bluetooth entry的invocation都在finalizer完成时断言soft=0；WLAN live/persisted bytes/hash全程不变，ordinary ExecStopPost list仍恰好只有finalizer。Revision 5不修改这些gate。
+
+### 7.6 Revision 5触发原因：production graph与fixture不一致
+
+当前实现（`modules/profiles/hardware/bluetooth.nix:287-320,364-374`）把TLP branch生成为：
+
+- `bluetooth-rfkill-unblock.service WantedBy=multi-user.target`；
+- 同一helper `After=tlp.service`；
+- pinned TLP 1.8.0 vendor `tlp.service WantedBy=multi-user.target`且`After=multi-user.target NetworkManager.service`。
+
+因此`multi-user.target`对helper的直接Wants补出默认`After=helper`，同时已有`helper After tlp`与`tlp After multi-user`，形成`multi-user → tlp → helper → multi-user`。Pinned systemd 258.7在真实Ramen unit tree上返回status 0，却打印`Found ordering cycle`并删除helper start job；exit status不是充分gate。
+
+当前TLP VM（`modules/profiles/hardware/tests/_bluetooth-predeploy-vm-test.nix:368-423,717-983`）把`services.tlp.package`换成没有vendor unit的shell package，再手工重建一个只`After=bluetooth-predeploy-init.service`的`tlp.service`，所以它没有production `After=multi-user.target`边，无法复现cycle。实现还引入了Revision 4未评审的`@%k`template与`tlp-sleep.postStop`。template解决真实的base-helper/add job合并问题，可以保留；`tlp-sleep`hook没有必要，应恢复已评审的post-resume路径。
+
+### 7.7 最小boot wiring选项
+
+| 方案 | 结论 |
+|---|---|
+| 保留helper `WantedBy=multi-user.target` + `After=tlp.service` | 拒绝：已在production tree证明成环并删除job |
+| 直接把finalizer作为TLP `ExecStartPost` | 不选：finalizer失败会把TLP service本身置failed，扩大TLP failure semantics；也失去独立InvocationID/rollback边界 |
+| TLP `ExecStartPost=systemctl --no-block …` | 语义可行但不最小：`--no-block`只校验并enqueue、不等待完成（systemctl man `:2385-2394`），可避开helper `After=tlp`造成的同步自锁；但仍引入nested manager CLI与enqueue failure分支 |
+| **`tlp.service Wants=generic-helper`；generic helper `After=tlp.service`且无target WantedBy** | 采用：纯unit graph、无nested systemctl。`Wants`是官方推荐的弱启动hook，`After`保证TLP完全startup后helper才开始（systemd.unit `:643-662,818-845`） |
+| Ramen host override | 拒绝：未来任何`services.tlp.enable=true`的Bluetooth host都需要同一语义，必须留在共享profile |
+
+`OnSuccess=`不适用：pinned TLP是`Type=oneshot`+`RemainAfterExit=yes`，成功boot后保持active，不会进入可触发OnSuccess的inactive终态。
+
+选定方案在当前真实Ramen generated tree上做了只读graph变换验证：只删除`multi-user.target.wants/bluetooth-rfkill-unblock.service`，给`tlp.service`添加`Wants=bluetooth-rfkill-unblock.service`，其余unit不变。相同pinned `systemd-analyze verify multi-user.target`由旧graph的2条cycle/job-deleted-to-break-cycle诊断变为0条，status仍为0。这同时证明为什么测试必须解析诊断文本。
+
+### 7.8 Revision 5共享profile投影
+
+`mkBluetoothRfkillProjection { tlpEnabled, finalizer }`保持单一生产源，按能力而非hostname分支：
+
+- **ordinary不变**：generic helper仍`WantedBy=multi-user.target`且无TLP依赖；udev仍target stock `systemd-rfkill.service`；resume仍nonblocking restart generic helper；Revision 4 ExecStopPost不变。
+- **TLP generic helper**：`WantedBy=[]`、`After=tlp.service`，固定`ExecStart=<store>/bluetooth-rfkill-finalize`；`tlp.service`增加弱`Wants=bluetooth-rfkill-unblock.service`。不增加`Requires`、`PartOf`或target link。
+- **TLP add template**：只生成`bluetooth-rfkill-unblock@.service`，同样`After=tlp.service`；udev的Bluetooth ADD target为`bluetooth-rfkill-unblock@%k.service`。
+- **resume**：TLP与ordinary都由既有`powerManagement.resumeCommands`在`post-resume.service`中执行`systemctl --no-block restart bluetooth-rfkill-unblock.service`。删除`tlp-sleep.postStop`及任何其他TLP sleep hook。
+
+成功boot的requirements/order graph为：
+
+```text
+multi-user.target --Wants--> tlp.service --Wants--> bluetooth-rfkill-unblock.service
+multi-user.target ---------before--------> tlp.service --------before--------> helper
+```
+
+第二行来自vendor `tlp After=multi-user.target`和helper `After=tlp.service`。`multi-user.target`不再直接Wants helper，因此target不会生成`multi-user After helper`回边。TLP startup失败时Wants的弱语义不会反向破坏TLP transaction；但TLP result与缺失的helper InvocationID都作为独立release blocker，不能把helper成功解释为TLP init成功。
+
+### 7.9 add、resume与安全边界
+
+- Base unit和`@rfkillN`是不同unit identity；不同rfkill device又是不同template instance。因此boot/resume base helper处于activating时，ADD仍产生独立job，不能被base oneshot start合并。
+- `%k`/`%I`只用于unit identity与可选Description。生成的template `ExecStart`必须逐字等于immutable finalizer store path，不含`%i`/`%I`、参数、环境派生或shell interpolation。finalizer仍无参数并扫描所有Bluetooth entries。
+- boot期间ADD template与base helper都`After=tlp.service`；两者可并发、均幂等。resume期间若ADD先发生，template可能先finalize，但post-resume base restart仍在TLP `restore_device_states`后作最终收敛；若ADD后发生，其template是新的独立job。
+- Pinned `tlp-sleep.service ExecStop=tlp resume`完成restore；既有NixOS `post-resume.service After=suspend.target`随后执行`resumeCommands`。Revision 5复用该已评审顺序，不给`tlp-sleep`增加postStop/After/PartOf。
+- NixOS TLP module继续把`systemd-rfkill.service/socket`设为disabled/masked；generic/template/udev/TLP Wants/post-resume脚本都不得引用或unmask它们。
+- Generic与template都只执行同一Bluetooth-only idempotent finalizer；WLAN live/soft/hard与persisted bytes、TLP settings/state必须逐位不变。helper失败只使对应helper unit failed，不改变TLP service的weak-Wants成功状态。
+
+### 7.10 faithful TLP VM与generated-tree gate
+
+Revision 5 fixture必须测试production graph，而不是重写关键vendor边：
+
+1. 从pinned `pkgs.tlp`派生fake package，只替换`sbin/tlp`行为；原样保留vendor `tlp.service`/`tlp-sleep.service`，并静态断言`After=multi-user.target NetworkManager.service`、`Type=oneshot`、`RemainAfterExit=yes`和WantedBy关系；
+2. fixture init依赖只能append，不能replace vendor After；TLP/helper/template/udev/resume全部来自同一个production projection factory；
+3. VM从默认boot启动完整`multi-user.target` transaction，不手工启动boot helper；TLP init写blocked并记录`init-end`，随后必须出现generic helper的独立InvocationID与soft=0；
+4. 对完整generated tree运行pinned `systemd-analyze verify multi-user.target`，同时要求non-zero status失败，并把stdout/stderr中的`ordering cycle`、`Found ... cycle`、`Job ... deleted to break ordering cycle`视为失败；另扫描PID 1 boot journal同类诊断；
+5. 断言TLP generic helper没有WantedBy link，`tlp.service`恰好Wants generic helper，helper/template均After TLP，template ExecStart无instance substitution，`tlp-sleep`没有Bluetooth drop-in；
+6. 真实udev ADD产生`@rfkillN`InvocationID；hold base helper时再ADD，job list必须同时有base与template，两个ID不同并各自成功；
+7. resume启动实际NixOS post-resume transaction并走production `post-resume.service`/`resumeCommands`，journal严格为`tlp resume-end → post-resume trigger → 新base InvocationID/finalizer`；test不得直接start helper；可替换实际sleep syscall/executor，但不得改sleep/post-resume/TLP ordering edges，也不允许用test-only tlp-sleep postStop代替；
+8. 全程stock systemd-rfkill保持masked且无InvocationID；WLAN live/persisted和TLP state逐字节/hash不变。
+
+Ordinary socket-reactivation/ExecStopPost fixture完全不改。另从实际Ramen专项eval抽取同一production projection的relevant unit tree（multi-user target及wants links、pinned TLP vendor units、base/template、post-resume），运行相同full-target diagnostic gate；不得为此请求Ramen完整toplevel或无关package closure。
 
 ## 8. Caelestia 名称策略与可重复测试
 
@@ -296,7 +355,8 @@ Fixture使用真实isolated systemd manager和socket-reactivated fake systemd-rf
 ## 10. 证据索引
 
 - 契约：`../plan.md`
-- 失败复审：`review-rfc.md`
+- RFC复审：`review-rfc.md`
+- post-implementation failure：`review-change.md`
 - 本仓库：
   - `modules/profiles/hardware/bluetooth.nix`
   - `modules/desktop/apps/rofi.nix`
@@ -313,4 +373,4 @@ Fixture使用真实isolated systemd manager和socket-reactivated fake systemd-rf
   - UWSM `0.24.3`
   - Caelestia shell `4a7773c5ded0699180ef61cdff28b1f2cc5deefb`
   - Quickshell `68c2c85c33845385f7ab8147b32f1450b1e468e0`
-- 文档检索：Context7 未收录 Blueman；Blueman/BlueZ 结论来自 pinned source。PyGObject 的 `Gtk.init_check`/Gio API以及systemd `ExecStopPost=`/restart语义已用当前Context7官方文档交叉核对。
+- 文档检索：Context7 未收录 Blueman；Blueman/BlueZ 结论来自 pinned source。PyGObject 的 `Gtk.init_check`/Gio API以及systemd `ExecStopPost=`、`Wants=`/`After=`、udev template与`systemctl --no-block`语义已用当前Context7官方文档交叉核对；cycle结论另以pinned 258.7 source/man和真实Ramen graph验证。

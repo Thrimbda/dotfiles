@@ -3,8 +3,8 @@
 ## 快速恢复
 
 **当前阶段**: 阶段 4 - Delivery
-**当前检查项**: 完成代码审查与 walkthrough
-**进度**: 6/8 任务完成
+**当前检查项**: 创建并跟进 PR、合并、清理和 wiki 写回
+**进度**: 7/8 任务完成
 ---
 
 ## 阶段 1: Design ✅ COMPLETE
@@ -25,10 +25,10 @@
 - [x] 验证 headless AuthAgent、无额外 UI 与运行时蓝牙状态 | 验收: 静态与运行时证据覆盖 agent、UI 唯一性和蓝牙状态
 ---
 
-## 阶段 4: Delivery ⏳ NOT STARTED
+## 阶段 4: Delivery 🟡 IN PROGRESS
 
-- [ ] 完成代码审查与 walkthrough | 验收: review-change 通过且报告可供评审 ← CURRENT
-- [ ] 创建并跟进 PR、合并、清理和 wiki 写回 | 验收: PR 到达终态，worktree 清理且 wiki 更新
+- [x] 完成代码审查与 walkthrough | 验收: review-change 通过且报告可供评审
+- [ ] 创建并跟进 PR、合并、清理和 wiki 写回 | 验收: PR 到达终态，worktree 清理且 wiki 更新 ← CURRENT
 ---
 
 ## 发现的新任务
@@ -36,4 +36,4 @@
 (暂无)
 ---
 
-*最后更新: 2026-07-11 21:12*
+*最后更新: 2026-07-12 02:06*

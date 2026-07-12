@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Caelestia-only Bluetooth Control | Delivery Walkthrough</title>
+  <style>
+    :root {
+      --bg: #f3f6f8;
+      --paper: #ffffff;
+      --ink: #17212b;
+      --muted: #5d6975;
+      --line: #d7e0e7;
+      --accent: #126b74;
+      --accent-soft: #dff3f2;
+      --ok: #176b45;
+      --ok-soft: #e3f5eb;
+      --warn: #925d00;
+      --warn-soft: #fff1cf;
+      --code: #eef2f5;
+      --shadow: 0 14px 38px rgba(20, 43, 58, .08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #10161c;
+        --paper: #182129;
+        --ink: #edf4f7;
+        --muted: #a9b7c0;
+        --line: #34434e;
+        --accent: #7dd6d4;
+        --accent-soft: #183e42;
+        --ok: #83d8aa;
+        --ok-soft: #17382a;
+        --warn: #f2c267;
+        --warn-soft: #453718;
+        --code: #222e37;
+        --shadow: none;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK SC", sans-serif;
+      line-height: 1.65;
+    }
+    a { color: var(--accent); text-underline-offset: .18em; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    code { padding: .08rem .34rem; border-radius: .35rem; background: var(--code); font-size: .92em; }
+    pre { margin: 1rem 0 0; padding: 1.1rem; overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--code); line-height: 1.5; }
+    main { width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 42px 0 72px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: end; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 .55rem; color: var(--accent); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { max-width: 850px; margin: 0; font-size: clamp(2.3rem, 6vw, 5rem); line-height: .98; letter-spacing: -.055em; }
+    .lede { max-width: 72ch; margin: 1.2rem 0 0; color: var(--muted); font-size: 1.08rem; }
+    .status, nav, section, .notice { border: 1px solid var(--line); background: var(--paper); box-shadow: var(--shadow); }
+    .status { padding: 20px; border-radius: 20px; }
+    .status-row { display: flex; justify-content: space-between; gap: 16px; padding: .44rem 0; border-bottom: 1px solid var(--line); }
+    .status-row:last-child { border: 0; }
+    .pill { display: inline-flex; align-items: center; padding: .1rem .62rem; border-radius: 999px; color: var(--ok); background: var(--ok-soft); font-weight: 800; white-space: nowrap; }
+    .pill.warn { color: var(--warn); background: var(--warn-soft); }
+    .notice { margin: 0 0 24px; padding: 18px 20px; border-left: 6px solid var(--warn); border-radius: 16px; background: var(--warn-soft); box-shadow: none; }
+    .notice strong { color: var(--warn); }
+    .layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 24px; align-items: start; }
+    nav { position: sticky; top: 18px; padding: 16px; border-radius: 18px; }
+    nav strong { display: block; margin: 0 0 .55rem; }
+    nav a { display: block; padding: .36rem .48rem; border-radius: .5rem; text-decoration: none; }
+    nav a:hover, nav a:focus-visible { background: var(--accent-soft); }
+    section { margin: 0 0 20px; padding: clamp(20px, 4vw, 34px); border-radius: 22px; }
+    h2 { margin: 0 0 .8rem; font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.025em; }
+    h3 { margin: 1.5rem 0 .5rem; }
+    p, li { max-width: 82ch; }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .metric { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--accent-soft); }
+    .metric b { display: block; color: var(--accent); font-size: 1.35rem; }
+    .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card { padding: 17px; border: 1px solid var(--line); border-radius: 14px; }
+    .card h3 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: .95rem; }
+    th, td { padding: .72rem .68rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-size: .82rem; letter-spacing: .04em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    .pass { color: var(--ok); font-weight: 850; }
+    .scope-list { columns: 2; column-gap: 28px; }
+    .scope-list li { break-inside: avoid; margin-bottom: .35rem; }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-left: 1.8rem; margin: .55rem 0; }
+    .checklist li::before { content: "□"; position: absolute; left: 0; color: var(--accent); font-weight: 900; }
+    footer { padding: 12px 4px; color: var(--muted); font-size: .92rem; }
+    @media (max-width: 900px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      nav { position: static; columns: 2; }
+      nav strong { column-span: all; }
+      .summary, .cards { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      main { width: min(100% - 20px, 1240px); padding-top: 24px; }
+      .scope-list { columns: 1; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      :root { --bg: white; --paper: white; --ink: black; --muted: #444; --line: #bbb; --shadow: none; }
+      main { width: auto; padding: 0; }
+      nav { display: none; }
+      .layout { display: block; }
+      section, .status, .notice { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Implementation delivery walkthrough</p>
+        <h1>全局 Caelestia-only 蓝牙控制面</h1>
+        <p class="lede">供 reviewer 快速判断：全局 surface 收敛、headless AuthAgent、ordinary/TLP rfkill 分支、Caelestia 命名策略以及部署前后的证据边界是否成立。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <div class="status-row"><span>Mode</span><span class="pill">implementation</span></div>
+        <div class="status-row"><span>RFC Revision 5</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Verification</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Change review</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Deployment</span><span class="pill warn">NOT RUN</span></div>
+      </aside>
+    </header>
+
+    <aside class="notice" role="note">
+      <strong>未部署、未改 live state。</strong> Axiom toplevel 只构建未激活；验证未调用宿主 <code>systemctl</code>、BlueZ、rfkill、TLP 或真实配对设备。所有运行时 systemd/rfkill 操作位于隔离 QEMU VM 或私有 fixture。
+    </aside>
+
+    <div class="layout">
+      <nav aria-label="页面导航">
+        <strong>Reviewer path</strong>
+        <a href="#decision">结论</a>
+        <a href="#scope">全局范围</a>
+        <a href="#agent">AuthAgent</a>
+        <a href="#rfkill">rfkill 分流</a>
+        <a href="#naming">命名策略</a>
+        <a href="#security">安全与隐私</a>
+        <a href="#files">文件导航</a>
+        <a href="#evidence">验证证据</a>
+        <a href="#baseline">无关 baseline</a>
+        <a href="#rollback">回滚</a>
+        <a href="#deploy">硬件 gate</a>
+        <a href="#checklist">Checklist</a>
+      </nav>
+
+      <article>
+        <section id="decision">
+          <h2>Reviewer 结论</h2>
+          <p>这不是 Axiom 特判，而是共享 Bluetooth profile 的全局策略：保留 BlueZ/CLI 与不可见配对 agent，只让 Caelestia 成为可见 GUI。RFC Revision 5、最终验证和 security-focused change review 均为 PASS，未发现 blocking finding；真实硬件 gate 仍明确保留到部署阶段。</p>
+          <div class="summary">
+            <div class="metric"><b>5 hosts</b><span>Axiom / Azar / Harusame / Ramen / Udon focused boundary</span></div>
+            <div class="metric"><b>1 GUI</b><span>启用时只有 Caelestia 可见</span></div>
+            <div class="metric"><b>0 host writes</b><span>验证期间未改宿主 Bluetooth/rfkill</span></div>
+          </div>
+        </section>
+
+        <section id="scope">
+          <h2>1 · 全局控制面与所有权</h2>
+          <table>
+            <thead><tr><th>Bluetooth profile</th><th>Caelestia</th><th>有效行为</th></tr></thead>
+            <tbody>
+              <tr><td>否</td><td>否</td><td>无本任务行为</td></tr>
+              <tr><td>否</td><td>是</td><td>可显示无 adapter；无 AuthAgent</td></tr>
+              <tr><td>是</td><td>否</td><td>BlueZ + CLI + headless AuthAgent；有意无 GUI</td></tr>
+              <tr><td>是</td><td>是</td><td>BlueZ + CLI + AuthAgent；Caelestia 是唯一 GUI</td></tr>
+            </tbody>
+          </table>
+          <pre aria-label="控制面变化">之前  BlueZ/CLI + Blueman applet/manager/tray/mechanism
+                  + Rofi Bluetooth + Caelestia
+
+之后  BlueZ/CLI ───────────┐
+      headless AuthAgent ──┼─ 后端能力
+      Caelestia ───────────┘  唯一可见 GUI（启用时）</pre>
+          <p>stock Blueman package/service、XDG/autostart、D-Bus/systemd activation、Rofi Bluetooth 与 Blueman-specific Hyprland rules 被移除。完整 Blueman 2.4.6 只作为 runner 的私有 store library，不进入 PATH、session XDG、D-Bus 或 systemd 搜索路径。</p>
+        </section>
+
+        <section id="agent">
+          <h2>2 · Headless AuthAgent</h2>
+          <div class="cards">
+            <div class="card"><h3>启动边界</h3><p>普通用户运行；环境、schema、session bus、GTK 与 icon 全部就绪后才建立 system-bus 行为。state=<code>default</code> 后才发送 READY。</p></div>
+            <div class="card"><h3>单连接状态机</h3><p>local export、RegisterAgent、RequestDefaultAgent 与 UnregisterAgent 使用同一 persistent Gio connection/sender。</p></div>
+            <div class="card"><h3>不提供管理面</h3><p>runner output 只有一个 public command，不加载 applet、PowerManager、KillSwitch、Menu、tray、manager 或 mechanism。</p></div>
+            <div class="card"><h3>Fail closed</h3><p>部分注册失败、未知 owner query、connection close、Release、BlueZ vanish/reappear 与信号退出都有显式逆序或本地清理。</p></div>
+          </div>
+        </section>
+
+        <section id="rfkill">
+          <h2>3 · Ordinary / TLP rfkill 分流</h2>
+          <p>共用 finalizer 只扫描 Bluetooth：无设备或已 unblocked 时零写；soft=1 时仅运行一次 <code>rfkill unblock bluetooth</code> 并重读验证。不执行 <code>unblock all</code>，不修改 hard block、WLAN persisted state 或 TLP state。</p>
+          <table>
+            <thead><tr><th>分支</th><th>主机</th><th>关键接线</th><th>stock rfkill</th></tr></thead>
+            <tbody>
+              <tr><td>Ordinary</td><td>Axiom / Azar / Harusame / Udon</td><td>每个 systemd-rfkill invocation 有唯一 ExecStopPost finalizer；ADD 仍走 stock service；resume restart base helper</td><td>保留 vendor service/socket</td></tr>
+              <tr><td>TLP</td><td>Ramen</td><td>TLP weak-Wants base，base After TLP 且无 multi-user WantedBy；ADD 使用独立 @%k template；resume 走 post-resume</td><td>继续 masked，无 ExecStopPost/InvocationID</td></tr>
+            </tbody>
+          </table>
+          <pre aria-label="TLP 顺序">multi-user.target → tlp.service → bluetooth-rfkill-unblock.service
+                         weak Wants + helper After TLP
+
+ADD    → bluetooth-rfkill-unblock@rfkillN.service
+resume → post-resume.service → restart base helper</pre>
+          <p><code>%k/%I</code> 只决定 unit identity/Description，不进入 root ExecStart、Environment、shell 或 finalizer 参数。移除 base helper 的 multi-user WantedBy 后，旧 ordering cycle 的回边消失。</p>
+        </section>
+
+        <section id="naming">
+          <h2>4 · Caelestia 命名策略</h2>
+          <ol>
+            <li>主列表最多五项：connected 优先，paired/bonded 次之，再优先真实名称。</li>
+            <li>label 顺序为非 address 的 trimmed Alias → BlueZ deviceName → address。</li>
+            <li>大小写无关 label、规范化 address 与原始 index 提供确定性 tie-break；输入数组不被修改。</li>
+            <li>匿名且未连接/配对/bonded 的广播不占主列表；匿名资产与完整 pairing page 保留。</li>
+            <li>不根据 MAC、OUI 或广播猜测产品名。</li>
+          </ol>
+          <p>生产 QML 与 Node fixture 使用同一个 policy source；installed policy 与仓库 source 逐字节一致。</p>
+        </section>
+
+        <section id="security">
+          <h2>5 · 安全与隐私</h2>
+          <table>
+            <thead><tr><th>风险面</th><th>边界</th><th>证据</th></tr></thead>
+            <tbody>
+              <tr><td>提权</td><td>Agent 以配置用户运行；无 Blueman mechanism/polkit</td><td class="pass">PASS</td></tr>
+              <tr><td>root 输入</td><td>immutable、无参数 finalizer；instance 不进入 command</td><td class="pass">PASS</td></tr>
+              <tr><td>跨 radio</td><td>只写 Bluetooth soft block</td><td class="pass">WLAN/TLP delta 0</td></tr>
+              <tr><td>敏感日志</td><td>allowlisted lifecycle/request kind；无 exception text/traceback</td><td class="pass">sentinel 0</td></tr>
+              <tr><td>通知与历史</td><td>pairing 只用 local GTK dialog</td><td class="pass">Notify 0 / memory 0 / state 0</td></tr>
+              <tr><td>私有 runtime</td><td>不进入 public PATH/XDG/D-Bus/systemd surface</td><td class="pass">surface audit PASS</td></tr>
+            </tbody>
+          </table>
+          <p>PIN/passkey 只在完成交互所需的短生命周期 GTK widget 内存在，不由 runner 写入 journal、desktop notification daemon 或 Caelestia <code>notifs.json</code>。</p>
+        </section>
+
+        <section id="files">
+          <h2>6 · 文件导航</h2>
+          <p>最终 change review 的输入 diff 有 27 个路径；本阶段只新增三份 delivery docs，没有修改 production code、plan、tasks 或 log。</p>
+          <h3>Production</h3>
+          <ul class="scope-list">
+            <li><code>modules/desktop/apps/rofi.nix</code></li>
+            <li><code>modules/desktop/caelestia-bluetooth-policy.js</code></li>
+            <li><code>modules/desktop/caelestia-bluetooth-primary.patch</code></li>
+            <li><code>modules/desktop/caelestia.nix</code></li>
+            <li><code>modules/desktop/hyprland.nix</code></li>
+            <li><code>modules/profiles/hardware/bluetooth-auth-agent.py</code></li>
+            <li><code>modules/profiles/hardware/bluetooth-rfkill-finalize.sh</code></li>
+            <li><code>modules/profiles/hardware/bluetooth.nix</code></li>
+          </ul>
+          <h3>Tests / fixtures</h3>
+          <p><code>modules/desktop/tests/caelestia-bluetooth-policy-test.js</code>，以及 <code>modules/profiles/hardware/tests/</code> 下的 VM、private-D-Bus、Agent state-machine、ordinary/TLP rfkill、fake BlueZ/notification harness 共十个文件。</p>
+          <h3>Evidence</h3>
+          <p><code>plan.md</code>、<code>tasks.md</code>、<code>log.md</code>，以及 <code>research.md</code>、<code>rfc.md</code>、<code>review-rfc.md</code>、<code>test-report.md</code>、<code>review-change.md</code>。</p>
+        </section>
+
+        <section id="evidence">
+          <h2>7 · 最强验证证据</h2>
+          <p>本 walkthrough 只重组既有证据，没有补跑测试。</p>
+          <table>
+            <thead><tr><th>Gate</th><th>权威结果</th><th>状态</th></tr></thead>
+            <tbody>
+              <tr><td>Ramen production graph</td><td>actual/projection 82 services、105 units 的 names/edges/links 相同；full-target status 0、diagnostic bytes 0</td><td class="pass">PASS</td></tr>
+              <tr><td>Negative control</td><td>旧 graph 虽 status 0，仍产生 2 条 cycle/job-deleted 诊断并被拒绝</td><td class="pass">PASS</td></tr>
+              <tr><td>Faithful TLP VM</td><td>22 个唯一 InvocationID；init success/failure/timeout、真实 ADD、3-way concurrency、resume success/failure</td><td class="pass">PASS</td></tr>
+              <tr><td>Ordinary real systemd</td><td>16 个唯一 InvocationID；normal/reactivation/restart/failure/shutdown/no-device；WLAN delta 0</td><td class="pass">PASS</td></tr>
+              <tr><td>Auth/privacy</td><td>18 Nix tests 无 skip；7 interactions；Notify 0；QML memory/state delta 0；敏感 sentinel 0</td><td class="pass">PASS</td></tr>
+              <tr><td>Caelestia</td><td>排序、截断、匿名边界与 pairing-page invariant；source/installed hash 一致</td><td class="pass">PASS</td></tr>
+              <tr><td>Host/build scope</td><td>五主机 focused eval/build、synthetic boundaries、Axiom full toplevel build</td><td class="pass">PASS</td></tr>
+              <tr><td>Final review</td><td>security lens 已应用，无 blocking finding</td><td class="pass">PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="baseline">
+          <h2>8 · 已知无关 baseline</h2>
+          <ul>
+            <li>Azar/Ramen：既有 <code>pnpm-10.29.2</code> insecure policy；Ramen full etc 还先遇到 <code>pkgs.nerdfonts</code> rename。</li>
+            <li>Harusame/Udon：<code>godot_4-export-templates</code> rename。</li>
+            <li>Atlas：<code>docker-28.5.2</code> insecure/unmaintained。</li>
+            <li>既有 <code>xorg.xrandr</code> rename warning。</li>
+          </ul>
+          <p>这些位于 Bluetooth 外的 host-wide closure，未被 production 修改隐藏；不影响 focused graph/eval 与 Axiom full-build 结论。</p>
+        </section>
+
+        <section id="rollback">
+          <h2>9 · 组件级回滚</h2>
+          <ol>
+            <li><strong>Caelestia：</strong>只回退 package override、patch 与 policy。</li>
+            <li><strong>rfkill：</strong>回退对应 finalizer wiring；TLP 移除 weak-Wants/template/udev/post-resume。不要恢复 multi-user TLP edge、tlp-sleep hook 或旧 block→unblock workaround。</li>
+            <li><strong>AuthAgent：</strong>停新 unit，临时使用 <code>bluetoothctl agent KeyboardDisplay</code>；不要先恢复 stock Blueman。</li>
+            <li><strong>整代：</strong>仅最后手段；它会恢复旧 surface/mechanism/rfkill 竞态。</li>
+          </ol>
+          <p>不迁移/删除 BlueZ pairing 数据，不手工删除 store path。当前未部署，以上是 rollout 预案。</p>
+        </section>
+
+        <section id="deploy">
+          <h2>10 · Deploy-only hardware gates</h2>
+          <div class="cards">
+            <div class="card"><h3>Axiom / c1</h3><ul><li>真实 UWSM/Wayland、GTK/schema/session/default/READY。</li><li>真实 pairing local-only；Notify/history/state/journal 无敏感增量。</li><li>Release 与 BlueZ restart 恢复。</li><li>MediaTek late unbind/rebind、真实 rfkill/persisted state。</li><li>reboot 1 次、resume 2 次；WLAN 不变，Caelestia off→on。</li></ul></div>
+            <div class="card"><h3>Ramen / hlissner</h3><ul><li>reboot 无 cycle，TLP init 后 base InvocationID。</li><li>至少两个 distinct tagged ADD template，base overlap 不合并。</li><li>resume 2 次，TLP resume 后 post-resume 新 base ID。</li><li>stock rfkill 始终 masked；WLAN 与真实 TLP state 不变。</li></ul></div>
+          </div>
+          <h3>其余主机</h3>
+          <p>逐台确认 agent active/default、无旧 surface、ordinary finalizer effective 与 Bluetooth soft=0；未自然触发的 Agent1 类型继续作为 residual。</p>
+        </section>
+
+        <section id="checklist">
+          <h2>11 · Reviewer checklist</h2>
+          <ul class="checklist">
+            <li>接受全局 profile 与 non-Caelestia 主机有意无 GUI 的边界。</li>
+            <li>确认 private Blueman runtime 不构成第二个可发现控制面。</li>
+            <li>检查 AuthAgent 单连接、Release/name-vanish 与 owner-query fail-closed。</li>
+            <li>检查 ordinary ExecStopPost 与 TLP weak-Wants/template/post-resume 分流。</li>
+            <li>确认 root finalizer 只写 Bluetooth soft block，instance 不进入命令。</li>
+            <li>确认主五项 policy 不影响完整 pairing page，也不猜匿名名称。</li>
+            <li>接受 pre-deploy PASS 与 deploy-only hardware gate 的证据边界。</li>
+          </ul>
+        </section>
+      </article>
+    </div>
+
+    <footer>
+      Evidence: <a href="../plan.md">stable contract</a> · <a href="rfc.md">RFC Revision 5</a> · <a href="review-rfc.md">PASS RFC review</a> · <a href="test-report.md">final PASS test report</a> · <a href="review-change.md">final PASS change review</a>
+    </footer>
+  </main>
+</body>
+</html>

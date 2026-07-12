@@ -258,6 +258,16 @@ When Caelestia global-shortcut dispatch is the reported failure, prefer reviewed
 
 When Caelestia/Quickshell controls fail on power or Wi-Fi actions, validate polkit subject classification, the Caelestia process cgroup under `session-*.scope`, and evaluated `security.polkit.extraConfig` before changing shell code. Prefer local-subject, primary-user, fixed-action allowlists for required NetworkManager/logind actions; avoid broad `networkmanager` group membership, prefix grants, sudo wrappers, and direct upstream QML mutation.
 
+### Single Bluetooth Control Surface
+
+When Caelestia is the selected Bluetooth UI, remove competing control surfaces at their installation/activation source rather than masking one applet unit. Audit system/user package lists, XDG autostart and desktop entries, D-Bus activation, systemd packages, root mechanisms, Rofi entries, and desktop-specific window rules. An XDG-generated `app-*@autostart.service` can bypass a mask on the vendor user unit.
+
+Keep BlueZ pairing protocol support separate from management UI ownership. If Quickshell does not implement BlueZ `Agent1`, use a narrow user-scoped agent with one persistent system-bus connection and no applet/plugin manager, public desktop entry, tray, power plugin, rfkill mechanism, or stock command path. Pairing secrets should stay in local dialogs and must not enter journal output, desktop notification history, or shell state files.
+
+For Bluetooth rfkill convergence, preserve each host's existing WLAN/TLP ownership. Ordinary `systemd-rfkill` hosts can use a Bluetooth-only per-invocation finalizer; hosts where TLP masks `systemd-rfkill` need a separate cycle-free boot/add/resume path. Validate the complete production target graph and reject ordering-cycle diagnostics even when `systemd-analyze verify` exits zero. Use real systemd/udev VM fixtures with WLAN and persisted-state sentinels rather than a hand-ordered scheduling model.
+
+For Caelestia device lists, distinguish BlueZ `Name`/Quickshell `deviceName` from Alias and Address. Prefer connected, paired/bonded, and human-named devices in the bounded primary list, while keeping anonymous devices in the complete pairing page. Do not infer product names from MAC/OUI data.
+
 For Caelestia lock/session regressions, treat `loginctl lock-session` as a separate integration path from Caelestia's direct lock IPC. Ordinary idle/keybind locks should call `caelestia shell lock lock`, which sets the shell's `WlSessionLock.locked` state. If that path regresses, investigate the session-owned shell runner, Quickshell IPC, PAM configs embedded in the Caelestia package, and Hyprland session-lock restore behavior before reintroducing an external lock client.
 
 ## Historical End4 Desktop Import Pattern

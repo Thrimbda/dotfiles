@@ -297,9 +297,11 @@ let
       };
     in {
       bootHelperService = helperService // {
-        wantedBy = [ "multi-user.target" ];
+        wantedBy = optional (!tlpEnabled) "multi-user.target";
         after = optional tlpEnabled "tlp.service";
       };
+      tlpBootWants = optional tlpEnabled
+        "bluetooth-rfkill-unblock.service";
       eventHelperService = helperService // {
         description = "Clear Bluetooth rfkill soft blocks for %I";
         after = optional tlpEnabled "tlp.service";
@@ -311,10 +313,7 @@ let
           else "systemd-rfkill.service"
         }"
       '';
-      resumeCommands = optionalString (!tlpEnabled) ''
-        ${restartHelper}
-      '';
-      tlpSleepPostStop = optionalString tlpEnabled ''
+      resumeCommands = ''
         ${restartHelper}
       '';
     };
@@ -363,15 +362,15 @@ mkIf enabled (mkMerge [
 
     systemd.services.bluetooth-rfkill-unblock = rfkillProjection.bootHelperService;
 
+    systemd.services.tlp.wants = mkIf config.services.tlp.enable
+      rfkillProjection.tlpBootWants;
+
     systemd.services."bluetooth-rfkill-unblock@" = mkIf config.services.tlp.enable
       rfkillProjection.eventHelperService;
 
     services.udev.extraRules = rfkillProjection.udevRule;
 
     powerManagement.resumeCommands = rfkillProjection.resumeCommands;
-
-    systemd.services.tlp-sleep.postStop = mkIf config.services.tlp.enable
-      rfkillProjection.tlpSleepPostStop;
 
     # Keep the focused privacy/lifecycle and radio-boundary checks attached to
     # every Bluetooth generation without exposing their dependencies in PATH.
