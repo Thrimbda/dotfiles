@@ -1,0 +1,11 @@
+diff --git a/modules/bar/popouts/Bluetooth.qml b/modules/bar/popouts/Bluetooth.qml
+index 77eb90d..7f8fc29 100644
+--- a/modules/bar/popouts/Bluetooth.qml
++++ b/modules/bar/popouts/Bluetooth.qml
+@@ -7,2 +7,3 @@ import qs.components.controls
+ import qs.services
+ import qs.utils
++import "BluetoothPolicy.js" as BluetoothPolicy
+@@ -65 +66 @@ ColumnLayout {
+-            values: [...Bluetooth.devices.values].sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || a.name.localeCompare(b.name)).slice(0, 5) // qmllint disable unresolved-type
++            values: BluetoothPolicy.primaryDevices(Bluetooth.devices.values, 5) // qmllint disable unresolved-type

@@ -70,15 +70,6 @@ in {
       ];
     }
 
-    (mkIf config.hardware.bluetooth.enable {
-      user.packages = [
-        (mkLauncherEntry "Manage Bluetooth Devices ->" {
-          icon = "bluetooth";
-          exec = "${pkgs.rofi-bluetooth}/bin/rofi-bluetooth";
-        })
-      ];
-    })
-
     (mkIf config.modules.shell.vaultwarden.enable {
       user.packages = [
         (mkLauncherEntry "Password Manager" {

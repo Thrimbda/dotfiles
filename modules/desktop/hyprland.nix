@@ -675,8 +675,8 @@ in {
         windowrule = match:class ^(vesktop|discord)$, workspace 4 silent
         windowrule = match:class ^(steam|gamescope)$, workspace 5 silent
         windowrule = match:title ^(Friends List|Steam)$, workspace 5 silent
-        windowrule = match:class ^(blueman-manager|nm-connection-editor)$, workspace 8 silent
-        windowrule = match:class ^(blueman-manager|nm-connection-editor|org.pulseaudio.pavucontrol)$, float yes
+        windowrule = match:class ^(nm-connection-editor)$, workspace 8 silent
+        windowrule = match:class ^(nm-connection-editor|org.pulseaudio.pavucontrol)$, float yes
         windowrule = match:title ^(Picture-in-Picture)$, float yes
         windowrule = match:title ^(Picture-in-Picture)$, pin true
         windowrule = match:class .*, suppress_event maximize

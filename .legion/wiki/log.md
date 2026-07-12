@@ -261,3 +261,6 @@
 - Updated Acorn Auth Mini current truth, secret-handling patterns, and maintenance after moving OTP delivery to Resend and retaining the API key in an Acorn-only age secret.
 - Added task summary for `auth-mini-gateway-login-failure`.
 - Updated current Acorn Auth Mini decisions, gateway diagnostic patterns, and maintenance so auth-mini owns authentication methods while auth-mini-gateway authorizes only exact email/user-id identities; live post-switch browser smoke remains pending.
+- Added task summary for `dotfiles-caelestia-only-bluetooth`.
+- Updated current desktop decisions so Caelestia is the only visible Bluetooth control surface while a narrow user AuthAgent preserves PIN/passkey support globally.
+- Added reusable Bluetooth control-surface, Agent1 privacy, rfkill/TLP graph-validation, and device-name-list patterns plus deploy-only hardware follow-up.

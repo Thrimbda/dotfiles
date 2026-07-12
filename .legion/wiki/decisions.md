@@ -26,9 +26,13 @@ Shell prompt and tmux theme defaults are no longer owned by active theme modules
 
 Terminal font defaults are owned by `modules.desktop.term.font`, and runtime scripts should read `hey.info.term.font`. Do not add new consumers of `modules.theme.fonts.terminal`; that option was removed when shell/terminal ownership moved out of `modules/themes`.
 
-Current Axiom Linux workstation desktop direction is Hyprland + UWSM + NixOS-owned desktop integration, with Zen as the browser baseline, mpv as the scoped media player, Vesktop/Discord as the scoped chat app, Steam Gamescope/Gamemode/Umu tuning, NetworkManager+iwd+resolved for workstation Wi-Fi, and BlueZ/Blueman reliability settings.
+Current Axiom Linux workstation desktop direction is Hyprland + UWSM + NixOS-owned desktop integration, with Zen as the browser baseline, mpv as the scoped media player, Vesktop/Discord as the scoped chat app, Steam Gamescope/Gamemode/Umu tuning, NetworkManager+iwd+resolved for workstation Wi-Fi, and BlueZ with Caelestia-owned graphical Bluetooth control.
 
 Caelestia Shell supersedes the previous repository-managed end4 `ii` desktop direction for Axiom. The active product shell is now the upstream Caelestia shell package with CLI support, integrated by a local NixOS module, while NixOS keeps ownership of UWSM/greetd/portal startup, Hyprland host facts, session-owned shell runner wiring, generated XDG config, rollback, and Darwin isolation.
+
+Bluetooth control ownership is global to the shared hardware profile, not an Axiom exception. BlueZ and `bluetoothctl` remain available on every Bluetooth host; stock Blueman, Rofi Bluetooth, Blueman Manager/tray/mechanism, and Blueman-specific Hyprland rules are not valid control surfaces. Caelestia is the only visible graphical Bluetooth manager when enabled. Hosts without Caelestia intentionally have no Bluetooth GUI but retain a user-scoped, non-management AuthAgent for PIN/passkey interactions.
+
+Bluetooth soft block is not a persistent user control in this profile. Ordinary hosts keep stock `systemd-rfkill` and add a Bluetooth-only finalizer after every service invocation. TLP hosts keep stock `systemd-rfkill` masked, start the base helper weakly from `tlp.service`, use per-device helper instances for rfkill add events, and reuse the post-resume path. These paths must never write WLAN or hard-block state.
 
 Axiom must use the upstream `caelestia-dots/shell` flake package output `packages.<system>.with-cli` for the desktop shell. Do not run Caelestia's mutable setup flow, clone live shell source under `~/.config`, or preserve end4 as a fallback product path unless a future task explicitly reopens that architecture.
 

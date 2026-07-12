@@ -33,6 +33,12 @@
 - After deploying `axiom-input-caelestia-config-hotfix`, restart `caelestia-session`, confirm `~/.config/caelestia/shell.json` is a writable regular file, exercise `SUPER+Space`, `SUPER+Return`, and workspace bindings, and confirm the keyboard layout `Unknown` toast no longer appears by default. If `hyprctl -j devices` still reports an unknown active keymap, open a separate runtime/upstream input task instead of expanding the config hotfix.
 - After deploying `axiom-keybinding-help-modal`, press `SUPER+/` in the real Axiom Hyprland session and confirm the themed shortcut reference modal opens. When generated keybinds change, update the repository-generated help text in the same task.
 
+## Bluetooth Follow-Up
+
+- After deploying `dotfiles-caelestia-only-bluetooth`, verify Axiom's generated AuthAgent reaches `default/READY` in the real UWSM session, complete a PIN/passkey pairing through the local GTK dialog, and confirm no pairing value or device address appears in journal, Caelestia notification history, or `notifs.json`.
+- On Axiom, test Caelestia Bluetooth off/on, one reboot, MediaTek late add/rebind, and two suspend/resume cycles. Bluetooth must finish soft-unblocked without changing WLAN or hard-block state, and no Blueman/Rofi control surface may reappear.
+- On Ramen, verify the real TLP boot/add/resume ordering, distinct per-device helper invocation IDs, masked stock `systemd-rfkill` units, and byte-stable WLAN/TLP state. Run a minimal login/toggle/surface smoke on Azar, Harusame, Udon, and any future Bluetooth host.
+
 ## Axiom Steam / opencode Follow-Up
 
 - After deploying `axiom-desktop-polish-followup`, confirm Steam renders crisply on the 4K fractional-scale monitor and that games still choose expected render resolutions. If only individual games remain blurry, split a Steam game/runtime task with logs instead of broadening the desktop integration fix.
