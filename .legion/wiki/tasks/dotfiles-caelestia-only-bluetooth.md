@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `dotfiles-caelestia-only-bluetooth`
-- `status`: `ready for PR; live hardware smoke pending`
+- `status`: `completed in PR #136; live hardware smoke pending`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -35,5 +35,6 @@ The shared Bluetooth profile now has one graphical owner: Caelestia when enabled
 
 ## Notes
 
+- Implementation PR: https://github.com/Thrimbda/dotfiles/pull/136 (`fee6edab5c41f77cd63c8db569300ff2e21b2929`).
 - No generation was deployed and no live Bluetooth/rfkill state changed during repository verification.
 - The standalone HTML walkthrough is committed as an artifact; no public Pages preview infrastructure was added.
