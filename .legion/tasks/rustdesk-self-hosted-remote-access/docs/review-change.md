@@ -100,3 +100,18 @@ The final review covered all five feature commits, the Round 7 RFC, generated he
 5. Validate Wayland, TCC, Aqua/LoginWindow, sleep, and FileVault behavior.
 6. After any reservation exists, failure means RustDesk stopped plus fixed-forward to a fresh revision; never activate an older generation.
 7. The accepted transient password argv and possible non-core crash-metadata exposure remain in force.
+
+---
+
+## Current Axiom PID-stability follow-up — 2026-07-13
+
+### Findings
+
+- **Blocking:** None.
+- The 30-second dwell snapshots and then revalidates both main/server PID plus start identity in each pre-password and post-restart `wait_runtime`; it rejects the observed approximately 27-second server replacement while retaining every later fail-closed PID check.
+- A normal successful provision adds 56 seconds over the two former 2-second dwells. Under repeated near-ready churn, `TimeoutStartSec=8min` is the effective cap rather than all 60 full dwells; that bounded timeout remains state-safe (pre-reservation failure is retryable, post-reservation failure remains fixed-forward only).
+- The v8 marker and serialized dwell value produce `axiom-rustdesk-provision-v4:cdaeca40df2b16a3bc07e4614411fce472e892db744d987fc495995c270ab62c`; the unchanged v4 prefix keeps prior reservation/ready objects legal stale state. Scope is one Axiom production file, with no secret, trust-boundary, privilege, ingress, or finalizer change. Security lens applied.
+
+### Verdict
+
+**PASS — ready for the Axiom-only PID-stability hotfix PR, not for deployment or finalization.** The supplied generated-script, ShellCheck, isolated-state, and full-build evidence (`/nix/store/vrmh1rbjrn3lgw05gp4ldcz1rrzk2zx6-nixos-system-axiom-25.11.20260630.b6018f8`) is sufficient for this minimal diff; live readiness and remote-auth gates remain outstanding.
