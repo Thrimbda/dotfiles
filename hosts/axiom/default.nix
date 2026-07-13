@@ -161,6 +161,21 @@ with builtins;
       frpcDirectRoutePriority = 8500;
       rustdeskVersion = "1.4.9";
       rustdeskHost = "rustdesk.0xc1.wang";
+      rustdeskUser = config.users.users.${userName};
+      rustdeskUserUid = rustdeskUser.uid;
+      rustdeskRuntimeEnvironment = {
+        HOME = "/root";
+        XDG_CONFIG_HOME = "/root/.config";
+        DISPLAY = ":0";
+        WAYLAND_DISPLAY = "wayland-1";
+        XDG_RUNTIME_DIR = "/run/user/${toString rustdeskUserUid}";
+        DBUS_SESSION_BUS_ADDRESS = "unix:path=/run/user/${toString rustdeskUserUid}/bus";
+        XDG_CURRENT_DESKTOP = "Hyprland";
+        XDG_SESSION_TYPE = "wayland";
+        GST_PLUGIN_SYSTEM_PATH_1_0 = "${pkgs.pipewire}/lib/gstreamer-1.0";
+        PIPEWIRE_LATENCY = "1024/48000";
+        PULSE_LATENCY_MSEC = "60";
+      };
       rustdeskSourceHash = "sha256-AnwdIO4TveC48uMioBCvH60xun24ckK420ONSEB9lQI=";
       rustdeskCargoHash = "sha256-HPvvsTcjSErGfdNwsHgWhs930Fe0hmK1g5J/ngtlkKM=";
       rustdeskSource = pkgs.unstable.fetchFromGitHub {
@@ -278,6 +293,9 @@ with builtins;
         provision=axiom-rustdesk-provision-v7
         ready-to-finalize=axiom-rustdesk-ready-v1
         manual-finalize=axiom-rustdesk-finalize-v1
+        runtime-contract=axiom-rustdesk-runtime-v1
+        resolver=${rustdeskHost}:${acornPublicIp}
+        service-environment=${builtins.toJSON rustdeskRuntimeEnvironment}
         ciphertext=${./secrets/rustdesk-password.age}
       ''}";
       rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
@@ -1482,6 +1500,8 @@ with builtins;
 
     modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
 
+    networking.hosts.${acornPublicIp} = [ rustdeskHost ];
+
     assertions = [
       {
         assertion = rustdeskPackage.version == "1.4.9";
@@ -1494,6 +1514,14 @@ with builtins;
       {
         assertion = rustdeskPackage.cargoDeps.drvPath == rustdeskCargoDeps.drvPath;
         message = "axiom RustDesk cargoDeps must be rebuilt from the bound 1.4.9 source";
+      }
+      {
+        assertion = rustdeskUser.home == "/home/c1";
+        message = "axiom RustDesk session user home must remain /home/c1";
+      }
+      {
+        assertion = rustdeskUserUid == 1000;
+        message = "axiom RustDesk session user UID must remain 1000";
       }
       {
         assertion = all (needle: !(hasInfix needle rustdeskFinalizeScript)) [
@@ -1523,12 +1551,7 @@ with builtins;
         frpcDirectRouteUnit
       ];
       path = with pkgs; [ bash coreutils gawk gnugrep gnused procps sudo systemd util-linux ];
-      environment = {
-        HOME = "/root";
-        XDG_CONFIG_HOME = "/root/.config";
-        PIPEWIRE_LATENCY = "1024/48000";
-        PULSE_LATENCY_MSEC = "60";
-      };
+      environment = rustdeskRuntimeEnvironment;
       serviceConfig = {
         Type = "simple";
         ExecStart = "${rustdeskPackage}/bin/rustdesk --service";

@@ -1,3 +1,65 @@
+# Review Change: RustDesk Axiom fixed-forward hotfix
+
+## Findings
+
+### Blocking findings
+
+None.
+
+### Non-blocking findings
+
+1. **LOW — Some task status text still points at the superseded Round 8 gate.** `docs/rfc.md:4,391-414`, `docs/research.md:6,218,238`, and `tasks.md:5-7` still say that a fresh RFC review is pending or that Round 8 FAIL is current, although `docs/review-rfc.md:1-21` records the current Round 9 design PASS. In addition, `docs/research.md:50-54` calls the root-preserving combination a “proven conjunction,” while `docs/review-rfc.md:13-15,25` correctly says that exact combination remains a deployment hypothesis. This is conservative or locally imprecise rather than an unsafe rollout claim: the authoritative test report (`docs/test-report.md:3-12,111-123`) and this review explicitly leave candidate runtime unproved. Update those status/index sentences before or with the PR so future operators do not have to infer precedence.
+2. **LOW — The exact NixOS switch transition was reasoned from pinned implementation and current unit state, not executed as a candidate lifecycle test.** The report exercises generated units and the provision state machine (`docs/test-report.md:24-40`) but does not emulate `rustdesk.service=inactive` plus `rustdesk-provision.service=active/exited`. Read-only review confirmed those current states and an active `multi-user.target`; the locked NixOS switcher stops and starts an active changed service, and the changed provision unit pulls the main service through `Wants=`/`After=` (`hosts/axiom/default.nix:1569-1584`). This leaves no realistic pre-merge skip/double-run defect, but the actual switch output, unit invocation count, and one-attempt state must be captured in the post-merge runtime evidence.
+
+## Verdict
+
+**PASS — ready for the Axiom-only hotfix PR, not for deployment or finalization.** No blocking correctness, security, regression, scope, or verification finding was found.
+
+> **Review target**: `origin/master` / HEAD `0026eb9922c87e9624ed7352b09b58cddb1a45a3` plus the current uncommitted hotfix/documentation diff
+> **Design gate**: Round 9 `PASS — design only`
+> **Verification gate**: current `docs/test-report.md` static/generated/state/full-build PASS; candidate runtime NOT RUN
+> **Security lens**: applied — root service/session coupling, immutable plugin loading, secret use, revision/state transition, finalizer identity, and fixed-forward/rollback boundaries
+> **Reviewed**: 2026-07-13
+
+## Review results
+
+1. **Resolver direction, scope, and canonical config — PASS.** `networking.hosts.${acornPublicIp} = [ rustdeskHost ];` is the correct IP-to-hostnames direction (`hosts/axiom/default.nix:1501-1504`), and the generated hosts file is `8.159.128.125 rustdesk.0xc1.wang`. The public configuration still writes and proves `rustdesk.0xc1.wang` for both host and relay (`hosts/axiom/default.nix:231-266,821-843`); the public IP is only the Axiom NSS target. No client ingress, Acorn, or Charlie resolver change is present.
+2. **Root storage and child environment boundary — PASS with runtime gate.** The root unit retains `HOME=/root` and `XDG_CONFIG_HOME=/root/.config`, declares no `XDG_DATA_HOME`, and keeps the generated immutable-store `PATH` rather than adding `/run/current-system/sw` (`hosts/axiom/default.nix:166-178,1543-1566`). The password CLI separately remains in `/root` and `/root/.config` (`hosts/axiom/default.nix:304-313,614-632,954-960`). No production addition copies, moves, removes, chowns, or points root RustDesk storage at c1 state. Upstream may override or conditionally preserve values while spawning c1 through `sudo`; therefore the unit text is not treated as child proof. The required live child allowlist check remains explicit in `docs/test-report.md:117-123`.
+3. **Wrapper composition and PipeWire closure — PASS.** The RustDesk wrapper prefixes GStreamer core and `gst-plugins-base`; the unit-provided immutable `${pkgs.pipewire}/lib/gstreamer-1.0` is consequently appended, not substituted for those paths (`hosts/axiom/default.nix:175,1554`). The exact unit directly references the PipeWire store output, `libgstpipewire.so` exists in that output, the toplevel closure retains it, and exact-path `gst-inspect-1.0` resolves `pipewiresrc`, `videoconvert`, and `appsink` (`docs/test-report.md:34-39,70-90`). Child receipt of the composed value remains a runtime gate.
+4. **Composite revision and stale-state legality — PASS.** The hash adds a fixed runtime-contract marker, the canonical resolver tuple, and deterministic `builtins.toJSON` serialization of the shared eleven-value environment (`hosts/axiom/default.nix:287-303`). Those inputs contain only public constants and immutable store paths; the existing secret input remains a ciphertext store-path identity, not plaintext. The digest changes from `bea8…10a` to `bf93…9b8`, while `axiom-rustdesk-provision-v4:` remains unchanged, so the deployed reservation/ready parse as legal stale objects rather than malformed state (`docs/test-report.md:63-68`).
+5. **Stale reservation/ready ordering and finalizer rejection — PASS.** Provision proves runtime/public state, publishes and syncs the new reservation, removes and syncs stale ready, revalidates runtime, and only then resolves/reads the secret and calls `--password` (`hosts/axiom/default.nix:859-960`). The candidate finalizer requires a current reservation and current ready before checking live identities and publishing a stamp (`hosts/axiom/default.nix:1356-1386`), so old state cannot finalize. Exact generated-script differential checks show no state-machine logic change beyond revision identity, and the isolated transition test proves stale replacement, one-attempt behavior, and old-state finalizer rejection (`docs/test-report.md:36-38,80-90`).
+6. **Activation/restart behavior — PASS with bounded operational residual.** The currently active/exited `RemainAfterExit` provision unit changes both `ExecStart` and `X-Restart-Triggers`; locked NixOS switch semantics therefore stop it before activation and start it after daemon reload. Its start transaction pulls the currently stopped main service through `Wants=rustdesk.service` and orders provision after it. The active `multi-user.target` also re-evaluates wanted dependencies. Concurrent requests are coalesced by systemd, and `RemainAfterExit` makes a later start a no-op. Under normal process-interruption and orderly-reboot semantics, a repeated switch cannot cause a second password call after reservation publication because the operation lock and current-reservation branch fail closed. Sudden storage/controller uncertainty remains a stop-and-fixed-forward condition. Other realistic failures are missing session/runtime readiness or a failed dependency; these either leave RustDesk stopped or fail before reservation, and still require runtime observation rather than a success claim.
+7. **Scope and documentation claims — PASS.** Before this review artifact, the diff contains six task-local documents and only one production file, `hosts/axiom/default.nix`. There is zero diff under `hosts/acorn/**`, `hosts/charlie/**`, `modules/**`, `packages/**`, or any `*.age` file. Charlie remains explicitly blocked until Axiom manual finalize (`docs/test-report.md:111-123`). The current authoritative report repeatedly says no candidate switch, start, authentication, capture/input, secret read, or finalization occurred; aside from the LOW wording drift above, it does not claim candidate runtime success.
+8. **Verification sufficiency — PASS for pre-merge claims.** Exact option evaluation, generated hosts/unit/scripts, wrapper/closure/factory execution, base/candidate revision comparison, isolated stale-state transitions, and a fresh full Axiom toplevel build directly cover the implementation claims (`docs/test-report.md:22-109`). Historical unchanged package/public-IPC/state-machine evidence remains applicable because generated provision/finalizer logic is byte-equal after normalizing only revision identity. Runtime-dependent child inheritance, NSS/NAT behavior, mutable-state ownership, graphics, authentication, and finalization are clearly excluded from the PASS.
+
+## Security assessment
+
+The hotfix adds no secret source, decryption path, password call, privilege transition, public port, or mutable migration. Session bus/runtime coordinates intentionally couple the root service to the trusted c1 graphical session, but they do not authorize c1 persistent storage and remain within the approved single-owner endpoint boundary. The only new plugin directory is an immutable Nix store path. Existing transient password-argv/crash-metadata residuals are unchanged. No exploitable trust-boundary expansion or secret leakage was found.
+
+## Residual post-merge runtime gates
+
+1. Merge/checks first; use a clean merged `origin/master` descendant of `0026eb99`, with RustDesk still stopped.
+2. Reconfirm old reservation/ready are legal stale/identity-invalid, with no stamp; do not resume, reset, run an old finalizer, or roll back a generation.
+3. During switch, observe the changed provision unit run once and pull the candidate main unit; prove one new-revision password attempt, fresh current reservation + ready, no stamp, and stable fresh process identities.
+4. Compare only approved root/c1 path metadata before and after; require root canonical state to remain `root:root` and no c1 ownership migration.
+5. Read only the approved root and c1 child environment keys. Prove actual child values and the composed core/base/PipeWire path; do not infer inheritance from the parent unit.
+6. Prove canonical NSS resolution to `8.159.128.125`, exclusion of Clash fake-IP, and UDP 21116/TCP 21115 NAT behavior while public config remains canonical.
+7. Post-ready only, prove the actual Wayland socket, c1 bus, portal, PipeWire stream/node, GStreamer factories, screen capture, and keyboard/pointer control.
+8. Run correct-password positive and wrong/old/cross-host negative controls from a fresh controller; only then run the exact manual finalizer and prove stamp/fast-skip/no-second-attempt.
+9. Any post-ready failure consumes the revision: stop RustDesk, do not finalize/reset/rollback, and fixed-forward again. Charlie remains blocked until Axiom finalizes successfully.
+
+## Review evidence and boundaries
+
+- `git diff --check origin/master`: **PASS**.
+- Read-only current-state inspection confirmed Axiom main `inactive/dead`, provision `active/exited`, and `multi-user.target` active; no unit was started, stopped, restarted, or changed.
+- No secret plaintext/ciphertext content or RustDesk public-key value was read or recorded. No production code, service state, finalizer state, deployment, commit, push, or PR was changed by this review.
+
+---
+
+## Historical configuration-PR review — preserved, superseded for the current hotfix
+
+The review below applies to the original configuration PR ending at `3db55d1c`. It remains historical evidence and is not approval of the Axiom fixed-forward candidate or its runtime behavior.
+
 # Review Change: RustDesk self-hosted remote access
 
 > **Verdict**: **PASS - ready for the configuration PR**

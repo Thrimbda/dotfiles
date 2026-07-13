@@ -109,3 +109,20 @@
 - Rebased Acorn、Axiom、Charlie full systems全部build PASS；Charlie final closure继续引用同一已验证RustDesk 1.4.9 store app，exact app verifier与final activation syntax再次PASS。
 - Charlie隔离worktree已fetch并detached到exact `3db55d1c`；tracked tree clean，仅有`.cache/`，继续禁止用于switch。
 - Final `review-change`无blocking finding并给出**PASS for configuration PR**。DNS/SG、destination install/signature、runtime jobs、password正负测、manual finalize、Wayland/TCC/sleep仍是merge后gate。
+
+## 2026-07-12 production rollout and Axiom containment
+
+- 配置PR #139已squash merge为`0026eb9922c87e9624ed7352b09b58cddb1a45a3`。Acorn从clean merged baseline完成switch；RustDesk Server 1.1.14、独立keypair、最小host firewall、DNS-only A记录、Aliyun SG及外部端口正/负测均PASS。
+- Axiom从同一merged commit完成switch并发布current reservation + ready、无stamp。外部正确密码最初返回“连接被对方关闭”；诊断期间的service/server restart使ready process identity漂移，因此旧ready永久不得finalize或resume。
+- 可逆runtime实验分别确认三个修复组件：canonical host必须绕过Clash fake-IP并直达`8.159.128.125`；UID c1的`--server`必须继承当前Hyprland session coordinates；RustDesk service的GStreamer plugin path必须包含PipeWire提供的`pipewiresrc`。实验曾同时改变user HOME，因此最终设计保留root HOME/XDG，并把该精确组合留作candidate runtime gate。
+- Password/salt派生字段与公开配置在root/c1配置域一致；未输出任何value。Portal成功返回PipeWire node后，缺少plugin时的exact server error为`Failed scrap Failed to create element from factory name`，与1.4.9的`pipewiresrc -> videoconvert -> appsink`创建顺序一致。
+- 成功诊断后已停止Axiom RustDesk，撤销runtime systemd drop-in和临时hosts替换，恢复NixOS管理的`/etc/hosts`，删除临时脚本/日志副本，并确认无RustDesk user process。Current reservation与invalid ready保留，等待Axiom-only fresh composite revision fixed-forward；Charlie尚未部署。
+- 新hotfix worktree继续使用`.worktrees/rustdesk-self-hosted-remote-access`，分支为`legion/rustdesk-self-hosted-remote-access-runtime-hotfix`，base为`origin/master` `0026eb99`。Round 9 design、implementation、static verification与change review均已PASS。
+
+## 2026-07-12 Round 9 Axiom runtime hotfix implementation
+
+- Round 9 design PASS后，仅修改`hosts/axiom/default.nix`：加入Axiom-only canonical resolver、root-storage-preserving exact runtime environment、c1 home/UID assertions，以及绑定runtime marker/resolver/serialized environment的fresh composite revision。Acorn、Charlie和既有state-machine production logic未改。
+- Pre/post revision分别为`axiom-rustdesk-provision-v4:bea8eb09c7c01576fe016cb5259969d87d85a87723624d3df9b0313e855a010a`与`axiom-rustdesk-provision-v4:bf93f20590fc87872194f33a8788395aa6c5eb42fada741de87850af560e39b8`；prefix保持，旧state可按既有parser成为legal stale。
+- Exact eval、wrapper/plugin composition、1.4.9 pipeline三factory、generated syntax、isolated stale-state/finalize negative control和fresh Axiom full toplevel build均PASS；exact final output由本轮terminal handoff记录。完整命令与边界见`docs/test-report.md`。
+- 未读取secret plaintext，未启动RustDesk、运行production finalizer、deploy或switch；不声明runtime screen/input PASS。
+- Engineer阶段按职责未commit、push或开PR；不存在Git lifecycle bypass。用户随后要求按最短路径继续完成，下一步为提交并合并Axiom-only hotfix PR。

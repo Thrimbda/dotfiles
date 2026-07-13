@@ -1,3 +1,130 @@
+# Review RFC: RustDesk 自托管远程访问（Axiom root-storage-preserving fixed-forward amendment）
+
+> **Current final verdict**: **PASS — design only**
+> **Current review round**: 9（Round 8 blocker repair）
+> **Engineer gate**: **允许进入 `engineer`，仅限本文 implementation boundary**
+> **Current sources of truth**: amended `../plan.md`、`rfc.md`、`research.md`、merged `hosts/axiom/default.nix`
+> **Historical evidence**: Round 8 FAIL 与 Rounds 1–7 全部保留为历史，不构成独立 approval
+> **Secret boundary**: 本轮未打开任何 `.age` plaintext，未读取未跟踪凭据，也未输出 public-key、ciphertext 或 secret-derived value
+> **Reviewed**: 2026-07-12
+
+## Round 9 current decision
+
+**PASS — design only.** Round 8 的 shared-storage blocker 已通过删除该设计选择而关闭：root service与password CLI继续使用merged canonical `HOME=/root`、`XDG_CONFIG_HOME=/root/.config`；hotfix不声明`XDG_DATA_HOME`，不迁移、复制、删除、chown或读取c1 config作为部署输入。新增内容只包括Axiom NSS mapping、静态session/DBus coordinates、immutable PipeWire plugin path及绑定这些exact values的fresh revision。
+
+现有实验确实把c1 HOME/XDG与session variables共同改变，因此“root-preserving组合能恢复图形控制”仍是待post-merge验证的deployment hypothesis，而不是已完成事实。该不确定性已经被诚实隔离：local ready不代表graphical ready；任何Wayland/bus/portal/PipeWire/capture/input失败都会消耗revision，随后stop并再次fixed-forward。它不会造成storage migration、secret replay、unsafe rollback或Charlie提前部署，因此不阻塞进入实现。
+
+## Findings（按严重性）
+
+### Blocking findings
+
+**无。** 当前设计可实现、可验证并有明确containment；未发现剩余design blocker。
+
+### Non-blocking residuals / implementation guardrails
+
+1. **Functional sufficiency remains unproven until runtime**：merged child已观测到root HOME/XDG，drop-in又证明static session/plugin values能被child继承，但没有单独完成“root HOME/XDG + new coordinates”的screen/control正测。Engineer不得把build或local ready写成该能力已通过；只有ordered post-merge gates能关闭此residual。
+2. **Child inheritance is current-host behavior**：pinned Linux launcher在当前`sudo -E`路径保留parent environment，并显式设置active-user runtime dir；若sudo/upstream路径漂移，generated unit仍可能正确而child environment不正确。Live child whitelist检查是强制gate，失败即fixed-forward，不得补动态discovery framework。
+3. **Root receives session coordinates intentionally**：root unit也会看到`XDG_RUNTIME_DIR`和session bus地址；这是为当前spawn topology提供的显式runtime coupling，不是c1 persistent-storage授权。Implementation不得据此增加任何`/home/c1` RustDesk path、activation migration或ownership repair。
+
+## Round 8 repair traceability
+
+| Round 8 requirement | Current resolution | Result |
+|---|---|---|
+| Decide root storage model | Preserve exact merged root HOME/XDG; c1 local/diagnostic state is noncanonical; no migration/chown/delete or root reference to c1 config paths | **RESOLVED** |
+| Clean/future-state verification and rollback | The risky filesystem transition was removed. Generated actor/environment/path checks prove no new transition; pre/post production metadata snapshots detect regression without deleting active mutable state. Any anomaly stops rollout and is not auto-repaired | **RESOLVED** |
+| Narrow or implement pre-secret session claim | Pre-secret readiness is explicitly limited to RustDesk process/PID/socket/IPC/public proof. All graphical resources are post-ready and failure consumes the revision | **RESOLVED** |
+| Fresh adversarial review | This Round 9 review supersedes Round 8 only as the current gate; Round 8 text remains historical evidence below | **RESOLVED** |
+
+## Review matrix
+
+| Focus | Result | Adversarial result |
+|---|---|---|
+| No hidden root writes to c1 state | **PASS** | Exact service/password HOME/XDG remain `/root`; `XDG_DATA_HOME` stays undeclared; no production path currently references c1 RustDesk storage. Diff/generated-artifact prohibitions plus metadata snapshots make any migration or root ownership side effect a stop condition. |
+| Exact unit environment and revision | **PASS** | One `rustdeskServiceEnvironment` attrset can drive both `systemd.services.rustdesk.environment` and `builtins.toJSON` hash input. It contains all and only the eleven explicit values, excludes generated `PATH`, and retains root HOME/XDG. Resolver tuple and runtime-contract string guarantee a changed digest while `axiom-rustdesk-provision-v4:` remains legal. |
+| Child inheritance and config sync | **PASS with residual** | Current child inheritance and pinned `run_as_user`/root-to-user IPC sync make the design implementable. Public config and password persistence remain rooted in the existing service namespace; c1 files are neither trusted nor migrated. Functional sufficiency is deliberately deferred to external runtime gates. |
+| Verification without destructive clean reset | **PASS** | Because the amendment creates no storage transition, source/generated path inspection proves the future actor/namespace model more directly than deleting production state. Pre/post metadata preservation closes the warm-state regression; destructive reset would endanger the current reservation/password boundary without testing an amendment-owned migration. |
+| Boot/login/portal claim | **PASS** | `After=systemd-user-sessions.service` is not treated as graphical readiness. Ready may exist with no usable Wayland/portal session; login/lock/DPMS are not promised, and graphical failure consumes the revision. |
+| Resolver/plugin/state machine | **PASS** | Axiom-only `networking.hosts` preserves canonical RustDesk config; wrapper prefix preserves core/base while adding immutable PipeWire; stale reservation/ready replacement remains before secret/password use and keeps the old legal prefix. |
+| Containment and Charlie ordering | **PASS** | Axiom stays stopped before merged switch; no finalize/reset/generation rollback after the attempt; storage anomaly or graphical failure stops rollout; Charlie remains blocked until Axiom manual finalize. |
+| Scope/minimality | **PASS** | Production implementation remains confined to `hosts/axiom/default.nix`; no RustDesk source patch, shared framework, test harness, secret ciphertext, Acorn or Charlie production change is needed. |
+
+## Engineer handoff and residual risks
+
+**允许进入 `engineer`：是。** Implementation boundary仅为：
+
+- Axiom-only `networking.hosts` mapping；
+- shared exact `rustdeskServiceEnvironment`，保留root HOME/XDG并加入static session/plugin values；
+- UID/root-storage assertions、fresh composite hash inputs及对应host-local verification；
+- 不改变现有provision/finalizer state-machine语义，除非为验证exact contract所需的最小同文件调整。
+
+本PASS不批准merge、production switch或runtime能力声明。Pre-merge必须完成RFC第8节全部static/build/state gates并通过`review-change`；post-merge仍须证明fresh state、metadata preservation、exact root/child environment、direct resolver、actual graphical resources、password正负测、manual finalize与fast-skip。剩余风险是static session coordinates或root-preserving组合可能在真机失败、Acorn public IP mapping需同步维护，以及login/lock/DPMS不受支持；这些风险均已有stop/fixed-forward边界。
+
+---
+
+## Historical evidence — Round 8 FAIL and Rounds 1–7（not current approval）
+
+> 以下全部内容原样保留为历史证据。其中任何“Current”、FAIL/PASS、engineer handoff或deployment authorization均已被Round 9当前结论取代，不得脱离其历史上下文使用。
+
+# Review RFC: RustDesk 自托管远程访问（Axiom runtime fixed-forward amendment）
+
+> **Current final verdict**: **FAIL**
+> **Current review round**: 8（Axiom runtime fixed-forward amendment）
+> **Engineer gate**: **阻塞；退回 `spec-rfc`，不得开始 production implementation**
+> **Current sources of truth**: `../plan.md`、`rfc.md`、`research.md`、merged `hosts/axiom/default.nix`
+> **Historical evidence**: Rounds 1–7 仅说明设计演进，不构成当前 amendment approval
+> **Secret boundary**: 本轮未打开任何 `.age` plaintext，未读取未跟踪凭据，也未输出 public-key、ciphertext 或 secret-derived value
+> **Reviewed**: 2026-07-12
+
+## Round 8 current decision
+
+**FAIL.** Resolver、static session coordinates、PipeWire plugin composition、fresh revision/state transition、containment 和 Axiom-before-Charlie rollout 本身都已收敛；但把 root `rustdesk --service` 的 `HOME`/XDG storage namespace直接改到 c1 home，仍缺少明确的信任、所有权和 clean-state contract。现有 warm-state runtime PASS 不能证明首次启动、后续 root/c1 双写、ownership 漂移或用户可控路径被 root 使用时仍安全。该缺口会让实现无法给出可信的安全与回滚验证，因此当前设计不能进入 `engineer`。
+
+## Findings（按严重性）
+
+### HIGH — Blocking: root service 与 c1 共用 HOME/XDG config namespace 未被设计
+
+RFC 3.3.1 要求 root unit 使用 `/home/c1`、`/home/c1/.config` 和 `/home/c1/.local/share`，而 merged implementation 目前明确把 root service 和 password CLI context 保持在 `/root`（`hosts/axiom/default.nix:293-294,1526-1531`）。这不是单纯的 display/session hint：pinned RustDesk 1.4.9 的 `Config::path` 会从 HOME/XDG 选择持久化路径，并在源码注释中明确警告 privileged process 不应信任环境提供的 HOME（`libs/hbb_common/src/config.rs:751-805`）；root service 与 user server 的 sync loop又假设 root/local config是可同步的两个状态域（`src/server.rs:691-824`）。Pinned `confy` writer以调用者身份在目标目录创建 `0600` temporary file后rename，故共享路径会让owner取决于最后写入者，而不是保持稳定的c1 ownership。
+
+当前 RFC 没有裁决：
+
+- root service 是否被允许读取、创建或替换 c1 可控目录中的 config、log 和其他 XDG state；
+- 这是否把“c1 可读取 RustDesk password state”的既有信任边界扩大成“c1 及其进程可影响 root service 文件 I/O”；
+- 空白/重装状态由谁创建 RustDesk目录和文件、期望 owner/mode为何、root与c1同时写入时谁是source of truth；
+- 从现有 `/root` 与 `/home/c1` 双状态迁移时如何处理冲突，以及 rollback/fixed-forward如何处理已经改变的mutable ownership/state。
+
+这项是 blocker，而不是后续优化：错误选择可能在 clean start 产生 root-owned c1 state、让 user server无法持久化，或让 root process使用用户可控路径；现有 revision fixed-forward只保护password attempt，不会撤销这些filesystem side effects。
+
+### Non-blocking guardrail — session readiness claim must stay narrow
+
+Static `:0`、`wayland-1`、UID 1000 与 c1 paths 对当前单用户 Hyprland 目标是诚实且有 runtime evidence 的绑定。RFC也正确声明 `After=systemd-user-sessions.service` 不证明 compositor/portal ready，不支持 greetd/login screen、任意 Wayland socket、lock或DPMS。
+
+但 merged provision readiness只证明目标UID的`--server` PID/socket/IPC与public config，不证明Wayland socket、session bus或portal可用。当前设计可以把这些保留为post-ready runtime gates，并接受失败后消耗该revision、再次fixed-forward；此时不要把pre-secret gate描述成“Hyprland ready”。若设计意图是active Hyprland缺失时一定在reservation/secret前失败，则RFC必须给出exact resource/session checks和no-login negative test。该措辞选择本身不要求新session-discovery framework。
+
+## Review matrix
+
+| Focus | Result | Adversarial result |
+|---|---|---|
+| Axiom-only NSS mapping | **PASS** | Locked NixOS定义`networking.hosts`为IP到hostname list，并生成`/etc/hosts`。`networking.hosts.${acornPublicIp} = [ rustdeskHost ];`在Axiom host module中表达`8.159.128.125 rustdesk.0xc1.wang`；RustDesk public host/relay仍由`rustdeskHost`写入canonical hostname。Effective eval与Charlie-negative gate足够发现merge或scope漂移。 |
+| Static c1/Hyprland coordinates | **PASS with guardrail** | HOME/UID从`config.users.users.${userName}`派生并assert为`/home/c1`/`1000`，display/socket坐标显式固定、漂移后重新review，不做动态猜测；boot/login-screen限制已披露。Readiness措辞须遵守上一节边界。 |
+| Root HOME/XDG trust and ownership | **FAIL** | Warm-state字段一致与一次成功连接不能覆盖clean initialization、root/c1 writer ownership、user-controlled path trust或migration/rollback。 |
+| GStreamer path composition | **PASS** | Evaluated RustDesk wrapper使用`--prefix GST_PLUGIN_SYSTEM_PATH_1_0 : <gstreamer-core>:<gst-plugins-base>`；locked `makeBinaryWrapper`会把该prefix加在unit已有值之前。因此unit值`${pkgs.pipewire}/lib/gstreamer-1.0`产生core/base/pipewire组合，而非替换core/base。Store-path unit引用、closure check、三factory `gst-inspect`和live child process env共同构成充分gate。 |
+| Revision and stale state | **PASS** | 新增runtime-contract、resolver tuple和serialized shared environment必然改变hash input；固定`axiom-rustdesk-provision-v4:`保持旧reservation/ready为合法stale。现有顺序在secret/password前publish current reservation、删除并sync stale ready；fresh state tests仍是merge blocker。 |
+| Verification/rollback/containment | **FAIL only on root-state gap** | Stopped-until-merge、clean merged switch、identity-bound ready、auth正/负测、no-finalize-on-failure、no-generation-rollback和Axiom finalize前禁止Charlie均充分。它们未覆盖root/c1 shared storage产生的mutable filesystem side effects。 |
+| Scope/minimality | **PASS conditionally** | Resolver、environment、plugin和revision不需要新framework或RustDesk功能patch，production scope可保持`hosts/axiom/default.nix`。但不能用“minimal”跳过root storage裁决；若保持root/c1 config隔离需要改变spawn机制，RFC必须如实调整non-goal与scope。 |
+
+## Required RFC changes before re-review
+
+1. **裁决root storage模型**，不能只说single-owner trusted endpoint。优先保持root config/log namespace与c1 namespace分离，并定义如何只把session coordinates传给c1 `--server`。如果仍选择root service直接使用c1 HOME/XDG，必须显式接受扩大的root-path trust boundary，并列出全部受影响mutable paths、canonical owner/mode、symlink/parent-directory策略、root/c1 writer/source-of-truth规则和现有双状态迁移语义。
+2. **增加clean/future-state verification与rollback**：至少覆盖RustDesk mutable state absent时的首次service/user-server启动、两次service restart与一次logout/login后的config/password-derived/public-field persistence和owner/mode；覆盖现有root/c1状态冲突与失败中断；说明失败后除停止RustDesk和fixed-forward外，如何安全处理已经创建或改属主的文件。验证只能比较允许字段/metadata，不得读取或记录secret value。
+3. **收窄或实现pre-secret session claim**：明确现有PID/socket/IPC gate只证明c1 server，图形资源留到post-ready acceptance；或者规定exact pre-reservation session/socket/bus checks与no-login zero-reservation/zero-secret/zero-password negative test。
+4. 修订后重新运行fresh `review-rfc`。在取得PASS前，不得修改production code、merge或switch。
+
+---
+
+## Historical evidence — Rounds 1–7（not current approval）
+
+> 以下全部内容仅保留为历史证据。其中任何“Current”、PASS、engineer handoff或deployment authorization均不批准当前Axiom runtime amendment。
+
 # Review RFC: RustDesk 自托管远程访问（简化自动部署）
 
 > **Current final verdict**: **PASS — design only**
