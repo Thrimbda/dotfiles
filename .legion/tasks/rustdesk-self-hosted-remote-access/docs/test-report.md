@@ -1,6 +1,132 @@
 # RustDesk 自托管远程访问：verify-change 测试报告
 
-## Current report — RustDesk Client 1.4.9 pre-merge candidate
+## Current authoritative report — independent Round 9 Axiom fixed-forward verification
+
+> 日期：2026-07-12
+> Worktree：`/home/c1/dotfiles/.worktrees/rustdesk-self-hosted-remote-access`
+> Branch：`legion/rustdesk-self-hosted-remote-access-runtime-hotfix`
+> Baseline / HEAD：fresh-fetched `origin/master` = `0026eb9922c87e9624ed7352b09b58cddb1a45a3`
+> Candidate：该 HEAD 上的当前未提交 hotfix/doc diff
+> Verdict：**PASS — pre-merge static, generated-artifact, isolated-state and full-build verification only**
+> Runtime：**NOT RUN**；未 deploy/switch/start RustDesk，未连接 production mutable state，未运行 production finalizer，未读取 secret plaintext
+
+### 1. Independent verdict and scope
+
+实际代码而非 engineer 报告已复核。`git diff origin/master` 共 7 个文件：6 个 task-local Legion 文档与唯一 production 文件 `hosts/axiom/default.nix`。Production change 只有 Axiom resolver、共享 exact runtime environment、home/UID assertions，以及 composite revision marker/resolver/environment inputs。
+
+- `hosts/acorn/**`、`hosts/charlie/**`、`modules/**`、`packages/**`：zero diff。
+- `*.age`：zero diff；完整 diff 人工审阅及结构断言未发现 secret plaintext。没有输出 RustDesk public key、ciphertext 内容或 secret-derived value。
+- Root storage 保持 `HOME=/root`、`XDG_CONFIG_HOME=/root/.config`；`XDG_DATA_HOME` 未声明。Source diff、generated provision/finalizer/unit、fresh activation 均无 `/home/c1/.config/rustdesk`，也无 copy/move/delete/chown migration addition。
+- Round 9 `review-rfc` 的 current design-only verdict 为 PASS；其后保留的 Round 8 FAIL 与更早记录均明确为 historical，不用于本次 PASS。
+
+### 2. Commands and evidence
+
+| Gate | Executed command / method | Independent result |
+|---|---|---|
+| Baseline and full diff | `git fetch origin`; `git status --short --branch`; `git rev-parse HEAD origin/master`; `git diff --name-status --stat origin/master`; per-file full diff inspection | **PASS**：HEAD/origin/master/merge-base 均为 `0026eb99`；唯一 production path 是 `hosts/axiom/default.nix`。 |
+| Scope / secret ciphertext / whitespace | `git diff --check origin/master`; `git diff --quiet origin/master -- hosts/acorn hosts/charlie modules packages`; assert non-doc diff equals Axiom file; assert `git diff --name-only ... -- '*.age'` empty | **PASS**：无 Acorn/Charlie drift、无 `.age` change、无 whitespace error。 |
+| Nix parse | `nix-instantiate --parse hosts/{acorn,axiom,charlie}/default.nix` | **PASS 3/3**。 |
+| Exact resolver/env/user eval | `nix eval --raw --impure --expr '<candidate/base exact-equality assertions>'` | **PASS**：Axiom exact mapping存在；Acorn/Charlie对应lookup均为`[]`；option-level environment移除generated `PATH`后与下列11项exact相等；home=`/home/c1`、UID=`1000`。 |
+| Canonical public config | Evaluate/realize exact `axiom-rustdesk-public-config`, then fixed-string positive checks for canonical host/relay and IP negative checks; only PASS/FAIL emitted | **PASS**：host与relay均仍为`rustdesk.0xc1.wang`，没有改成`8.159.128.125`；key value未输出。 |
+| Revision | Base/candidate分别读取evaluated `rustdesk-provision.restartTriggers[1]`并断言known values、difference与prefix | **PASS**：exact pre/post见第4节，合法prefix未变。 |
+| Revision serialization / storage boundary | Focused source/diff assertions over the `hashString` input and production additions | **PASS**：含runtime marker、resolver、serialized exact environment；secret相关输入仅为ciphertext path interpolation，无plaintext/readFile；无storage migration addition。 |
+| Generated unit | Realize evaluated `systemd.units."rustdesk.service".unit`; parse `Environment=` without printing sensitive values | **PASS**：11项approved值全部exact；NixOS unit generator另加`PATH`、`LOCALE_ARCHIVE`、`TZDIR`。无`XDG_DATA_HOME`、`/run/current-system/sw`或c1 RustDesk storage path，`User=root`。 |
+| Wrapper/plugin composition | `strings <rustdesk-1.4.9>/bin/rustdesk` plus evaluated unit PipeWire path; run pinned `gst-inspect-1.0` with only composed immutable plugin dirs | **PASS**：wrapper `--prefix`保留core/base，unit追加PipeWire；`pipewiresrc`、`videoconvert`、`appsink`均解析。 |
+| Pinned source/order | Derivation inspection identifies exact 1.4.9 source and vendor-staging source input; inspect pinned `pipewire.rs` factory call positions | **PASS**：source `/nix/store/x4bsb2rq5whcjszidn0q6qv2wbv2zivf-source`；`pipewiresrc@270 < videoconvert@285 < appsink@287`。 |
+| Generated scripts | Re-evaluate/realize candidate and baseline provision/finalizer; candidate `bash -n`; Nix-pinned ShellCheck 0.11.0; normalize only revision value/revision-file path then compare | **PASS 2/2 syntax + 2/2 ShellCheck + 2/2 normalized equality**；revision identity外无generated logic delta，finalizer仍zero-secret/zero-password。 |
+| State ordering / attempt budget | Exact candidate scripts with only synthetic state directory substitution; `unshare --user --map-root-user`; runtime/public gates stubbed, secret gate instrumented; ephemeral repo-local state removed | **PASS**：old reservation/ready均被接受为legal stale；new reservation先发布，stale ready在secret gate前删除；第二次运行`attempt-used`且gate计数仍1；old-state finalizer以`reservation-not-current`拒绝。Production state/secret/finalizer未触碰。 |
+| Fresh full build | `nix build --no-link --print-out-paths --rebuild '.#nixosConfigurations.axiom.config.system.build.toplevel'` | **PASS**：output见第6节。 |
+| Fresh closure/hosts/unit/activation | `nix-store --query --requisites <toplevel>` plus focused immutable artifact assertions | **PASS**：closure含exact PipeWire output与`libgstpipewire.so`；generated hosts有且仅有目标tuple；unit含store plugin path；activation无c1 RustDesk storage path。 |
+
+这些命令优先使用 option-level exact equality、actual generated artifacts、closure/factory execution、base/candidate differential comparison与隔离state transition；它们比只重跑一个宽泛build更直接证明本hotfix的claims。完整toplevel rebuild作为最终integration gate补充。
+
+### 3. Exact approved effective environment
+
+`config.systemd.services.rustdesk.environment` 移除由 `path` 生成的 `PATH` 后，exact为：
+
+```text
+HOME=/root
+XDG_CONFIG_HOME=/root/.config
+DISPLAY=:0
+WAYLAND_DISPLAY=wayland-1
+XDG_RUNTIME_DIR=/run/user/1000
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+XDG_CURRENT_DESKTOP=Hyprland
+XDG_SESSION_TYPE=wayland
+GST_PLUGIN_SYSTEM_PATH_1_0=/nix/store/dflhqrvw0z5cmpwism5pz020554z44l6-pipewire-1.4.9/lib/gstreamer-1.0
+PIPEWIRE_LATENCY=1024/48000
+PULSE_LATENCY_MSEC=60
+```
+
+Candidate `PATH` 与 clean baseline逐字相同。Generated unit还继承NixOS全局`LOCALE_ARCHIVE`和`TZDIR`；它们不是`systemd.services.rustdesk.environment` hotfix delta。
+
+### 4. Composite revision evidence
+
+- Deployed pre-change：`axiom-rustdesk-provision-v4:bea8eb09c7c01576fe016cb5259969d87d85a87723624d3df9b0313e855a010a`
+- Candidate post-change：`axiom-rustdesk-provision-v4:bf93f20590fc87872194f33a8788395aa6c5eb42fada741de87850af560e39b8`
+- Result：digest不同；exact legal prefix `axiom-rustdesk-provision-v4:`保持不变。
+- Serialized identity含`runtime-contract=axiom-rustdesk-runtime-v1`、`resolver=rustdesk.0xc1.wang:8.159.128.125`与11项environment JSON。Secret只以`.age` ciphertext store-path identity参与；未读取或序列化plaintext。
+
+### 5. Wrapper and generated-script evidence
+
+Effective plugin path由wrapper prefix与unit value组成：
+
+```text
+/nix/store/zvgn0q1ahbp13cgldwg98hp3r239yvqr-gstreamer-1.26.11/lib/gstreamer-1.0
+:/nix/store/1dvjqj8amffkmp0a99ch7c93bfcf65hp-gst-plugins-base-1.26.11/lib/gstreamer-1.0
+:/nix/store/dflhqrvw0z5cmpwism5pz020554z44l6-pipewire-1.4.9/lib/gstreamer-1.0
+```
+
+Candidate generated artifacts：
+
+- Provision：`/nix/store/fshz7pfqy0i45r8hrpsgcfcm580j07zb-axiom-rustdesk-provision`
+- Finalizer：`/nix/store/0d332bzgk9vbs45ci3gkw51amglcwima-rustdesk-provision-finalize/bin/rustdesk-provision-finalize`
+- Unit：`/nix/store/2y4vghkl7dwcdv3lv7yj4zmfyrkxz0h3-unit-rustdesk.service/rustdesk.service`
+
+Operational order in the exact generated provision is:
+
+`publish current reservation -> remove stale ready + sync -> revalidate runtime -> resolve secret -> invoke --password`
+
+Normalized base/candidate scripts are byte-equal beyond revision identity. Existing pre-secret readiness remains limited to RustDesk main PID, c1 server PID/socket, IPC and approved public config; no Wayland/session-bus/portal/PipeWire pre-reservation promise was added.
+
+### 6. Fresh Axiom build
+
+```text
+/nix/store/wcz94ci1ladj6dhyw2sdvv46kwgqdv89-nixos-system-axiom-25.11.20260630.b6018f8
+```
+
+`--rebuild` completed successfully. No switch, activation, service start or production-state access occurred.
+
+### 7. Verification command adjustments
+
+No implementation failure was hidden. Verification-only corrections were:
+
+1. Evaluated unit output is a directory; inspection was corrected from the directory path to its `rustdesk.service` member.
+2. Generated unit contains expected NixOS global `LOCALE_ARCHIVE`/`TZDIR` in addition to service `PATH`; exact hotfix equality remains correctly asserted at the `systemd.services.rustdesk.environment` option layer.
+3. Bare `file` was unavailable; wrapper prefix was verified directly with `strings` and factory execution.
+4. Cargo vendor source linkage passes through the evaluated `vendor-staging` derivation; the corrected derivation-hop assertion confirms the exact package source input.
+
+No required static/build check was skipped. Runtime checks were intentionally not run by contract.
+
+### 8. Residual post-merge runtime gates — not PASS for this candidate
+
+This PASS does **not** establish runtime authentication, capture or input control and does not authorize direct finalize/deployment. Remaining ordered gates are:
+
+1. Merge/review/checks, then use a clean merged `origin/master`; Axiom must remain stopped beforehand.
+2. Confirm old reservation/ready are stale/invalid; no resume, reset, old finalizer or generation rollback.
+3. After switch, prove fresh current reservation + fresh ready, no stamp, one password attempt, and stable fresh process identities.
+4. Compare only approved root/c1 storage metadata; root canonical state remains `root:root`, no migration/ownership drift.
+5. Verify live root and c1 server whitelist environments, including composed core/base/PipeWire path and root HOME/XDG.
+6. Verify direct canonical NSS resolution and UDP/TCP NAT path.
+7. Post-ready only: actual Wayland socket, user bus, portal, PipeWire stream/node, capture and keyboard/pointer control.
+8. Correct-password positive plus wrong/old/cross-host negative controls; then exact manual finalizer and fast-skip/no-second-attempt proof.
+9. Any post-ready failure consumes this revision: stop RustDesk and fixed-forward again; do not finalize/reset/rollback. Charlie remains blocked until Axiom finalizes successfully.
+
+---
+
+## Historical pre-deployment evidence — RustDesk Client 1.4.9 configuration PR candidate
+
+> **HISTORICAL ONLY**：以下证据对应已合并的配置PR候选及其当时边界，不覆盖本Round 9 hotfix，也不构成当前runtime PASS。
 
 > 日期：2026-07-12
 > Target：`origin/master` `0d61c714` + feature HEAD `3db55d1c`；Charlie隔离worktree为同一commit
