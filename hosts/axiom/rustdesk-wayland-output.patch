@@ -2,11 +2,14 @@ diff --git a/libs/scrap/src/wayland/pipewire.rs b/libs/scrap/src/wayland/pipewir
 index e0396095d..edcd3fbed 100644
 --- a/libs/scrap/src/wayland/pipewire.rs
 +++ b/libs/scrap/src/wayland/pipewire.rs
-@@ -598,3 +598,4 @@ static mut INIT: bool = false;
+@@ -598,6 +598,7 @@ static mut INIT: bool = false;
  const RESTORE_TOKEN: &str = "restore_token";
  const RESTORE_TOKEN_CONF_KEY: &str = "wayland-restore-token";
  const PIPEWIRE_DISPLAY_OFFSET_CONF_KEY: &str = "wayland-pipewire-display-offset";
 +const FIXED_OUTPUT_ENV: &str = "RUSTDESK_WAYLAND_FIXED_OUTPUT";
+
+ pub fn get_available_cursor_modes() -> Result<u32, dbus::Error> {
+     let conn = SyncConnection::new_session()?;
 @@ -744,9 +745,48 @@ fn on_create_session_response(
          // See `is_server_running()` to understand the following code.
          if is_server_running() {
