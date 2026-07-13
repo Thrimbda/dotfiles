@@ -174,8 +174,6 @@ with builtins;
         XDG_CURRENT_DESKTOP = "Hyprland";
         XDG_SESSION_TYPE = "wayland";
         GST_PLUGIN_SYSTEM_PATH_1_0 = "${pkgs.pipewire}/lib/gstreamer-1.0";
-        RUSTDESK_WAYLAND_FIXED_OUTPUT = "DP-4";
-        RUSTDESK_WAYLAND_USE_PHYSICAL_SIZE = "1";
         PIPEWIRE_LATENCY = "1024/48000";
         PULSE_LATENCY_MSEC = "60";
       };
