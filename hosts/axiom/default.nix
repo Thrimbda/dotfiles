@@ -47,6 +47,11 @@ with builtins;
             # Permit relaunching the Caelestia WlSessionLock client if it exits.
             allow_session_lock_restore = true
           }
+
+          cursor {
+            # Keep the host cursor out of hidden-cursor PipeWire captures.
+            no_hardware_cursors = false
+          }
         '';
         monitors = [
           {
@@ -179,7 +184,6 @@ with builtins;
       };
       rustdeskSourceHash = "sha256-AnwdIO4TveC48uMioBCvH60xun24ckK420ONSEB9lQI=";
       rustdeskCargoHash = "sha256-HPvvsTcjSErGfdNwsHgWhs930Fe0hmK1g5J/ngtlkKM=";
-      rustdeskWaylandPatch = ./rustdesk-wayland-output.patch;
       rustdeskSource = pkgs.unstable.fetchFromGitHub {
         owner = "rustdesk";
         repo = "rustdesk";
@@ -192,13 +196,20 @@ with builtins;
         src = rustdeskSource;
         hash = rustdeskCargoHash;
       };
-      rustdeskPackage = pkgs.unstable.rustdesk.overrideAttrs (_finalAttrs: previousAttrs: {
+      rustdeskPackage = pkgs.unstable.rustdesk.overrideAttrs (_finalAttrs: _previousAttrs: {
         version = rustdeskVersion;
         src = rustdeskSource;
         cargoHash = rustdeskCargoHash;
         cargoDeps = rustdeskCargoDeps;
-        patches = (previousAttrs.patches or [ ]) ++ [ rustdeskWaylandPatch ];
       });
+      rustdeskPortalPicker = pkgs.writeShellScript "axiom-rustdesk-portal-picker" ''
+        printf '%s\n' '[SELECTION]/screen:DP-4'
+      '';
+      rustdeskPortalConfig = pkgs.writeText "axiom-xdph.conf" ''
+        screencopy {
+          custom_picker_binary = ${rustdeskPortalPicker}
+        }
+      '';
       rustdeskSecret = config.age.secrets.rustdesk-password;
       rustdeskSecretMetadata =
         "${rustdeskSecret.owner}:${rustdeskSecret.group}:${removePrefix "0" rustdeskSecret.mode}";
@@ -300,6 +311,10 @@ with builtins;
         runtime-stability-seconds=${toString rustdeskRuntimeStabilitySeconds}
         resolver=${rustdeskHost}:${acornPublicIp}
         service-environment=${builtins.toJSON rustdeskRuntimeEnvironment}
+        portal-picker=${rustdeskPortalPicker}
+        portal-config=${rustdeskPortalConfig}
+        portal-output=DP-4
+        hardware-cursor=true
         ciphertext=${./secrets/rustdesk-password.age}
       ''}";
       rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
@@ -1477,6 +1492,8 @@ with builtins;
     }];
 
     environment.systemPackages = [ c1ctl rustdeskFinalize ];
+
+    home.configFile."hypr/xdph.conf".source = rustdeskPortalConfig;
 
     user.packages = with pkgs; [
       unstable.antigravity-fhs
