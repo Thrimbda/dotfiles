@@ -163,6 +163,7 @@ with builtins;
       rustdeskHost = "rustdesk.0xc1.wang";
       rustdeskUser = config.users.users.${userName};
       rustdeskUserUid = rustdeskUser.uid;
+      rustdeskRuntimeStabilitySeconds = 30;
       rustdeskRuntimeEnvironment = {
         HOME = "/root";
         XDG_CONFIG_HOME = "/root/.config";
@@ -290,10 +291,11 @@ with builtins;
         source=${rustdeskSourceHash}
         cargo=${rustdeskCargoHash}
         public-config=${rustdeskPublicConfig}
-        provision=axiom-rustdesk-provision-v7
+        provision=axiom-rustdesk-provision-v8
         ready-to-finalize=axiom-rustdesk-ready-v1
         manual-finalize=axiom-rustdesk-finalize-v1
         runtime-contract=axiom-rustdesk-runtime-v1
+        runtime-stability-seconds=${toString rustdeskRuntimeStabilitySeconds}
         resolver=${rustdeskHost}:${acornPublicIp}
         service-environment=${builtins.toJSON rustdeskRuntimeEnvironment}
         ciphertext=${./secrets/rustdesk-password.age}
@@ -785,7 +787,7 @@ with builtins;
               candidate_main_start=$ready_main_start
               candidate_server_pid=$ready_server_pid
               candidate_server_start=$ready_server_start
-              ${pkgs.coreutils}/bin/sleep 2
+              ${pkgs.coreutils}/bin/sleep ${toString rustdeskRuntimeStabilitySeconds}
               if validate_runtime_pids \
                 "$candidate_main_pid" "$candidate_server_pid" \
                 && [ "$validated_main_start" = "$candidate_main_start" ] \
