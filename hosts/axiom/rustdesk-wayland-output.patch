@@ -1,0 +1,83 @@
+diff --git a/libs/scrap/src/wayland/pipewire.rs b/libs/scrap/src/wayland/pipewire.rs
+index e0396095d..edcd3fbed 100644
+--- a/libs/scrap/src/wayland/pipewire.rs
++++ b/libs/scrap/src/wayland/pipewire.rs
+@@ -598,6 +598,7 @@ static mut INIT: bool = false;
+ const RESTORE_TOKEN: &str = "restore_token";
+ const RESTORE_TOKEN_CONF_KEY: &str = "wayland-restore-token";
+ const PIPEWIRE_DISPLAY_OFFSET_CONF_KEY: &str = "wayland-pipewire-display-offset";
++const FIXED_OUTPUT_ENV: &str = "RUSTDESK_WAYLAND_FIXED_OUTPUT";
+
+ pub fn get_available_cursor_modes() -> Result<u32, dbus::Error> {
+     let conn = SyncConnection::new_session()?;
+@@ -744,9 +745,48 @@ fn on_create_session_response(
+         // See `is_server_running()` to understand the following code.
+         if is_server_running() {
+             if is_support_restore_token {
+-                let restore_token = config::LocalConfig::get_option(RESTORE_TOKEN_CONF_KEY);
+-                if !restore_token.is_empty() {
+-                    args.insert(RESTORE_TOKEN.to_string(), Variant(Box::new(restore_token)));
++                if let Ok(output) = std::env::var(FIXED_OUTPUT_ENV) {
++                    if !output.is_empty() {
++                        let mut data: PropMap = HashMap::new();
++                        data.insert(
++                            "output".to_string(),
++                            Variant(Box::new(output)),
++                        );
++                        data.insert(
++                            "token".to_string(),
++                            Variant(Box::new("rustdesk-fixed-output".to_string())),
++                        );
++                        data.insert(
++                            "windowHandle".to_string(),
++                            Variant(Box::new(0u64)),
++                        );
++                        data.insert(
++                            "windowClass".to_string(),
++                            Variant(Box::new(String::new())),
++                        );
++                        data.insert(
++                            "withCursor".to_string(),
++                            Variant(Box::new(0u32)),
++                        );
++                        data.insert(
++                            "timeIssued".to_string(),
++                            Variant(Box::new(0u64)),
++                        );
++                        let restore_data: (String, u32, Variant<Box<dyn RefArg>>) = (
++                            "hyprland".to_string(),
++                            3u32,
++                            Variant(Box::new(data)),
++                        );
++                        args.insert(
++                            "restore_data".to_string(),
++                            Variant(Box::new(restore_data)),
++                        );
++                    }
++                } else {
++                    let restore_token = config::LocalConfig::get_option(RESTORE_TOKEN_CONF_KEY);
++                    if !restore_token.is_empty() {
++                        args.insert(RESTORE_TOKEN.to_string(), Variant(Box::new(restore_token)));
++                    }
+                 }
+                 // persist_mode may be configured by the user.
+                 args.insert("persist_mode".to_string(), Variant(Box::new(2u32)));
+diff --git a/src/server/wayland.rs b/src/server/wayland.rs
+index b4e33d6d3..e323a10bc 100644
+--- a/src/server/wayland.rs
++++ b/src/server/wayland.rs
+@@ -170,8 +170,12 @@ pub(super) async fn check_init() -> ResultType<()> {
+                     let move_mouse_to = |x, y| temp_mouse_move_handle.move_mouse_to(x, y);
+                     fill_displays(move_mouse_to, crate::get_cursor_pos, &mut all)?;
+                 }
+-                log::debug!("Attempting to fix logical size with try_fix_logical_size()");
+-                try_fix_logical_size(&mut all);
++                if std::env::var_os("RUSTDESK_WAYLAND_USE_PHYSICAL_SIZE").is_some() {
++                    log::info!("Keeping the portal's physical Wayland capture size");
++                } else {
++                    log::debug!("Attempting to fix logical size with try_fix_logical_size()");
++                    try_fix_logical_size(&mut all);
++                }
+                 *PIPEWIRE_INITIALIZED.write().unwrap() = true;
+                 let num = all.len();
+                 let primary = super::display_service::get_primary_2(&all);

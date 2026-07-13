@@ -174,11 +174,14 @@ with builtins;
         XDG_CURRENT_DESKTOP = "Hyprland";
         XDG_SESSION_TYPE = "wayland";
         GST_PLUGIN_SYSTEM_PATH_1_0 = "${pkgs.pipewire}/lib/gstreamer-1.0";
+        RUSTDESK_WAYLAND_FIXED_OUTPUT = "DP-4";
+        RUSTDESK_WAYLAND_USE_PHYSICAL_SIZE = "1";
         PIPEWIRE_LATENCY = "1024/48000";
         PULSE_LATENCY_MSEC = "60";
       };
       rustdeskSourceHash = "sha256-AnwdIO4TveC48uMioBCvH60xun24ckK420ONSEB9lQI=";
       rustdeskCargoHash = "sha256-HPvvsTcjSErGfdNwsHgWhs930Fe0hmK1g5J/ngtlkKM=";
+      rustdeskWaylandPatch = ./rustdesk-wayland-output.patch;
       rustdeskSource = pkgs.unstable.fetchFromGitHub {
         owner = "rustdesk";
         repo = "rustdesk";
@@ -191,11 +194,12 @@ with builtins;
         src = rustdeskSource;
         hash = rustdeskCargoHash;
       };
-      rustdeskPackage = pkgs.unstable.rustdesk.overrideAttrs (_finalAttrs: _previousAttrs: {
+      rustdeskPackage = pkgs.unstable.rustdesk.overrideAttrs (_finalAttrs: previousAttrs: {
         version = rustdeskVersion;
         src = rustdeskSource;
         cargoHash = rustdeskCargoHash;
         cargoDeps = rustdeskCargoDeps;
+        patches = (previousAttrs.patches or [ ]) ++ [ rustdeskWaylandPatch ];
       });
       rustdeskSecret = config.age.secrets.rustdesk-password;
       rustdeskSecretMetadata =
@@ -293,7 +297,7 @@ with builtins;
         public-config=${rustdeskPublicConfig}
         provision=axiom-rustdesk-provision-v8
         ready-to-finalize=axiom-rustdesk-ready-v1
-        manual-finalize=axiom-rustdesk-finalize-v1
+        manual-finalize=axiom-rustdesk-finalize-v2
         runtime-contract=axiom-rustdesk-runtime-v1
         runtime-stability-seconds=${toString rustdeskRuntimeStabilitySeconds}
         resolver=${rustdeskHost}:${acornPublicIp}
@@ -1341,7 +1345,12 @@ with builtins;
           validated_server_uid=$process_uid
         }
 
-        validate_ready_runtime() {
+        finalize_server_pid=
+        finalize_server_start=
+        finalize_server_exe=
+        finalize_server_uid=
+
+        validate_finalization_runtime() {
           validate_main_service || return 1
           [ "$validated_main_pid" = "$ready_main_pid" ] \
             && [ "$validated_main_start" = "$ready_main_start" ] \
@@ -1349,10 +1358,17 @@ with builtins;
             && [ "$validated_main_uid" = "$ready_main_uid" ] \
             || return 1
           validate_user_server || return 1
-          [ "$validated_server_pid" = "$ready_server_pid" ] \
-            && [ "$validated_server_start" = "$ready_server_start" ] \
-            && [ "$validated_server_exe" = "$ready_server_exe" ] \
-            && [ "$validated_server_uid" = "$ready_server_uid" ]
+          if [ -z "$finalize_server_pid" ]; then
+            finalize_server_pid=$validated_server_pid
+            finalize_server_start=$validated_server_start
+            finalize_server_exe=$validated_server_exe
+            finalize_server_uid=$validated_server_uid
+          else
+            [ "$validated_server_pid" = "$finalize_server_pid" ] \
+              && [ "$validated_server_start" = "$finalize_server_start" ] \
+              && [ "$validated_server_exe" = "$finalize_server_exe" ] \
+              && [ "$validated_server_uid" = "$finalize_server_uid" ]
+          fi
         }
 
         acquire_operation_lock || fail operation-lock
@@ -1376,13 +1392,13 @@ with builtins;
         [ "$object_state" = current ] || fail reservation-not-current
         inspect_ready_object "$ready" || fail ready
         [ "$ready_state" = current ] || fail ready-not-current
-        validate_ready_runtime || fail process-identity
+        validate_finalization_runtime || fail process-identity
         ${pkgs.coreutils}/bin/sleep 2
         inspect_revision_object "$reservation" || fail reservation
         [ "$object_state" = current ] || fail reservation-not-current
         inspect_ready_object "$ready" || fail ready
         [ "$ready_state" = current ] || fail ready-not-current
-        validate_ready_runtime || fail process-identity
+        validate_finalization_runtime || fail process-identity
         publish_revision_object "$stamp" stamp || fail stamp-publish
         remove_ready_object || fail ready-remove
         trap - EXIT HUP INT TERM
