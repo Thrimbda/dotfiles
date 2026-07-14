@@ -13,6 +13,7 @@
 - [Auth Mini Gateway on Acorn](tasks/auth-mini-acorn-gateway.md)
 - [Auth Mini Acorn Empty Response Hotfix](tasks/auth-mini-acorn-empty-response.md)
 - [Auth Mini Gateway Login Failure](tasks/auth-mini-gateway-login-failure.md)
+- [Auth Mini Gateway Latest Pin](tasks/auth-mini-gateway-latest-pin.md)
 - [Auth Mini Resend SMTP](tasks/auth-mini-resend-smtp.md)
 - [Auth Mini Upstream Release Pin](tasks/auth-mini-upstream-release-pin.md)
 - [Aliyun NixOS Image Host](tasks/aliyun-nixos-image-host.md)

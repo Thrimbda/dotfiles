@@ -266,3 +266,4 @@
 - Added reusable Bluetooth control-surface, Agent1 privacy, rfkill/TLP graph-validation, and device-name-list patterns plus deploy-only hardware follow-up.
 - Marked `dotfiles-caelestia-only-bluetooth` completed after implementation PR #136 merged and the implementation worktree was removed.
 - Added task summary for `auth-mini-upstream-release-pin` and recorded the fixed-output release refresh/build pattern.
+- Added task summary for `auth-mini-gateway-latest-pin` and recorded the package-plus-generated-unit validation boundary.
