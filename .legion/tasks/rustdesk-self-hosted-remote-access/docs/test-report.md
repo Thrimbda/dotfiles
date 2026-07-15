@@ -1,6 +1,128 @@
 # RustDesk 自托管远程访问：verify-change 测试报告
 
-## Current authoritative report — Charlie user-server runtime fixed-forward verification
+## Current authoritative report — Acorn hbbs force-relay verification
+
+> 日期：2026-07-15
+> Verifier：`verify-change-dapper-lemur`
+> Direct author：`engineer-dapper-fox`
+> Worktree：`/home/c1/dotfiles/.worktrees/rustdesk-acorn-force-relay`
+> Branch：`legion/rustdesk-acorn-force-relay`
+> Baseline / HEAD / `origin/master`：`662575240a1d3117be3c1773a3b2f825f839aebf`
+> Candidate：该 HEAD 上未提交的 `hosts/acorn/default.nix` 单行修改；本节是 verifier 随后增加的 task-local evidence
+> Verdict：**PASS — scope/diff、Nix parse/eval、generated units、完整 Acorn toplevel build 与 RustDesk Server 1.1.14 官方源码语义**
+> Runtime/deployment：**NOT RUN / NOT PASS**；未 switch、deploy、restart 服务、建立 RustDesk 会话、commit 或 push，未解密或读取 secret payload
+
+### 1. Verdict、scope 与证据边界
+
+验证开始时，`git status --porcelain=v1` 只有 `M hosts/acorn/default.nix`；HEAD、merge-base 与 `origin/master` 相同，ahead/behind 为 `0/0`。`git diff --check` 通过，production diff 精确为一行：
+
+```nix
+systemd.services.rustdesk-signal.environment.ALWAYS_USE_RELAY = "Y";
+```
+
+实际 candidate 而非 handoff 描述已独立验证：
+
+- Candidate option 与 generated hbbs unit 都只相对 clean HEAD 新增 `ALWAYS_USE_RELAY=Y`；generated directive 恰出现一次。hbbr option/unit 没有该变量，且 hbbr generated unit store path 与 baseline 完全相同。
+- hbbs/hbbr 的 `ExecStart`、三项 `ExecStartPre`、shared key preflight、private/public key paths、key metadata、`-k _`、relay host、restart triggers/policy、`LimitCORE`、RustDesk package 1.1.14 以及完整 host firewall lists 均保持 baseline 值。
+- Dirty candidate 的完整 Acorn NixOS toplevel已构建，并以 `--rebuild`完成输出复核；built closure包含 exact 1.1.14 server package和两份上述 generated units。
+- Candidate实际使用的 fixed-output source来自官方 `rustdesk/rustdesk-server` tag `1.1.14`。官方 README与实现共同证明：hbbs启动时把值为`Y`的`ALWAYS_USE_RELAY`置为true；hole-punch路径随后把NAT type置为`SYMMETRIC`，源码注释为`will force relay`；README称其禁止direct peer connection。
+
+本轮 PASS 只证明配置、构建产物与上游语义。Nix build不会启动 hbbs/hbbr，也不能证明真实连接已走 relay；因此本报告**不把 build 冒充 runtime relay PASS**。
+
+### 2. Executed commands and evidence
+
+| Gate | Executed command / method | Result |
+|---|---|---|
+| Scope / topology / whitespace | `git rev-parse HEAD`; branch/merge-base/ahead-behind；`git status --porcelain=v1`; `git diff --check`; `git diff --name-status`; `git diff --numstat`; full host diff | **PASS**：初始 candidate 仅一个 production path、一个 insertion，无 RFC、`.age`、module、package或其他host改动。 |
+| Nix parse | `nix-instantiate --parse hosts/acorn/default.nix` | **PASS**。 |
+| Candidate eval | `builtins.getFlake "path:..."`读取 Acorn package、RustDesk options、systemd services、secret metadata/path、tmpfiles、firewall与unit outputs | **PASS**：package=`1.1.14`，candidate可完整module-eval。 |
+| Clean-HEAD differential eval | baseline使用`git+file://...?rev=662575...`，candidate使用dirty `path:`；Nix assertion要求全部 approved non-environment fields相等、hbbs env精确等于baseline env加`ALWAYS_USE_RELAY="Y"`、hbbr env精确相等且无该attr | **PASS**：只允许的effective option delta得到证明。 |
+| Generated units | Realize baseline/candidate hbbs与candidate hbbr unit；逐行比较baseline/candidate hbbs并对hbbr做zero-occurrence和baseline identity assertions | **PASS**：hbbs unit唯一新增行是`Environment="ALWAYS_USE_RELAY=Y"`；hbbr中零次出现且unit output baseline-identical。 |
+| Generated regression | 对两份 exact unit断言 `ExecStart`、三项`ExecStartPre`、`LimitCORE=0`、`Restart=on-failure`、`RestartSec=5s`；另检查 exact shared preflight | **PASS**：命令、key path与fail-closed metadata/readability gates均保留。 |
+| Full Acorn build | `nix build --no-link --print-out-paths path:...#nixosConfigurations.acorn.config.system.build.toplevel`，随后同一installable加`--rebuild` | **PASS**：首次完整realization实际构建19个待构建derivation；随后`--rebuild`输出复核通过。 |
+| Built closure | 从 exact toplevel读取两份systemd unit并解析target；`nix-store --query --requisites`断言1.1.14 package及两unit都在closure | **PASS**：built system链接到本轮已比较的exact units。 |
+| Pinned official source | Eval package/source drv；`nix derivation show`；`git ls-remote https://github.com/rustdesk/rustdesk-server.git refs/tags/1.1.14*` | **PASS**：fetch URL、tag、official commit及fixed source identity见第5节。 |
+| Official byte/semantic proof | Candidate fixed-output source与official raw tag的`README.md`、`src/rendezvous_server.rs`逐字比较；对startup、relay branch和README exact text做assertions | **PASS**：两文件byte-equal，environment-to-force-relay语义成立。 |
+
+这些命令使用clean-HEAD/candidate exact equality、actual generated units、built toplevel closure和candidate package的fixed-output source；它们比只grep一行Nix或只看build exit code更直接证明placement、无旁路漂移、integration build和上游语义。
+
+### 3. Exact generated configuration evidence
+
+```text
+baseline hbbs unit:  /nix/store/rp3padhimvskqdd2nfia4dfwwr874f0q-unit-rustdesk-signal.service
+candidate hbbs unit: /nix/store/47q0dk93ibnlxp7m51ywab1r8s1f5ix6-unit-rustdesk-signal.service
+baseline/candidate hbbr unit: /nix/store/rjxp8xn033h5ll9cwpxbhn87b83z87rn-unit-rustdesk-relay.service
+
+hbbs only-added directive: Environment="ALWAYS_USE_RELAY=Y"
+hbbr ALWAYS_USE_RELAY occurrences: 0
+hbbs ExecStart: /nix/store/vgwrc4gvcqypaxwlkdvphcwzams9xl8z-rustdesk-server-1.1.14/bin/hbbs --relay-servers rustdesk.0xc1.wang -k _
+hbbr ExecStart: /nix/store/vgwrc4gvcqypaxwlkdvphcwzams9xl8z-rustdesk-server-1.1.14/bin/hbbr -k _
+both: LimitCORE=0, Restart=on-failure, RestartSec=5s
+```
+
+两unit继续使用同一个preflight output，并继续检查public key readable/non-empty：
+
+```text
+/nix/store/n4b5ld5b0qh0gjh8p4p7ns0n4ap7zx4x-acorn-rustdesk-key-preflight
+/nix/store/hqkszxk2c0cxvd04xa4gsaqs182dw8l2-coreutils-9.8/bin/test -r /var/lib/rustdesk/id_ed25519.pub
+/nix/store/hqkszxk2c0cxvd04xa4gsaqs182dw8l2-coreutils-9.8/bin/test -s /var/lib/rustdesk/id_ed25519.pub
+```
+
+Exact preflight仍resolve `/var/lib/rustdesk/id_ed25519`，并要求target为non-symlink regular file、`rustdesk:rustdesk:400`、readable且non-empty。Evaluated agenix metadata仍为path `/var/lib/rustdesk/id_ed25519`、owner/group `rustdesk:rustdesk`、mode `0400`；tmpfiles仍把`/var/lib/rustdesk/id_ed25519.pub`链接到declarative public-key store object。未打开private key、ciphertext或public-key内容。
+
+Firewall与restart regression assertion对clean HEAD逐项相等：
+
+```text
+services.rustdesk-server.openFirewall = false
+TCP = [ 22 443 2222 2223 2224 2225 7000 21115 21116 21117 34197 ]
+UDP = [ 21116 34197 ]
+restartTriggers = [ rustdesk-server-key.age rustdesk-server-key.pub ]  # both units
+```
+
+RustDesk exposure仍是TCP 21115-21117与UDP 21116；21114、21118、21119仍未加入host firewall。完整lists中的既有非RustDesk端口也没有漂移。
+
+### 4. Complete Acorn toplevel build
+
+```text
+/nix/store/3b8r5a4sywqsv5ldrbckd6fz1jh4mc2n-nixos-system-acorn-25.11.20260630.b6018f8
+```
+
+Plain full realization构建了19个当时缺失/invalid的derivation并成功生成上述toplevel；紧随其后的`--rebuild`执行output check并返回同一路径。Closure含exact `rustdesk-server-1.1.14` package；toplevel的hbbs/hbbr symlink分别解析到第3节candidate unit与baseline-identical relay unit。没有运行该system output的activation或switch。
+
+### 5. RustDesk Server 1.1.14 official semantics
+
+```text
+package drv: /nix/store/48n1d3rmp8phjmramq4nw9ik1246jh8m-rustdesk-server-1.1.14.drv
+package out: /nix/store/vgwrc4gvcqypaxwlkdvphcwzams9xl8z-rustdesk-server-1.1.14
+source drv: /nix/store/ximdab7lhsfndsn10x6bbg21zn1if8a3-source.drv
+source out: /nix/store/6nrhjs57c3145lwj66s9mncwgfqlyhz8-source
+fetch URL: https://github.com/rustdesk/rustdesk-server.git
+fetch rev: refs/tags/1.1.14
+official tag commit: 8557c4ab8259a9084879ad78a41c5a9539fd75a3
+fixed NAR sha256: e4b44c7b2d5cc668cb835b3d46d57080f8c78f060b4901dae93cafeebfd7110b
+README.md sha256: db1aea2af27d027307f378a4d06d502dacd89284ac99e84f3841896bb1edefe7
+src/rendezvous_server.rs sha256: 223703727cb7ee69aa9da8bace9756385cf48e6d15b6bb7fcc25e7bfb402b471
+```
+
+语义链：
+
+1. [`README.md` tag 1.1.14](https://github.com/rustdesk/rustdesk-server/blob/1.1.14/README.md#L342-L345)把`ALWAYS_USE_RELAY`归属到`hbbs`，并说明设为`"Y"`会`disallow direct peer connection`。
+2. [`rendezvous_server.rs` startup](https://github.com/rustdesk/rustdesk-server/blob/1.1.14/src/rendezvous_server.rs#L146-L159)读取该环境变量，转为大写后与`Y`比较，匹配时把global atomic flag置为true。
+3. [同文件hole-punch路径](https://github.com/rustdesk/rustdesk-server/blob/1.1.14/src/rendezvous_server.rs#L710-L719)在flag为true时把response NAT type设为`SYMMETRIC`，源码原注释为`will force relay`。
+
+因此把`ALWAYS_USE_RELAY=Y`仅注入hbbs generated unit与1.1.14官方force-relay机制一致；hbbr不需要也未收到该变量。
+
+### 6. Runtime boundary、command adjustments 与 attention
+
+- **Runtime relay intentionally NOT RUN**：未activate/switch、未restart hbbs/hbbr、未建立controller/controlled会话、未观测hbbr流量或direct-path negative control。真实forced-relay验收仍需在批准的clean merged deployment后证明direct peer被禁止且会话实际经relay。
+- 首次unit assertion按未加引号的systemd文本匹配，实际generator输出`Environment="ALWAYS_USE_RELAY=Y"`；只修正test literal后exact baseline differential PASS，production未改。
+- 第一次在output尚invalid时直接用`--rebuild`得到Nix的`checking is not possible`。随后标准full build完成19个derivation，再跑同一`--rebuild`已PASS；这不是implementation failure。
+- Google URL analysis helper因当前session无access token未执行；改用candidate fixed-output source、official fetch drv、`git ls-remote`和official raw-tag byte comparison完成更直接的immutable-source gate。无required static/build/source gate skipped。
+- 未修改RFC。**Attention remains OPEN**：当前RFC仍把Acorn rollout视为已完成，并未把本次Acorn force-relay one-line production change写入当前implementation boundary。按用户指令本 verifier只记录该design-source lag；本PASS不自行授权merge/deploy，下一阶段需在`review-change`/orchestrator处置该attention。
+
+---
+
+## Historical report — Charlie user-server runtime fixed-forward verification
 
 > 日期：2026-07-14
 > Verifier：`verify-change-swift-ferret`

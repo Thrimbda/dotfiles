@@ -1,6 +1,75 @@
 # Review Change: RustDesk rollout
 
-## Current authoritative review — Charlie user-server runtime fixed-forward
+## Current authoritative review — Acorn hbbs force-relay
+
+### Findings
+
+#### Blocking findings
+
+无。
+
+#### Non-blocking findings
+
+1. **MEDIUM — Force-relay 让 Acorn/hbbr 成为持续数据面与费用依赖。** Production diff 只改变 hbbs 配置，但策略作用域是使用该 hbbs 的全部客户端；对走 1.1.14 常规 force-relay 路径的后续新会话，原本可 peer-to-peer 的流量将改经 Acorn，并在会话全程依赖 hbbr、Acorn 网络与 TCP 21117。Generated hbbr unit 没有 task-owned 带宽策略，因此保留 1.1.14 上游默认值：每条 relay connection 双向合计 16 Mb/s、全局 1024 Mb/s；它们是吞吐限制，不是云费用预算。单 relay host 还意味着 hbbr/Acorn 故障会中断 relay session。用户已显式接受这一取舍，`plan.md:35` 与 `docs/rfc.md:332,347` 也已记录费用/可用性风险，因此不阻塞 PR；部署仍需明确流量/费用 owner、观测和回退阈值。
+2. **LOW — Build/source 只证明请求的 1.1.14 机制，不证明“任何拓扑都绝不会直连”。** Pinned 1.1.14 source 在 hbbs 启动时读取 `ALWAYS_USE_RELAY=Y`，并在常规 hole-punch 路径把消息改为 `NatType::SYMMETRIC`，使 1.4.9 client 选择 relay；它不会把已有会话追溯迁移到 relay。同一 server source 仍保留 same-intranet `FetchLocalAddr` 分支，且既有 loopback-only hbbs command interface 可在进程存活期间修改该 flag。两者都不是本 diff 新增，用户批准的也正是这套上游语义；但必须用 switch 后新建的 Axiom↔Charlie 会话完成 direct negative control 与 hbbr traffic positive proof。不得把 static PASS 扩大成 topology-independent 或 tamper-proof 承诺。
+3. **LOW — Clean Acorn switch 会按设计 stop/restart hbbs，并可能短暂中断注册或建连。** 独立 eval 得到 `rustdesk-signal.stopIfChanged = true` 与 `restartIfChanged = true`；generated unit 已变化，因此 switch 应替换 hbbs process。hbbr unit byte-identical，不应仅因本变更重启。Acorn 不能直接改写 Charlie 本地 reservation/ready/stamp 或 launchd PID，但网络中断可能使 Charlie 暂时 offline；若 Charlie service/server PID 因间接原因漂移，pending ready 将失效。Switch 必须走 SSH/ToDesk 等 fallback，不能依赖被测 RustDesk session；任何 finalizer 前都要重验 Charlie 已批准的 state/PID identity。
+
+### Verdict
+
+**PASS — 可进入 Acorn force-relay PR；不是 deployment、runtime relay、带宽、可用性、Charlie state 或 remote-auth PASS。** 未发现阻塞 correctness、security、scope、regression 或 verification-evidence finding。任何 Acorn switch 前仍须 required checks、merge，并从 clean merged `origin/master` 执行。
+
+> **Review target**: `origin/master` / HEAD `662575240a1d3117be3c1773a3b2f825f839aebf` 加当前未提交的 `hosts/acorn/default.nix` 单行实现与 verifier-owned `docs/test-report.md` evidence
+> **Direct author**: `engineer-dapper-fox`
+> **Verifier**: `verify-change-dapper-lemur`
+> **Reviewer**: `review-change-zesty-raven`
+> **Provenance**: author、verifier、reviewer 是不同派生事件；本 review 独立检查 candidate 与交付证据
+> **Verification gate**: 当前 `docs/test-report.md` 对 exact differential eval/generated units、完整 Acorn toplevel build 与 pinned 1.1.14 source semantics 为 PASS；runtime/deployment NOT RUN
+> **Security lens**: applied — routing/protocol boundary、server key/auth continuity、ingress、relay traffic concentration、local policy mutability 与 client pending-state interaction
+> **RFC disposition**: 用户已显式批准 Acorn `ALWAYS_USE_RELAY=Y`、接受 stale RFC bypass 并禁止重开；该滞后不是设计 blocker，本 review 不修改 `docs/rfc.md`
+> **Reviewed**: 2026-07-15
+
+### Review results
+
+1. **Scope、minimality 与显式 RFC bypass — PASS。** 写入本 review 前，唯一 production delta 是 `hosts/acorn/default.nix` 的一行 insertion；另一 changed path 是 verifier-owned `docs/test-report.md`。没有 Axiom、Charlie、module、package、firewall、`.age` ciphertext 或 RFC delta。Acorn 位于 `plan.md:51-57` scope 内。旧 Axiom-only implementation boundary 确实滞后，但用户已批准这项 exact force-relay change 且不再重开 RFC；本 review 没有把旧文字伪装成已对齐。
+2. **Unit placement 与 1.1.14 semantics — PASS，保留上述 runtime boundary。** Option 位于 `systemd.services.rustdesk-signal.environment`；realized hbbs unit 恰新增一次 `Environment="ALWAYS_USE_RELAY=Y"`。hbbr option 没有该 attribute，realized unit 与 baseline byte-identical（`docs/test-report.md:23-30,39-45,49-60`）。Pinned official tag 中，hbbs 把 environment value 转大写，仅在等于 `Y` 时设置 global flag；常规 hole-punch 路径随后写入 `NatType::SYMMETRIC`，上游注释为 `will force relay`（`docs/test-report.md:92-113`）。这是 RustDesk Server 1.1.14 documented mechanism，归属 hbbs 而非 hbbr。
+3. **Key、port、authentication 与 service hardening — PASS。** Exact differential evidence 证明 hbbs/hbbr package 1.1.14、两个 `ExecStart`、`--relay-servers rustdesk.0xc1.wang`、`-k _`、三项 `ExecStartPre`、shared key preflight、private/public key path 与 metadata、service user、restart policy 和 `LimitCORE=0` 均未改变。`openFirewall=false`、完整 TCP/UDP list 与 RustDesk 暴露仍是 TCP 21115-21117 + UDP 21116；21114/21118/21119 仍未开放（`docs/test-report.md:25-27,51-82`）。没有 secret source/value/decryption path、key rotation、password path、authentication option、listener 或 trust material 变化。本 reviewer 未读取 secret payload 或 key content。
+4. **Acorn activation 与 Charlie pending-state interaction — PASS，属于有界 deployment risk。** Changed hbbs unit 加 `stopIfChanged/restartIfChanged=true` 意味着 clean switch 应只 stop/start `rustdesk-signal`；unchanged hbbr unit 应保持原 process。它可能短暂打断 hbbs registration 与新建连接，但不会自行改变 Charlie Nix revision、触发 Charlie provision、消耗另一次 password attempt 或修改 `/var/db/rustdesk-provision`。Charlie ready 绑定的是 Charlie 本地 privileged-service/user-server PID 与 start identity（`hosts/charlie/default.nix:1462-1506`），不是 Acorn hbbs PID。因此，orchestrator 提供的 current reservation/ready 只有在这些 Charlie identity 保持不变时才继续 structurally valid。任一 identity 漂移都应让 finalizer fail closed；current attempt 仍视为已消耗，并继续遵守既有 fixed-forward rule。Force-relay 前的 auth observation 不能证明新 transport policy，必须在 switch 后 fresh session 上重做。
+5. **Relay bandwidth、费用、容量与单点风险 — 已接受，但运营 attention 仍 OPEN。** Force-relay 把常规 session bytes 与 connection metadata 集中到 Acorn，并把 hbbr/Acorn saturation、packet loss、compromise、cloud egress abuse 的影响放大。当前唯一 relay hostname 指向同一 Acorn deployment，本 change 没有 failover relay。Upstream hbbr defaults 是宽松 throughput limit，不是 task-specific quota 或 cost circuit breaker。该 accepted risk 不阻塞 PR，但 runtime closeout 必须留下代表性流量/费用观测、明确 owner 与 containment threshold。
+6. **Verification sufficiency — PASS for PR entry。** Verifier 不只 parse/grep 这一行：clean-HEAD/candidate option equality、exact generated-unit differential、unchanged hbbr identity、key/firewall regression assertions、完整 dirty-source Acorn toplevel realization + `--rebuild`、closure 与 exact unit/package linkage，以及 pinned source 对 official 1.1.14 tag 的 byte comparison 全部 PASS（`docs/test-report.md:32-113`）。本 review 另行复核 scope/whitespace、realized units、pinned source、hbbs-only delta，并 eval `stopIfChanged/restartIfChanged`。这些证据足以支持 minimal NixOS change 进入 PR；build 不能启动 hbbs、观察 switch transaction、证明注册恢复、区分 fresh relay/direct、测量带宽或证明 Charlie state continuity。
+
+### Security assessment
+
+Security lens 未发现新增 authentication、secret、key、permission 或 ingress regression。新增值只是 existing hbbs service 上的 public boolean environment setting；它不增加 credential、不改变 server keypair/key preflight/`-k _`、不开放端口，也不修改任何 client。既有 relay protocol 与 public port 均未变化。真正改变的是风险集中度：更多 traffic 与 metadata 经过 Acorn/hbbr，因此 server compromise、DoS 与 billing abuse 的后果更大。Upstream loopback command 原本就能修改 in-memory relay flag，但本 diff 既未把该 command 暴露到 remote，也未扩大 local access。在已批准的 Acorn trust model 与显式 risk acceptance 内，没有发现新增可利用的 trust-boundary bypass。
+
+### Residual clean-merge runtime gates
+
+1. 创建 PR、完成 required checks、merge，并刷新 clean `origin/master`；不得从当前 dirty worktree switch Acorn。
+2. Switch 前只记录 approved Acorn/Charlie state：Acorn hbbs/hbbr active identity 与 listener metadata；若 Charlie 有 pending ready，则记录 reservation/ready/stamp state 及两项 ready-bound local PID/start identity。不得 dump secret、key、mutable RustDesk config 或完整 process environment。
+3. 使用 SSH 或其他 preserved fallback 执行 switch。证明 hbbs 获得新 process/invocation identity、以 `ALWAYS_USE_RELAY=Y` 启动、通过既有 key preflight 并恢复 active；证明 hbbr 保持同一 process identity，listener/firewall/SG exposure 没有变化。
+4. 证明 Charlie 与 Axiom 重新注册。若 Charlie 有 pending ready，重验其 exact local identity；任何 Charlie PID/start drift 都会使 ready 无效，此时不得 finalize/reset/rollback，应停止并走既有 fresh-revision fixed-forward。
+5. 关闭所有 pre-switch RustDesk session，再建立 fresh Axiom↔Charlie session。用 approved connection/byte metadata 证明 hbbr 承载该会话，且没有 endpoint-to-endpoint data connection 胜出；若运营承诺需要覆盖 same-intranet topology，须单独测试该分支。
+6. Force-relay 后重做 correct-password positive 与 wrong/old/cross-host negative controls；只有全部通过且 Charlie ready identity 仍 current，才可进入 exact manual finalizer。
+7. 在代表性会话中观察 latency、hbbr CPU/memory、per-session/total throughput、Acorn ingress/egress 与 Aliyun cost，明确 owner 与 containment threshold。异常时停止新会话；紧急 containment 可关闭 21117，正常 rollback 则从另一 clean merged change 移除 environment line，并在 hbbs 重启后建立 fresh session 复核。
+8. 保留并证明 SSH、reverse-SSH、ToDesk fallback；follow-up evidence PR 不得包含 secret/key/config content。
+
+### Review evidence and boundaries
+
+- 独立检查 `plan.md`、当前 `docs/test-report.md`、RFC/history、完整 production diff、generated hbbs/hbbr units、pinned RustDesk Server 1.1.14 source、Charlie finalizer identity checks、`git status`、`git diff --check`、baseline topology 与 recent history。
+- 独立确认 generated hbbs unit 只新增 `Environment="ALWAYS_USE_RELAY=Y"`，generated hbbr unit 不含该 variable。Read-only Nix eval 返回 `rustdesk-signal.stopIfChanged=true`、`restartIfChanged=true` 与 `ALWAYS_USE_RELAY="Y"`。
+- 把任何 current Charlie reservation/ready/PID 视为 orchestrator-supplied context；本 reviewer 未连接 Charlie 或 Acorn production，也不声称独立观察了 current mutable state。
+- 未读取 secret plaintext/ciphertext payload、private/public key content 或 RustDesk mutable config；未修改 production code 或 RFC；未 commit、push、deploy、switch、restart service、建立 session、运行 finalizer 或改变 remote state。
+
+### 会话注意力摘要
+
+- **Attention state**：OPEN for post-merge runtime、relay cost/capacity 与 Charlie identity continuity；**CLOSED for RFC/design**。它不阻塞本次 `review-change` PASS 或 PR creation。
+- **已明确处置**：用户已批准 Acorn `ALWAYS_USE_RELAY=Y` 并要求继续，且明确不再重开 RFC；RFC implementation-boundary 滞后是已批准 bypass，不得再次作为 design blocker，也不得把旧 RFC 文字冒充当前实现描述。
+- **本轮已关闭**：单行 scope、hbbs-only placement、1.1.14 upstream hook、hbbr generated-unit identity、key/port/auth/firewall regression、security lens 与 pre-merge build/source evidence sufficiency。
+- **仍需关闭**：required checks/merge、clean Acorn switch、hbbs-only restart、hbbr continuity、Axiom/Charlie re-registration、Charlie ready-bound PID continuity、fresh-session forced-relay positive/negative evidence、remote-auth 正负测、代表性带宽/费用与 fallback。
+- **禁止动作**：从当前 worktree switch、把 build/source PASS 写成 runtime relay PASS、把旧 session 当作 force-relay evidence、在 Charlie PID/ready 失效时 finalize/reset/rollback、读取 secret/key/config content，或在没有流量/费用 owner 与 stop threshold 时宣称运营风险已关闭。
+
+---
+
+## Historical review — Charlie user-server runtime fixed-forward
 
 ### Findings
 

@@ -1,23 +1,18 @@
 ## Summary
 
-- Recover Charlie's RustDesk user LaunchAgent when the first install leaves `com.carriez.RustDesk_server` unloaded in `gui/501`.
-- Match the observed IPC metadata (`<c1 uid>:0`, currently `501:0`) instead of c1's primary group (`501:20`) without weakening the existing type, symlink or mode checks.
-- Advance the Charlie provision marker from v7 to v8 so prior state cannot be reused as current.
+- Charlie's direct listener first advertised the wrong fake-IP. After correcting it to the LAN address, the controller still received `No route to host`; the attempted client-side force-relay path did not actually engage.
+- With user approval, enable RustDesk Server 1.1.14's server-side force-relay mechanism by adding only `ALWAYS_USE_RELAY=Y` to Acorn's hbbs service.
 
-The observed v7 run failed readiness before reservation and before secret resolution/read; it created no ready object or stamp.
-
-## Scope
-
-Production changes are limited to `hosts/charlie/default.nix`. Activation bootstraps the managed user agent only when an active GUI domain exists and the label is missing, then kickstarts it. Secret handling, password-attempt ordering and manual-finalize rules are unchanged.
+The production diff is one line in `hosts/acorn/default.nix`. Generated hbbr configuration is unchanged, as are package, key, authentication, listener, port and firewall settings.
 
 ## Validation
 
-- Generated provision, finalizer and activation syntax/lint/ordering checks: **PASS**.
-- Fresh v8 composite revision: `charlie-rustdesk-provision-v4:651ace645ed239c51d10e99c7fa60559bf67a4c9a1ab8495f4d2f7afb8e9be26`.
-- Full `aarch64-darwin` build: **PASS**.
-- RustDesk 1.4.9 store bundle: **PASS** for arm64, deep/strict codesign, Team ID and Gatekeeper notarization.
-- Change review: **PASS**, no blocking findings.
+- Exact hbbs-only differential, generated units, full Acorn build/closure and pinned 1.1.14 source semantics: **PASS**.
+- Change review: **PASS** for PR entry, with no blocking findings.
+- Runtime relay: **NOT RUN / NOT PASS**.
 
-Runtime is **not** PASS. After merge, Charlie still requires a clean merged switch, candidate launchd/IPC observation, destination signature and TCC checks, real authentication positive/negative tests, and manual finalization.
+## After Merge
+
+From clean merged `origin/master`, prove an hbbs-only restart and hbbr PID/listener continuity. Then use a fresh Axiom↔Charlie session to prove actual hbbr pairing/traffic and no winning direct path, revalidate Charlie's ready-bound PID identities, rerun authentication positive/negative controls, and record relay bandwidth/egress cost with an owner and containment threshold.
 
 Walkthrough: [`.legion/tasks/rustdesk-self-hosted-remote-access/docs/report-walkthrough.md`](.legion/tasks/rustdesk-self-hosted-remote-access/docs/report-walkthrough.md)
