@@ -311,7 +311,7 @@ with lib;
         source=${rustdeskDmgHash}
         public-config=${rustdeskPublicConfig}
         launchctl-parser=${rustdeskLaunchctlParser}
-        provision=charlie-rustdesk-provision-v7
+        provision=charlie-rustdesk-provision-v8
         ready-to-finalize=charlie-rustdesk-ready-v1
         manual-finalize=charlie-rustdesk-finalize-v1
         ciphertext=${./secrets/rustdesk-password.age}
@@ -757,7 +757,7 @@ with lib;
 
         validate_user_server() {
           uid=$(/usr/bin/id -u "$rustdesk_user" 2>/dev/null) || return 1
-          gid=$(/usr/bin/id -g "$rustdesk_user" 2>/dev/null) || return 1
+          wheel_gid=0
           ipc_parent=/tmp/RustDesk-$uid
           ipc=$ipc_parent/ipc
           pid_file=$ipc.pid
@@ -765,17 +765,17 @@ with lib;
           [ -d "$ipc_parent" ] && [ ! -L "$ipc_parent" ] || return 1
           metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$ipc_parent" 2>/dev/null) \
             || return 1
-          [ "$metadata" = "$uid:$gid:700" ] || return 1
+          [ "$metadata" = "$uid:$wheel_gid:700" ] || return 1
 
           [ -S "$ipc" ] && [ ! -L "$ipc" ] || return 1
           metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$ipc" 2>/dev/null) \
             || return 1
-          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          [ "$metadata" = "$uid:$wheel_gid:600" ] || return 1
 
           [ -f "$pid_file" ] && [ ! -L "$pid_file" ] || return 1
           metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$pid_file" 2>/dev/null) \
             || return 1
-          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          [ "$metadata" = "$uid:$wheel_gid:600" ] || return 1
           pid_bytes=$(/usr/bin/wc -c < "$pid_file") || return 1
           server_pid=
           IFS= read -r server_pid < "$pid_file" \
@@ -1373,22 +1373,22 @@ with lib;
 
         validate_user_server() {
           uid=$(/usr/bin/id -u "$rustdesk_user" 2>/dev/null) || return 1
-          gid=$(/usr/bin/id -g "$rustdesk_user" 2>/dev/null) || return 1
+          wheel_gid=0
           ipc_parent=/tmp/RustDesk-$uid
           ipc=$ipc_parent/ipc
           pid_file=$ipc.pid
           [ -d "$ipc_parent" ] && [ ! -L "$ipc_parent" ] || return 1
           metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$ipc_parent" 2>/dev/null) \
             || return 1
-          [ "$metadata" = "$uid:$gid:700" ] || return 1
+          [ "$metadata" = "$uid:$wheel_gid:700" ] || return 1
           [ -S "$ipc" ] && [ ! -L "$ipc" ] || return 1
           metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$ipc" 2>/dev/null) \
             || return 1
-          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          [ "$metadata" = "$uid:$wheel_gid:600" ] || return 1
           [ -f "$pid_file" ] && [ ! -L "$pid_file" ] || return 1
           metadata=$(/usr/bin/stat -f '%u:%g:%Lp' "$pid_file" 2>/dev/null) \
             || return 1
-          [ "$metadata" = "$uid:$gid:600" ] || return 1
+          [ "$metadata" = "$uid:$wheel_gid:600" ] || return 1
           pid_bytes=$(/usr/bin/wc -c < "$pid_file") || return 1
           server_pid=
           IFS= read -r server_pid < "$pid_file" \
@@ -1693,6 +1693,27 @@ with lib;
         ${pkgs.coreutils}/bin/sleep 1
       done
       unset rustdesk_gate_attempt
+
+      rustdesk_uid=$(/usr/bin/id -u c1) || {
+        echo "RustDesk user c1 is unavailable" >&2
+        exit 1
+      }
+      rustdesk_gui_domain="gui/$rustdesk_uid"
+      rustdesk_server_job="$rustdesk_gui_domain/com.carriez.RustDesk_server"
+      if /bin/launchctl print "$rustdesk_gui_domain" >/dev/null 2>&1; then
+        if ! /bin/launchctl print "$rustdesk_server_job" >/dev/null 2>&1; then
+          /bin/launchctl bootstrap "$rustdesk_gui_domain" \
+            /Library/LaunchAgents/com.carriez.RustDesk_server.plist || {
+            echo "RustDesk user agent bootstrap failed" >&2
+            exit 1
+          }
+        fi
+        /bin/launchctl kickstart "$rustdesk_server_job" || {
+          echo "RustDesk user agent kickstart failed" >&2
+          exit 1
+        }
+      fi
+      unset rustdesk_uid rustdesk_gui_domain rustdesk_server_job
     '';
 
     system.activationScripts.extraActivation.text = mkAfter ''

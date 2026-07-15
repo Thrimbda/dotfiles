@@ -1,6 +1,73 @@
-# Review Change: RustDesk Axiom fixed-forward hotfix
+# Review Change: RustDesk rollout
 
-## Findings
+## Current authoritative review — Charlie user-server runtime fixed-forward
+
+### Findings
+
+#### Blocking findings
+
+None.
+
+#### Non-blocking findings
+
+1. **LOW — Exact recovery control flow has not yet run end-to-end as part of a candidate activation.** The verifier exercised the exact generated `postActivation` with syntax, lint, ordering and structural assertions, while the supplied target observation proves that the same manual `bootstrap` repaired the missing user job (`docs/test-report.md:28-44,91-105`). It did not switch or activate the candidate. This is an honest deployment evidence boundary rather than a pre-merge defect: both the no-GUI skip and active-GUI recovery branch must be observed during the first clean merged Charlie switch, before runtime/finalization is called PASS.
+2. **LOW — The `print` then `bootstrap` recovery has a narrow concurrent-load race.** Sequential runs are idempotent: an existing job is not bootstrapped again, `kickstart` without `-k` does not replace a running instance, and an absent GUI domain is a successful no-op (`hosts/charlie/default.nix:1697-1716`). If another actor loads the same label after the negative `print` but before `bootstrap`, `bootstrap` can fail even though the job has appeared, making activation fail closed. This does not expose a secret, execute as root, or permit false readiness. If the race is ever observed, the minimal hardening is to accept a failed `bootstrap` only after an immediate `launchctl print` confirms the exact label now exists; it does not need to block this PR.
+
+### Verdict
+
+**PASS — ready for the Charlie runtime-fix PR and, after required checks and merge, entry into the Charlie deployment phase from a clean merged `origin/master`; not a runtime-auth or manual-finalization PASS.** No blocking correctness, security, scope, regression or verification finding was found. The current dirty feature worktree is not an authorized deployment source.
+
+> **Review target**: `origin/master` / HEAD `2de54e09ed907defb3b116dea7c9d29429a40c41` plus the current uncommitted `hosts/charlie/default.nix` and verification-report diff
+> **Direct author**: `engineer-swift-marten`
+> **Verifier**: `verify-change-swift-ferret`
+> **Verification gate**: current `docs/test-report.md` PASS for exact generated artifacts, full remote `aarch64-darwin` build and signed store bundle; candidate activation/runtime NOT RUN
+> **Security lens**: applied — root activation, user-domain plist loading, IPC metadata, runtime secret boundary, revision/state reuse, operation lock and one-attempt/manual-finalize state machine
+> **RFC disposition**: the user explicitly bypassed the stale “Charlie unchanged” amendment and required continuation without another RFC; that process lag is not a review blocker and this review does not modify `docs/rfc.md`
+> **Reviewed**: 2026-07-14
+
+### Review results
+
+1. **Scope, minimality and explicit process bypass — PASS.** Before this review artifact, the only production path is `hosts/charlie/default.nix` at `+30/-9`; the other changed path is verifier-owned `docs/test-report.md`. There is no Acorn, Axiom, module, package, or `*.age` delta. The production changes are limited to the two duplicated validator expectations, one revision marker and a 21-line active-GUI recovery block. Charlie remains inside `plan.md:51-57`; the older Axiom-only RFC text is explicitly bypassed by the user's current rollout decision rather than silently treated as aligned.
+2. **`501:0` metadata correction and `wheel_gid=0` — PASS.** The supplied target evidence records `/tmp/RustDesk-501`, `ipc` and `ipc.pid` as `501:0`, and records that the v7 primary-GID expectation failed before reservation while manual job bootstrap restored IPC (`docs/test-report.md:91-99`). The candidate derives UID with `id -u c1` but requires numeric group 0 for all three objects (`hosts/charlie/default.nix:758-778,1374-1391`). On supported macOS, wheel is the built-in GID 0; using the numeric kernel identity is appropriate for `stat -f %g` and matches the observed target. A platform drift would reject readiness before secret access rather than broaden acceptance.
+3. **Symlink, type, owner and mode resistance — PASS.** Both provision and finalizer still require a non-symlink directory at exact `<uid>:0:0700`, a non-symlink socket at exact `<uid>:0:0600`, and a non-symlink regular PID file at exact `<uid>:0:0600`. The diff adds no `chmod`, `chown`, repair, fallback group, wildcard owner, or user-controlled path. PID bytes, launchd top-level job shape, PID equality, process UID/command/executable, `lsof` executable/socket binding, and stable start identity remain intact (`hosts/charlie/default.nix:779-819,1392-1428`). Changing primary GID to exact 0 therefore narrows the accepted real shape and does not weaken the existing fail-closed checks. Existing user-owned-directory race residuals remain inside the approved single-owner endpoint boundary and are not expanded by this diff.
+4. **LaunchAgent recovery ordering, trust and no-GUI behavior — PASS with the LOW race above.** Independent evaluation of the exact candidate activation shows the managed app transaction first, then the generated launchd phase compares the candidate store plist, removes a destination symlink if present, copies `/Library/LaunchAgents/com.carriez.RustDesk_server.plist`, and invokes the existing load path; only later does `postActivation` pass the current-boot agenix revision gate and run the new recovery. Thus the fixed path is populated from the evaluated candidate before the fallback bootstrap. The bootstrap target is `gui/<c1 uid>`, so the agent executes in c1's user domain, not as root; it does not enlarge the privileged LaunchDaemon or root executable trust boundary. A pre-existing same-label user job can at worst cause fail-closed readiness/availability under the declared trusted-c1 model: provision still requires the exact signed RustDesk path, arguments, UID, PID, socket and executable before reaching the secret. If `gui/<uid>` does not exist, the outer probe skips bootstrap and kickstart without an error, preserving headless/login-window activation and leaving provision retries pre-reservation.
+5. **Idempotence and process preservation — PASS.** Re-running activation with a loaded label takes only the non-destructive `kickstart` path; the absence of `-k` is intentional because activation must ensure demand, not invalidate a running server identity. A missing label is bootstrapped once and then kicked. Failures are surfaced rather than hidden, while an absent GUI domain is the only deliberate no-op. This avoids an activation-driven server replacement racing the provision state machine; the later provision helper remains the sole code that uses `kickstart -k` after password ACK and requires both service and server PID replacement (`hosts/charlie/default.nix:1096-1111`).
+6. **Fresh revision and old-state non-reuse — PASS.** `provision=charlie-rustdesk-provision-v7` becomes `v8` inside the composite hash while `charlie-rustdesk-provision-v4:` remains the parser prefix (`hosts/charlie/default.nix:309-318`). Exact evaluated values change from `1dd4…26ee0` to `651a…be26`, so v7 stamp/reservation/ready values cannot compare current, but remain syntactically legal stale objects (`docs/test-report.md:46-60`). Both service and user-agent plists carry the new composite value and the provision derivation itself changes. Provision may replace only legal stale state under the existing ordering; finalizer requires current v8 reservation, ready and live identities and therefore cannot finalize v7 state. Malformed type, metadata or content still fails closed.
+7. **Root activation, secret boundary and state machine — PASS.** The recovery block contains no secret path, config read, password argument, state deletion or finalizer call. It runs after the agenix current-revision/current-boot gate, while the provision daemon independently rechecks that gate before reservation, before secret resolution and before password invocation (`hosts/charlie/default.nix:966-1074,1681-1716`). Merely making the c1 agent available cannot bypass public-config, signed-app, privileged-service, user-process, IPC or identity gates. Provision and finalizer continue sharing the root-owned empty-directory operation lock; current reservation still means `attempt-used`; reservation is atomically published and synced before the secret is read; ready is published only after ACK, double PID replacement and public proof; finalizer remains zero-secret and requires explicit confirmation plus current live identities (`hosts/charlie/default.nix:463-545,975-1135,1177-1254,1477-1508`). The accepted short-lived password argv/crash-metadata residual is unchanged.
+8. **Generated artifacts, remote Darwin build and deployability — PASS for PR/deployment entry.** Verification used the evaluated provision, finalizer, `postActivation` and full activation rather than source-only snippets; all four passed `bash -n`, focused scripts had zero ShellCheck findings, and full-activation diagnostics introduced no candidate finding. Differential assertions prove that each validator changed only the GID expectation and that recovery follows agenix gate → UID → GUI probe → job probe/bootstrap → kickstart. The exact dirty-source system derivation was fully realized in Charlie's remote store as `/nix/store/3yl4galgkg4xzpkn7nlsl7v9awjnpq46-darwin-system-25.11.ebec37a`; its sole RustDesk 1.4.9 bundle passed arm64, bundle/version, deep/strict codesign, Team ID and Gatekeeper notarization checks on Darwin (`docs/test-report.md:28-89`). This is sufficient to merge and then attempt a controlled deployment. It does not substitute for candidate activation, destination-app verification, launchd runtime, TCC, remote-auth controls or manual finalization.
+
+### Security assessment
+
+The security lens found no exploitable trust-boundary expansion. Root activation uses fixed absolute tools and a fixed system-managed plist path, and bootstraps only c1's GUI domain. Exact generated ordering places the evaluated plist before recovery; the loaded process remains UID c1 and must later satisfy signed-path, launchd, PID, executable and socket checks. The metadata change accepts the one observed platform shape but retains stricter-than-primary-group numeric ownership and exact modes. No secret source, decryption path, plaintext, ingress, root LaunchDaemon program, app payload, TCC grant, operation-lock rule, attempt rule or finalizer rule changes. Under the task's explicit single-owner trusted-endpoint model, a c1-controlled same-label collision is an availability/readiness failure, not a root privilege or secret bypass.
+
+### Residual clean-merge deployment gates
+
+1. Create the PR, run required checks, merge, and refresh a clean `origin/master`; never switch Charlie from this dirty worktree or a detached verification tree.
+2. Before switch, reconfirm only approved state metadata: v7 has no current stamp/attempt/ready. Do not read the secret or RustDesk mutable config, run an old finalizer, reset state, or activate an older generation.
+3. During switch, retain the generated ordering proof: verified destination app and candidate plist precede recovery. If no `gui/501` domain exists, activation must still succeed and no reservation may appear until valid runtime exists. If it exists, prove the exact user job, UID 501 process, `501:0` directory/socket/PID metadata, exact executable/arguments and stable IPC.
+4. Prove exactly one v8 attempt, a current reservation plus current ready and no stamp; prove both auth-serving PIDs were replaced after ACK and that the operation lock is absent after successful provision. Any pre-reservation readiness failure remains retryable; any current reservation without valid ready is consumed and requires stop plus a fresh fixed-forward revision.
+5. Verify `/Applications/RustDesk.app` destination signature/Team/Gatekeeper, public host/key/options, TCC Screen Recording/Accessibility/Input Monitoring, actual screen and keyboard/pointer control, and the preserved SSH/reverse-SSH/ToDesk fallback.
+6. From a fresh controller, pass the new-password positive test and wrong/old/cross-host negative tests. Only then run the exact manual finalizer and prove current stamp, ready removal, fast-skip and no second password invocation.
+7. On any post-reservation failure, stop the RustDesk jobs, do not finalize/reset/roll back, and fixed-forward with another fresh revision. Record runtime evidence in the follow-up evidence PR without secret or mutable-config contents.
+
+### Review evidence and boundaries
+
+- Independently inspected the complete production diff, `git status`, scope, `git diff --check`, plan, current test report, existing review/RFC history, both validator copies, launchd plists, activation ordering, revision inputs, provision/finalizer lock and state transitions.
+- Independently evaluated the exact dirty candidate's full activation text and confirmed managed-app activation precedes generated plist copy/load, which precedes agenix-gated recovery. No activation output was executed.
+- Treated `501:0`, manual-bootstrap success and v7 no-state facts as explicitly labeled orchestrator-supplied runtime evidence, not as this reviewer's independent observation.
+- Did not read secret plaintext/ciphertext contents or RustDesk mutable config; did not modify production code or RFC; did not commit, push, deploy, switch, start/stop a service, run a finalizer, or alter remote state.
+
+### 会话注意力摘要
+
+- **Attention state**：OPEN for PR/deployment runtime evidence, **not** for RFC/design. It does not block this `review-change` PASS or PR creation.
+- **已明确处置**：用户已显式要求继续 Charlie rollout 并 bypass 旧 RFC 的“Charlie不变”；不得再以该流程滞后要求新 RFC，也不得把旧文字冒充当前设计授权。
+- **本轮已关闭**：`501:0` validator correctness、wheel GID 0、symlink/type/owner/mode防线、active-GUI recovery的顺序/幂等/信任边界、v8 stale-state隔离、root secret/lock/attempt边界，以及pre-merge build/signature证据充分性。
+- **仍需关闭**：required checks/merge、clean merged switch、exact recovery branch、v8 one-attempt/ready、destination signature、TCC、真实远程认证正负测与manual finalize。
+- **禁止动作**：从当前worktree直接switch、把build PASS写成runtime PASS、读取secret或mutable config内容、在外部认证前finalize、reset已消耗revision、或rollback到旧generation。
+
+---
+
+## Historical Axiom fixed-forward review — findings
 
 ### Blocking findings
 

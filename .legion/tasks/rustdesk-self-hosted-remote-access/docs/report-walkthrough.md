@@ -1,43 +1,42 @@
-# RustDesk Axiom Fixed-Forward Hotfix
+# RustDesk Charlie Runtime Fix
 
 > **Mode:** implementation
-> **Design review:** Round 9 PASS
-> **Verification:** PASS
-> **Change review:** PASS for hotfix PR
-> **Candidate runtime:** pending until merge
+> **Verification:** PASS for generated artifacts, full Darwin build and store-bundle signature
+> **Change review:** PASS for the Charlie runtime-fix PR
+> **Candidate runtime:** NOT RUN
 
-## Problem
+## What Failed
 
-The merged 1.4.9 deployment exposed three Axiom runtime blockers:
+The first Charlie install left `com.carriez.RustDesk_server` unloaded in the active `gui/501` launchd domain. A manual bootstrap made the user job and IPC available, but the v7 helper then expected c1's primary-group metadata (`501:20`) while the actual RustDesk directory, socket and PID file were `501:0`.
 
-1. Clash fake-IP resolution broke RustDesk's required TCP path.
-2. The spawned c1 server lacked the active Hyprland session coordinates.
-3. The RustDesk wrapper did not expose PipeWire's `pipewiresrc` plugin.
+As a result, v7 failed readiness before publishing a reservation and before resolving or reading the secret. It produced no current reservation, ready object or stamp. These are supplied runtime observations; the candidate activation has not yet been run.
 
-The old Axiom reservation remains present, its ready process identity is invalid, and no stamp exists. RustDesk is stopped. That state must not be finalized or rolled back.
+## Minimal Fix
 
-## Change
+Production changes remain limited to `hosts/charlie/default.nix`:
 
-Only `hosts/axiom/default.nix` changes:
+- Both provision and finalizer validators now require `<c1 uid>:0` (observed as `501:0`) while retaining the existing object-type, non-symlink and `0700`/`0600` mode checks.
+- After the current-boot agenix gate, activation checks whether `gui/501` exists, bootstraps the managed LaunchAgent only when its label is missing, and kickstarts it. A missing GUI domain remains a successful no-op.
+- The provision marker moves from v7 to v8. The evaluated v8 revision is `charlie-rustdesk-provision-v4:651ace645ed239c51d10e99c7fa60559bf67a4c9a1ab8495f4d2f7afb8e9be26`; the legal prefix is preserved, but old v7 state cannot be reused as current.
 
-- Resolve the canonical RustDesk hostname directly to Acorn on Axiom.
-- Add the static c1 Hyprland/DBus coordinates while preserving root `HOME=/root` and `XDG_CONFIG_HOME=/root/.config`.
-- Add the immutable `${pkgs.pipewire}/lib/gstreamer-1.0` plugin path.
-- Include the resolver and exact service environment in a fresh composite revision while retaining the legal `axiom-rustdesk-provision-v4:` prefix.
-
-Acorn, Charlie, secrets, modules and the existing provision/finalizer state machine are unchanged.
+The fix does not change secret handling, the one-attempt reservation ordering, password invocation, ready publication or manual-finalize rules.
 
 ## Evidence
 
-- Exact option, resolver, environment and revision checks: PASS.
-- `pipewiresrc`, `videoconvert` and `appsink` factory checks: PASS.
-- Stale reservation/ready transition and old-finalizer rejection: PASS.
-- Generated script syntax and ShellCheck: PASS.
-- Full Axiom build: `/nix/store/lx4xz9nwrsaxkayb9byp1fk1p1s5mybf-nixos-system-axiom-25.11.20260630.b6018f8`.
-- No candidate switch, secret read, authentication, capture, input or finalization is claimed.
+- Exact generated provision, finalizer, `postActivation` and full activation syntax/lint checks: **PASS**.
+- Validator differential and activation-order assertions: **PASS**.
+- Full `aarch64-darwin` system build: **PASS** — `/nix/store/3yl4galgkg4xzpkn7nlsl7v9awjnpq46-darwin-system-25.11.ebec37a`.
+- RustDesk 1.4.9 store bundle on Darwin: **PASS** — arm64, deep/strict codesign, Team `HZF9JMC8YN`, and Gatekeeper `Notarized Developer ID`.
+- Change review: **PASS**, with no blocking finding.
 
-## Post-Merge Gate
+This evidence proves build and immutable-artifact readiness only. It does **not** prove candidate activation, launchd runtime, TCC, remote authentication or finalization.
 
-Switch Axiom only from the clean merged commit. Require a fresh reservation/ready, direct canonical resolution, correct live child environment, successful screen/input control, correct-password success and wrong-password rejection. Then run the exact manual finalizer and verify fast-skip. Any failure means stop RustDesk and fixed-forward again. Charlie remains blocked until Axiom finalizes.
+## Still Required After Merge
+
+1. Complete required PR checks and merge, then switch Charlie only from a clean merged `origin/master`—never from this feature worktree.
+2. Observe the candidate recovery path and exact `501:0` IPC/runtime identities; prove one v8 reservation and ready object with no stamp.
+3. Verify destination signature and TCC Screen Recording, Accessibility and Input Monitoring, including actual screen and keyboard/pointer control.
+4. From a fresh controller, pass the new-password positive test and wrong, old and cross-host negative tests.
+5. Only after those checks, run the exact manual finalizer and prove stamp, ready removal, fast-skip and no second password attempt.
 
 Evidence: [`test-report.md`](./test-report.md), [`review-change.md`](./review-change.md).
