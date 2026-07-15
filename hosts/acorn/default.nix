@@ -154,6 +154,7 @@
     ];
 
     systemd.services.rustdesk-signal = {
+      environment.ALWAYS_USE_RELAY = "Y";
       restartTriggers = [
         ./secrets/rustdesk-server-key.age
         ./secrets/rustdesk-server-key.pub
