@@ -2,9 +2,9 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 3 - 生产部署（Axiom fixed-forward）
-**当前检查项**: 提交、检查并合并Axiom-only fixed-forward hotfix PR
-**进度**: 2/4 任务完成
+**当前阶段**: 阶段 4 - 证据收口与PR lifecycle
+**当前检查项**: 提交、检查并squash merge最终same-intranet relay/Charlie v10 PR
+**进度**: 3/4 任务完成
 ---
 
 ## 阶段 1: 设计与安全门禁 ✅ COMPLETE
@@ -17,19 +17,20 @@
 - [x] 在隔离 worktree 实现三台主机配置，完成构建、安全评审并合并配置 PR | 验收: 配置 PR #139 已合并为 `0026eb99`，不包含明文秘密
 ---
 
-## 阶段 3: 生产部署 🔄 IN PROGRESS
+## 阶段 3: 生产部署 ✅ COMPLETE
 
-- [ ] 从 clean merged baseline 依次 switch acorn、axiom、charlie并执行运行时验证 | 验收: Acorn已完成；Axiom runtime blocker已contained，须fixed-forward hotfix及fresh auth/finalize PASS后才可推进Charlie ← CURRENT
+- [x] 完成三端switch与运行时验证 | 验收: Acorn same-intranet会话强制进入hbbr；Axiom保留可用fallback；Charlie v10画面/输入、正确/错误密码、manual finalize与fast-skip全部PASS
 ---
 
-## 阶段 4: 证据收口 ⏳ NOT STARTED
+## 阶段 4: 证据收口 🔄 IN PROGRESS
 
-- [ ] 提交部署证据、walkthrough 与 wiki writeback并完成 follow-up PR lifecycle | 验收: evidence PR 到达终态，blocking review 已处理，worktree 清理且主工作区刷新
+- [ ] 提交部署证据、walkthrough 与 wiki writeback并完成 follow-up PR lifecycle | 验收: evidence PR 到达终态，blocking review 已处理，worktree 清理且主工作区刷新 ← CURRENT
 ---
 
 ## 发现的新任务
 
-- [ ] Axiom-only runtime fixed-forward hotfix | 验收: direct canonical resolution、exact c1 Hyprland environment、PipeWire GStreamer factory、fresh revision state、正确密码画面/控制、错误密码负测和manual finalize全部PASS
+- [x] Axiom runtime fixed-forward与portal/cursor containment完成
+- [x] Acorn same-intranet force-relay source patch与Charlie v10 GUI-domain restart完成
 ---
 
-*最后更新: 2026-07-13*
+*最后更新: 2026-07-15*

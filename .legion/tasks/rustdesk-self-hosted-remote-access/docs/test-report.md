@@ -1,6 +1,180 @@
 # RustDesk 自托管远程访问：verify-change 测试报告
 
-## Current authoritative report — Acorn hbbs force-relay verification
+## Current authoritative report — Acorn force-relay same-intranet patch verification
+
+> 日期：2026-07-15
+> Verifier：`verify-change-fizzy-capybara`（build/static）；`verify-change-fizzy-yak`（final runtime复核）
+> Direct author：`engineer-jolly-gecko`
+> Worktree：`/home/c1/dotfiles/.worktrees/rustdesk-force-relay-intranet`
+> Branch：`legion/rustdesk-force-relay-intranet`
+> Baseline / HEAD / `origin/master`：`d85c80f3be5cfea3c857f10c26cfa72a4fa6e289`
+> Candidate：Acorn package override/source patch，加 Charlie v10 marker 与 user-domain restart修复；本节记录static/build和最终runtime证据
+> Verdict：**PASS — static/build、same-intranet relay、远程画面/输入、认证正负测、manual finalize 与 fast-skip**
+> Runtime/deployment：**PASS**；长期relay带宽、容量与云费用仍为未关闭的运营风险
+> Build location：Acorn closure只在Axiom构建并复制；没有在Acorn执行任何Nix build
+
+### 1. Verdict、scope 与证据边界
+
+验证开始时，HEAD、merge-base 与 `origin/master` 都是 `d85c80f3`，ahead/behind 为 `0/0`。最终 production candidate 为：
+
+- `M hosts/acorn/default.nix`：在既有 RustDesk Server 1.1.14 package 上用 `overrideAttrs`追加一个 patch；`+5/-0`。
+- `A hosts/acorn/patches/rustdesk-server-force-relay-intranet.patch`：13 行，只修改上游 `src/rendezvous_server.rs` 的 `same_intranet`赋值。
+- `M hosts/charlie/default.nix`：推进fresh provision marker到v10，并通过`launchctl asuser`重启GUI-domain server。
+
+没有 Axiom、其他 package、`.age`、key、port 或 RFC production/design change。`git diff --check`通过。
+
+实际 candidate 而非 handoff 描述已独立验证：
+
+- Baseline 与 candidate 都是同一官方 source、同一 version `1.1.14`；baseline无patch，candidate恰有这一份byte-identical patch，package output按预期变化。
+- Patch对exact pinned source以`--fuzz=0` dry-run通过。Nix `applyPatches`产物与原source递归比较后，唯一内容变化是`src/rendezvous_server.rs`，且该文件严格等于old block执行一次exact replacement的结果。
+- 8-case source truth table通过：atomic flag为`true`时，`same_intranet`对全部`ws`/intranet-predicate组合均为`false`；flag为`false`时，结果逐项等于旧表达式`!ws && intranet_predicate`。
+- Patched package在Axiom以`--rebuild --builders ""`重新执行patch、release build与`checkPhase`；Rust tests为1 passed、0 failed，package passthru version test与`hbbs`/`hbbr --version`均为1.1.14。
+- 完整dirty-candidate Acorn toplevel及其`--rebuild` output check通过。Built closure链接到本轮patched package和两份candidate generated units。
+
+Static/source/build证据不单独证明runtime；最终runtime结论来自下列部署、服务端日志、state/PID检查和operator-observed远程控制结果。
+
+### 1.1 Final deployment and runtime acceptance
+
+#### Acorn build safety and activation
+
+- Acorn candidate从Axiom执行用户指定命令：`nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host localhost --sudo --ask-sudo-password --use-substitutes -L`。
+- 输出明确显示patched package及system closure从`ssh://localhost`复制到`ssh://c1@8.159.128.125`；Acorn未执行Nix build。
+- Live system为`/nix/store/2akwxh4qxfbkyjscx5qsr0rabqwaw1fs-nixos-system-acorn-25.11.20260630.b6018f8`，shared package为`/nix/store/59f33dp0236z7s4bc0nz2ji6195wmpvk-rustdesk-server-1.1.14`。
+- hbbs PID `531765`，环境含`ALWAYS_USE_RELAY=Y`；hbbr PID `531870`；TCP 21115-21117与UDP 21116监听正常。
+
+#### Same-intranet relay proof
+
+- Patch前，同出口请求在Charlie日志进入`Handle intranet`，监听LAN地址后以accept timeout结束；hbbr没有对应request。
+- Patch后，同一出口地址成功进入hbbr：`18:16:40` request `48180396-5c42-4b7c-8a43-1b3b99472a74` paired。
+- v10正向认证会话`19:27:48` request `a9847770-6607-4f95-a185-2399fe473a08` paired；负向认证会话`19:28:13` request `ef1e8a1f-b248-4209-9927-c051432eb45b` paired。
+- 这些日志独立证明same-public-IP连接不再赢得`FetchLocalAddr` direct path，而是由Acorn hbbr承载。
+
+#### Charlie v10 and remote-auth acceptance
+
+- TCC手工授予Screen Recording与Accessibility；Input Monitoring未开启，但operator确认键盘输入正常。
+- 打开RustDesk GUI使v8 ready绑定PID失效，v8未被finalize。v9在root GUI kickstart处fail closed且未发布ready。v10首次run在readiness前退出、未发布current reservation；修正GUI-domain restart后合法重跑同一v10并成功退出`0`。
+- Current revision为`charlie-rustdesk-provision-v4:7ed736b14dd87b5637ad1fa776457e7c34afd8c28c90c2ea3c8bc2868aee36a4`，ID `237104984`，service/server PID为`48507/48510`。
+- Operator-observed正向测试：正确密码、画面、鼠标点击和键盘输入均PASS。Operator-observed负向测试：错误密码被拒绝。
+- Manual finalizer成功：`attempt`与`stamp`存在，`ready-to-finalize`与`operation.lock`不存在。随后手动触发provision，runs增加到14、exit `0`，PID仍为`48507/48510`，证明current-stamp fast-skip。
+- 诊断用临时hosts/route已清理，Charlie恢复fake-IP/`utun4`路径后，operator-observed最终连接smoke仍PASS。
+
+### 2. Executed commands and evidence
+
+| Gate | Executed command / method | Result |
+|---|---|---|
+| Host / topology / scope | `hostname`; `git rev-parse HEAD origin/master`; `git merge-base`; `git rev-list --left-right --count`; `git status --porcelain=v1 --untracked-files=all`; full production diff；`git diff --check` | **PASS**：build host为Axiom；initial production scope恰为上述2 paths，baseline拓扑为`0/0`。 |
+| Nix parse / package metadata | `nix-instantiate --parse hosts/acorn/default.nix`; candidate/base `builtins.getFlake` eval package version/source/patches/drv/out与systemd options | **PASS**：version与source identity不变；candidate唯一新增patch；package path变化。 |
+| Effective option differential | Clean baseline `git+file://...?rev=d85c80f3...` vs dirty candidate `path:...`；除expected package path外，exact比较server options、normalized ExecStart、其余serviceConfig、env、restart-trigger names、key metadata与firewall | **PASS**：args、key gates、ports、env及service policy无旁路漂移。 |
+| Patch input | Exact 13-line byte assertion；candidate patch与derivation input `/nix/store/qjx2...-rustdesk-server-force-relay-intranet.patch` byte comparison；`patch --dry-run --fuzz=0 -p1` against pinned source | **PASS**：derivation patch SHA-256为`f45d2bea8ed13a77eaf2ac7bafd6ca13e667c4eda9aaff64038298da79bced51`；zero-fuzz exact apply通过。 |
+| Patched source | `nix build --builders "" ... pkgs.applyPatches { src = p.src; patches = p.patches; }`；Python递归tree/content与exact replacement assertion | **PASS**：patched-source output见第3节；只有目标Rust file变化。 |
+| True/false small source test | 对exact old/new source blocks运行8-case truth table：`force ∈ {false,true}` × `ws ∈ {false,true}` × `intranet_predicate ∈ {false,true}` | **PASS 8/8**：true恒为false；false完全保持旧语义。该test为verification-only，没有新增repo test file。 |
+| Package build/checks | `nix build --builders "" --no-link --print-out-paths --rebuild -L --impure --expr 'let f = builtins.getFlake "path:..."; in f.nixosConfigurations.acorn.config.services.rustdesk-server.package'` | **PASS**：fresh local rebuild实际应用patch、编译hbbs/hbbr并运行Rust check/tests；1 passed、0 failed。 |
+| Package version test | 同样使用`--builders ""`构建`p.passthru.tests.version`；直接运行built `hbbs --version`与`hbbr --version` | **PASS**：passthru test输出`hbbr 1.1.14`；两个binary均输出1.1.14。 |
+| Full Acorn build | `nix build --builders "" --no-link --print-out-paths -L 'path:...#nixosConfigurations.acorn.config.system.build.toplevel'`，随后同一installable加`--rebuild` | **PASS**：final report-inclusive realization见第4节；未activation/switch。 |
+| Generated units / closure | Realize candidate units；base/candidate unit byte comparison；从exact toplevel解析unit symlink并用`nix-store --query --requisites`检查package+units | **PASS**：两unit均引用同一patched package；各自相对baseline的唯一文本变化都是shared package path。 |
+
+选择这些命令是因为单纯grep patch不能证明它精确应用到pinned source，单纯package build不能证明true/false合同，单纯toplevel exit code也不能证明两个generated unit实际引用patched output。Zero-fuzz apply、patched-tree exact differential、truth table、fresh package tests、generated-unit differential与完整closure组合直接覆盖当前claims。
+
+### 3. Exact patched-source and logic evidence
+
+Pinned source保持：
+
+```text
+/nix/store/6nrhjs57c3145lwj66s9mncwgfqlyhz8-source
+```
+
+Verification-only `applyPatches` output：
+
+```text
+/nix/store/am69c0b8kiq0dh3r7ngkmhk2ifp5pcxa-rustdesk-server-1.1.14-patched-source
+```
+
+Exact replacement为：
+
+```rust
+-            let same_intranet: bool = !ws
++            let same_intranet: bool = !ALWAYS_USE_RELAY.load(Ordering::SeqCst)
++                && !ws
+                 && (peer_is_lan && is_lan || {
+```
+
+Recursive path/type/content assertion证明两个source trees路径集合相同，只有`src/rendezvous_server.rs`内容改变；patched file严格等于baseline file执行上述single replacement，old block出现0次、new block出现1次。
+
+令`old = !ws && intranet_predicate`，candidate即`new = !force && old`：
+
+| `force` | 4个`ws × intranet_predicate`组合的结果 |
+|---|---|
+| `false` | `new == old`，4/4 |
+| `true` | `new == false`，4/4 |
+
+因此requested source-level合同成立：`ALWAYS_USE_RELAY=true`时不再进入same-intranet local-address分支；`false`时原有`ws`、LAN与same-IP判断语义不变。
+
+### 4. Package tests and full Acorn build
+
+```text
+candidate package drv: /nix/store/vd5qzz23zkj6x1bsn1xk147nx65vy49b-rustdesk-server-1.1.14.drv
+baseline package out: /nix/store/vgwrc4gvcqypaxwlkdvphcwzams9xl8z-rustdesk-server-1.1.14
+candidate package out: /nix/store/59f33dp0236z7s4bc0nz2ji6195wmpvk-rustdesk-server-1.1.14
+version test out:      /nix/store/3gxvhxh9rvgn6ijyan79r7kyq9sn64ja-rustdesk-server-1.1.14-test-version
+Acorn toplevel:        final report-inclusive realization PASS（exact path见terminal handoff）
+```
+
+Fresh package `--rebuild` log依次显示`patching file src/rendezvous_server.rs`、release build、`checkPhase`与：
+
+```text
+test database::tests::test_insert ... ok
+test result: ok. 1 passed; 0 failed
+```
+
+其余hbbr/hbbs/utils/doc targets为0 tests、0 failed。Build保留上游既有warnings但没有error。完整toplevel普通realization与随后`--rebuild` output check都返回同一output。所有这些build均由Axiom本地命令以`--builders ""`执行；没有连接或在Acorn执行build。 本报告自身属于`path:` flake input；为避免把final output path写回报告后再次改变input，本节记录exact command/PASS，最终exact path留在terminal五字段handoff。
+
+### 5. Exact generated hbbs/hbbr evidence
+
+```text
+baseline hbbs unit:  /nix/store/47q0dk93ibnlxp7m51ywab1r8s1f5ix6-unit-rustdesk-signal.service
+candidate hbbs unit: /nix/store/xdm57rln6rxg9dzpmj093y7y463aaafg-unit-rustdesk-signal.service
+baseline hbbr unit:  /nix/store/rjxp8xn033h5ll9cwpxbhn87b83z87rn-unit-rustdesk-relay.service
+candidate hbbr unit: /nix/store/2fi62f9hwfhgwa31965ah4qd16yxq5r3-unit-rustdesk-relay.service
+
+hbbs ExecStart: /nix/store/59f33dp0236z7s4bc0nz2ji6195wmpvk-rustdesk-server-1.1.14/bin/hbbs --relay-servers rustdesk.0xc1.wang -k _
+hbbr ExecStart: /nix/store/59f33dp0236z7s4bc0nz2ji6195wmpvk-rustdesk-server-1.1.14/bin/hbbr -k _
+```
+
+对每个unit，candidate文本都严格等于baseline文本只把baseline package path替换为candidate package path；没有第二处diff。由此同时证明：
+
+- hbbs和hbbr都引用同一个patched 1.1.14 package；exact Acorn toplevel symlink与closure也指向这两份candidate unit和该package。
+- hbbs继续恰有一次`Environment="ALWAYS_USE_RELAY=Y"`；hbbr仍为0次，两个environment均与baseline相同。
+- hbbs args仍是`--relay-servers rustdesk.0xc1.wang -k _`，hbbr仍是`-k _`。
+- 两unit各有3项相同的`ExecStartPre`，shared key preflight、public-key readable/non-empty gates、`LimitCORE=0`、`Restart=on-failure`、`RestartSec=5s`均保持。
+- Agenix key metadata仍是`/var/lib/rustdesk/id_ed25519`、`rustdesk:rustdesk`、`0400`；两unit restart-trigger names仍是server key ciphertext与public-key文件。未读取其payload。
+- `openFirewall=false`；TCP仍为`[22,443,2222,2223,2224,2225,7000,21115,21116,21117,34197]`，UDP仍为`[21116,34197]`。
+
+### 6. Deployment/runtime risk and evidence boundary
+
+- **Shared package restart observed**：Acorn activation按预期同时重启hbbs/hbbr；两项均恢复active/listeners，fresh relay会话随后成功。
+- **Runtime relay PASS**：same-intranet direct failure被hbbr paired-session正证取代，正负认证均通过Acorn relay。
+- **运营边界**：长期relay带宽、容量、延迟与云费用未做代表性周期测量；Acorn/hbbr仍是数据面单点。
+- **Secret boundary**：仅求值声明式path/owner/group/mode与restart-trigger文件名；未打开、hash、解密或输出secret ciphertext/plaintext，也未读取RustDesk mutable state。
+
+### 7. Verification command adjustments and failures
+
+没有implementation failure被隐藏；required static/build gate均未skip。Verification-only corrections为：
+
+1. 首次baseline flake URL手写了错误full hash，Nix在evaluation前以`object not found`拒绝；随后直接使用`git rev-parse`所得exact `d85c80f3be...`重跑通过。
+2. 首次effective comparison把raw `ExecStart`纳入exact equality，因expected package path变化而失败；修正为只规范化该package prefix，同时继续exact比较args与其余serviceConfig后PASS。
+3. 修正上述Nix assertion里`replaceStrings`单元素list的括号语法后PASS；production未改。
+4. Specialized read tool不允许直接打开`/nix/store` source path；改用只读Python exact tree/source assertion完成同一gate，没有修改store或workspace source。
+
+### 8. 会话注意力摘要
+
+- **Attention state**：runtime gate CLOSED；可进入最终read-only review与PR lifecycle。
+- **已关闭**：production scope、patch application/语义、build/tests、双unit恢复、same-intranet relay、远程画面/输入、正负认证、finalizer、fast-skip和临时路由清理。
+- **保留运营风险**：长期带宽、容量、延迟、云费用与Acorn单点未做周期性验证，不阻塞本次correctness交付。
+- **Design-source disposition**：用户明确要求不重开RFC；本报告不把旧RFC描述冒充当前实现。
+
+---
+
+## Historical report — Acorn hbbs force-relay verification
 
 > 日期：2026-07-15
 > Verifier：`verify-change-dapper-lemur`

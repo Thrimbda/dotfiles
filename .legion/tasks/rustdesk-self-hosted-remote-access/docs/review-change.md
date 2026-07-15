@@ -1,6 +1,137 @@
 # Review Change: RustDesk rollout
 
-## Current authoritative review — Acorn hbbs force-relay
+## Current authoritative review — final deployed force-relay and Charlie v10 candidate
+
+### Findings
+
+#### Blocking findings
+
+无。
+
+#### Non-blocking findings
+
+1. **MEDIUM — task-owned server source patch需要持续升级门禁。** 当前patch由1.1.14 version assertion、fixed source、zero-fuzz apply、exact source differential、fresh package tests和真实same-intranet relay共同约束。未来更新server source/version时，必须重新证明patch仍必要、只应用一次、`ALWAYS_USE_RELAY=false`保持旧行为，并重跑same-intranet runtime。
+2. **MEDIUM — 全量relay集中availability、DoS、带宽和费用风险。** Runtime已证明目标会话进入Acorn hbbr并恢复画面/输入，但没有长期soak、容量或账单周期数据。用户已接受为non-blocking residual。
+3. **LOW — production先于commit/PR/merge从dirty candidate激活。** Acorn live package、Charlie v10 revision和当前production diff已关联到同一candidate；merge用于关闭Git source-of-truth差距，不能把现状描述成clean-merged deployment。
+4. **LOW — 本轮只明确记录correct-password与wrong-password。** 未单列old/cross-host fresh negative；Input Monitoring未开启但键盘实测通过。不得扩大为这些未执行case已经PASS。
+
+### Verdict
+
+**PASS — 当前candidate没有blocking correctness、security、scope或verification-evidence finding；可以提交exact diff、创建PR，并在required checks通过且diff未漂移后merge。** RFC lag按用户明确决定不是blocker，不重开RFC。本结论不把长期relay运营风险声明为关闭。
+
+> **Review target**: HEAD / `origin/master` `d85c80f3be5cfea3c857f10c26cfa72a4fa6e289` 加当前production/evidence diff
+> **Direct author**: `engineer-jolly-gecko`
+> **Static/build verifier**: `verify-change-fizzy-capybara`
+> **Runtime verifier**: `verify-change-fizzy-yak`
+> **Reviewer**: `review-change-playful-otter`
+> **Security lens**: applied — protocol routing、authentication、root-to-GUI launchd context、one-attempt/finalizer state和secret boundary
+> **Reviewed**: 2026-07-15
+
+### Review conclusions
+
+1. **Force-relay correctness — PASS。** `ALWAYS_USE_RELAY=true`时，既有代码先设置`SYMMETRIC`，新增guard再强制`same_intranet=false`，跳过`FetchLocalAddr`并进入原有`PunchHole`路径。稳定`false`时，新表达式`!force && old`逐项等于旧表达式。
+2. **Package与安全回归 — PASS。** Override保留既有patch列表并追加task patch；1.1.14 assertion保持。Key preflight、`-k _`、relay host、service identity、restart policy、firewall和端口未漂移。Runtime中hbbs/hbbr均恢复并由patched package运行。
+3. **`launchctl asuser` — PASS。** `asuser`切换launchd namespace而不是认证身份；root provision只重启固定GUI-domain LaunchAgent。随后validator仍要求UID c1、exact executable/arguments、PID/socket ownership和稳定identity。v9 root-context kickstart实际fail closed，v10 asuser路径实际成功。
+4. **v10 state语义 — PASS。** v8→v10只改变composite digest，合法prefix仍为`charlie-rustdesk-provision-v4:`。v9 consumed attempt没有被resume；首个v10 run在发布current reservation和读取secret之前失败，因此同revision retry合法。成功后正负认证、finalizer及fast-skip均通过。
+5. **Live/repo一致性 — PASS with provenance caveat。** Acorn live package、hbbr pairing、Charlie v10 revision、current stamp及fast-skip均对应当前production inputs，临时hosts/route已清理。由于部署来自dirty candidate，只能声称语义与待提交diff一致，不能声称live generation来自未来merge commit。
+6. **Verification充分性 — PASS。** 证据覆盖exact patch、false-path truth table、fresh build/tests、generated units、Axiom-built Acorn activation、same-intranet relay、Charlie asuser、画面/输入、correct/wrong authentication、manual finalizer和fast-skip。Acorn没有执行Nix build。
+
+### Commit / PR / merge readiness
+
+- **Commit**：ready；一次性stage全部intended paths。
+- **PR**：刷新`pr-body.md`和`report-walkthrough.md`后ready。
+- **Merge**：required checks PASS且PR diff与本review一致后ready；无需重开RFC。
+- **Deploy**：不需要再次deploy，禁止在Acorn运行Nix。
+
+### 会话注意力摘要
+
+- **阶段结论**：`PASS`
+- **Attention state**：`none` for commit/PR/merge；长期relay费用/单点与source patch升级责任为non-blocking residual。
+- **已关闭**：pre-runtime gate、authoritative review落盘、same-intranet relay、v10 auth/finalizer/fast-skip。
+- **自动下一步**：刷新reviewer artifacts，提交exact candidate，完成required checks并squash merge。
+
+---
+
+## Historical review — Acorn force-relay same-intranet source patch (pre-runtime)
+
+### Findings
+
+#### Blocking findings
+
+无。
+
+#### Non-blocking findings
+
+1. **MEDIUM — task-owned source patch带来明确的升级/rebase维护责任。** 当前patch只在RustDesk Server 1.1.14的`handle_punch_hole_request`中给`same_intranet`增加一个guard；version assertion、fixed source、zero-fuzz apply、patched-tree exact differential和fresh package build使当前版本的风险有界。但它依赖上游内部control-flow，不是稳定API，也没有checked-in regression test。任何server source/version升级都必须把“patch仍必要”作为显式问题，重新审查call site、zero-fuzz应用、`false`等价性、client relay选择和same-intranet runtime；不得只因patch还能带fuzz应用就继续。
+2. **MEDIUM — shared package使hbbs与hbbr都进入restart blast radius。** 源码只改hbbs使用的`rendezvous_server.rs`，但`services.rustdesk-server.package`同时供`rustdesk-signal`与`rustdesk-relay`使用。Candidate generated units的两个`ExecStart`都换到新store package path，且两个unit均是changed-service restart语义；部署必须按hbbs、hbbr都会重启规划。既有registration和relay session可能中断，不能沿用上一轮“hbbr PID应保持”的结论。
+3. **MEDIUM — 全量relay扩大DoS、费用与单点故障影响。** 该风险是用户要求“所有流量经Acorn”的直接代价，不是实现偏差：合法session的数据面和metadata集中到唯一Acorn/hbbr，公网21117、Acorn带宽/CPU、云egress费用和单机可用性成为持续依赖。1.1.14默认`SINGLE_BANDWIDTH=16 Mb/s`、`TOTAL_BANDWIDTH=1024 Mb/s`只是吞吐限制，不是连接数、费用预算或failover。现有key gate与最小端口降低滥用面但不消除扫描、资源耗尽或账单风险；PR前可保留该accepted architecture，deployment前仍需owner、阈值和containment动作。
+4. **LOW — relay flag是可变atomic，且当前request读取两次。** Stable `true`/`false`下本patch语义正确；但上游loopback command可在进程内改变`ALWAYS_USE_RELAY`，line 713的`SYMMETRIC`决定与新增guard各自load一次。只有在本地显式切换恰好与request并发时才可能得到不同snapshot；该本地控制面与trusted-Acorn边界不是本patch新增，能切换它的actor本来就可关闭force-relay，因此不阻塞当前PR。维护建议是在未来port patch时对每个request只load一次并复用；运行时则不得把一次启动检查外推成tamper-proof保证。
+
+### Verdict
+
+**PASS — static/source/build证据足以创建Acorn same-intranet force-relay PR并运行required checks；不是merge、deployment、runtime relay、capacity/费用或availability PASS。** 未发现blocking correctness、security、scope、regression或verification-evidence finding。用户批准的no-RFC bypass已明确处置，不是blocker；本review不修改RFC，也不把旧Axiom-only implementation boundary伪装成当前设计。
+
+> **Review target**: `origin/master` / HEAD `d85c80f3be5cfea3c857f10c26cfa72a4fa6e289` 加未提交的`hosts/acorn/default.nix` package override、`hosts/acorn/patches/rustdesk-server-force-relay-intranet.patch`与verifier-owned `docs/test-report.md` authoritative section
+> **Direct author**: `engineer-jolly-gecko`
+> **Verifier**: `verify-change-fizzy-capybara`
+> **Reviewer**: `review-change-quick-fox`
+> **Provenance**: author、verifier、reviewer为不同派生事件；本review独立检查candidate、pinned server/client control-flow与交付证据
+> **Verification gate**: current `docs/test-report.md`对scope、exact patch application、true/false source semantics、fresh package tests、generated units与完整Acorn toplevel build为PASS；candidate runtime/deployment NOT RUN
+> **Security lens**: applied — routing/protocol boundary、relay selection、key/auth continuity、ports、secret boundary、local flag mutability、DoS/费用集中与dual-service lifecycle
+> **RFC disposition**: 用户明确批准“所有流量经Acorn”与no-RFC bypass；该流程滞后不阻塞本PR，本review不改`docs/rfc.md`
+> **Reviewed**: 2026-07-15
+
+### Review results
+
+1. **Scope、minimality与no-RFC disposition — PASS。** 写入本section前，production candidate只有`hosts/acorn/default.nix`的`+5/-0` package override与13行patch文件；另一tracked delta是verifier-owned test report。没有Axiom、Charlie、module、其他package、`.age`、key material、port或RFC变更。Acorn与task docs均在`plan.md:51-58`授权范围内。旧RFC的Axiom-only implementation boundary确实滞后，但用户已显式授权本次exact exception并禁止重开RFC，故只记录provenance，不作为设计回退点。
+2. **`ALWAYS_USE_RELAY=true`跳过same-intranet — PASS。** Upstream先在同一request上命中既有`ALWAYS_USE_RELAY || LAN-XOR`分支，把`ph.nat_type`设为`NatType::SYMMETRIC`。新增guard随后令`same_intranet=false`，因此不再生成`FetchLocalAddr`，而是进入原有`else`并发送包含同一`relay_server`和`SYMMETRIC` nat type的`PunchHole`。这直接覆盖用户提供的runtime residual：官方1.1.14/1.1.15在same-intranet曾停留于`FetchLocalAddr`、direct失败且hbbr无request。
+3. **`ALWAYS_USE_RELAY=false`行为保持 — PASS with bounded concurrency note。** 旧表达式是`old = !ws && intranet_predicate`，candidate是`new = !force && old`；当本次判断观察到stable `false`时，`new == old`，原有WebSocket、LAN和same-public-IP判断逐项不变。Verifier的8-case truth table、exact one-block replacement与source-tree唯一文件差异共同覆盖该claim。上面的LOW finding只限制并发切换时的跨两次atomic-load表述，不否定stable false regression结果。
+4. **确实进入既有`PunchHole + SYMMETRIC` relay路径 — PASS，runtime仍需闭环。** Reviewer独立检查pinned RustDesk client 1.4.9：controlled端收到`PunchHole`后，`ph.nat_type == SYMMETRIC`会直接调用既有`create_relay`，向hbbs返回`RelayResponse`并连接relay；controller收到`RelayResponse`后直接建立relay connection，最终两端在hbbr按UUID配对。该patch没有新建协议、relay实现或认证旁路，只把same-intranet分支重新导向已经存在且上一轮常规拓扑使用的路径。Static control-flow足以支持PR，但只有fresh runtime的hbbr paired/bytes positive proof与endpoint direct negative proof能证明实际data plane。
+5. **Package override与升级fail-closed属性 — PASS with maintenance residual。** `(oldAttrs.patches or [ ]) ++ [ taskPatch ]`保留nixpkgs既有patch顺序并把task patch追加在后；Acorn assertion仍要求package version恰为1.1.14。当前fixed source上patch以`--fuzz=0`应用，patched source除目标Rust文件外无差异，package/checkPhase/version tests与完整toplevel均通过。版本assertion和patch/build failure会阻止无意漂移，但维护者主动更新assertion时仍必须执行finding 1的语义门禁。
+6. **Key、auth、port、secret与hardening regression — PASS。** Source diff没有触及licence/key check、relay pairing、secure connection或password逻辑；Nix diff没有触及age secret、public key、`-k _`、relay hostname、firewall或service identity。Exact generated-unit differential显示两unit除shared package path外无文本变化：hbbs仍有`ALWAYS_USE_RELAY=Y`和`--relay-servers rustdesk.0xc1.wang -k _`，hbbr仍是`-k _`；三项key preflight、`LimitCORE=0`、restart policy和`rustdesk:rustdesk`身份保持。`openFirewall=false`，RustDesk exposure仍只有TCP 21115-21117与UDP 21116。本review未读取任何secret/key/config payload。
+7. **Dual restart与session continuity — PASS as an explicit deployment risk。** Candidate hbbs/hbbr generated units都只因shared executable store path而变化；这证明没有旁路配置漂移，也意味着switch transaction不能假设hbbr continuity。Pre-switch已有relay session必须视为会断开，部署控制通道必须是SSH/reverse-SSH/ToDesk而不是被测RustDesk。Post-switch须分别证明两个新process identity、active状态、listener恢复和client re-registration；任一失败都阻止runtime PASS。
+8. **Verification sufficiency — PASS for PR entry。** Evidence组合包含clean-baseline topology、完整production diff、whitespace、exact patch bytes和zero-fuzz apply、patched-tree recursive differential、stable true/false truth table、fresh package rebuild/checks、binary version、candidate/base generated-unit exact differential、closure linkage及完整Acorn toplevel build。Reviewer另行复核了patch上下文、server branch、pinned 1.4.9两端relay选择、generated units和baseline topology。它们足以审查一个小而明确的private patch；它们没有启动服务、执行switch、产生same-intranet session、观察hbbr request/bytes、排除endpoint direct data socket或测量capacity/cost，因此runtime gates不能降级。
+
+### Security assessment
+
+Security lens未发现新增credential、secret、permission、ingress或authentication bypass。Patch位于通过licence/key检查后的routing choice，只改变`FetchLocalAddr`与`PunchHole`的选择；现有secure peer authentication与hbbr `-k _`路径保持。Package rebuild会改变两个daemon executable/store identity，但generated service user、private key preflight、public key、args与端口不变。
+
+风险变化主要在availability和concentration，而不是credential confidentiality：更多合法数据与connection metadata经过Acorn，hbbr/Acorn compromise、DoS、资源饱和和billing abuse的影响扩大；唯一relay也成为单点。Loopback `aur` command可修改global flag是上游已有local control surface，没有被远程暴露；在现有trusted-Acorn模型内不构成新增exploit，但它意味着“所有流量relay”是受控运行配置与持续观测目标，不是不可变安全属性。
+
+### Required clean-merge runtime gates
+
+1. 创建PR、完成required checks、明确处置本section的`attention:review`，再merge；Acorn只能从clean merged `origin/master`部署。所有build/deployment必须从Axiom执行仓库规定的`nixos-rebuild ... --build-host localhost`路径，禁止在Acorn运行任何Nix命令，也禁止从当前dirty worktree switch。
+2. 选择maintenance window并先关闭旧RustDesk session。只记录approved metadata：hbbs/hbbr PID/start identity、active状态、21115-21117/TCP与21116/UDP listener、当前connection/byte基线和fallback可达性；不读取secret、key、RustDesk mutable config或完整environment。
+3. Switch后按shared-package blast radius要求hbbs与hbbr都获得candidate executable/new identity并恢复active。只读取allowlist证据确认hbbs启动值为`ALWAYS_USE_RELAY=Y`、两个key preflight成功、hbbr listener恢复、firewall/SG及端口集合无漂移；不得把任一daemon恢复推断成另一个已恢复。
+4. 证明Axiom、Charlie重新注册且pinned server key/auth仍工作。所有pre-switch connection都作废，从fresh controller建立新会话；旧session或自动reconnect不能作为candidate证据。
+5. 在已复现问题的same-intranet拓扑中，至少完成每个受支持控制方向的fresh session：证明hbbs不再选择`FetchLocalAddr`，controlled端收到`PunchHole/SYMMETRIC`等价路径，hbbr出现对应new request、pairing与双向bytes；同时用redacted 5-tuple/socket或packet metadata证明endpoint之间没有获胜的direct data connection，实际payload连接只指向Acorn relay port。若无法安全观察消息类型，以“hbbr paired+bytes positive”和“endpoint direct established socket/bytes zero”作为不可缺少的data-plane组合证据。
+6. 在同一fresh process/session identity下重做correct-password positive与wrong/old/cross-host negative controls，并验证画面与keyboard/pointer；认证拒绝必须与transport失败区分。任何pending ready/finalizer必须先重验其本地PID/start identity，不能用本patch绕过既有manual-finalize gate。
+7. 运行代表性持续会话，记录不含ID/secret的latency、hbbr CPU/memory、connection count、per-session/total throughput、Acorn ingress/egress与Aliyun费用信号；指定owner、告警/费用阈值和stop condition。确认SSH、reverse-SSH、ToDesk可用，并演练非破坏性的operator containment路径。
+8. 任一dual-service恢复、same-intranet direct negative、hbbr positive、auth或capacity gate失败时，不得声称force-relay runtime PASS。由于旧baseline会重新暴露same-intranet direct路径，正常containment应停止RustDesk新会话/关闭21117并保留fallback，再从新的clean change fixed-forward；不得在“所有流量经Acorn”的承诺下把旧行为重新启用为可用rollback。
+
+### Review evidence and boundaries
+
+- 独立检查`plan.md`、当前`docs/test-report.md`、RFC/review history、完整production diff、patch、pinned server 1.1.14与client 1.4.9相关control-flow、四份baseline/candidate generated units、`git status`、baseline/`origin/master`拓扑和recent history。
+- `git diff --check`通过；HEAD、merge-base与`origin/master`均为`d85c80f3`，ahead/behind为`0/0`。Untracked patch由逐行内容与verifier的exact-byte/zero-fuzz证据覆盖。
+- 本review未执行任何Nix命令，未在Acorn或其他host build/deploy，未启动/停止/restart服务，未建立session，未运行finalizer，未commit/push，也未读取secret plaintext/ciphertext payload、private/public key内容或RustDesk mutable config。
+- 用户提供的1.1.14/1.1.15 same-intranet runtime observation用于确认问题与选择runtime gate；candidate的runtime修复仍标记为NOT RUN，未被本review冒充为独立runtime PASS。
+
+### 会话注意力摘要
+
+- **阶段**：`review-change`
+- **阶段结论**：`PASS`
+- **注意力等级**：`review`
+- **判断变化**：上一轮仅environment change留下的same-intranet caveat已由最小source patch在静态control-flow上关闭；同时shared package使hbbr从“应保持PID”改为“必须按restart规划”。
+- **关键发现**：1) `true`时跳过`FetchLocalAddr`并进入既有`PunchHole + SYMMETRIC` relay链，stable `false`完全保持旧表达式；2) 当前证据足够PR，不足以证明runtime data plane；3) private patch维护、dual restart及Acorn费用/DoS/单点是非阻塞但高影响残余。
+- **阻塞项**：无。
+- **残余风险**：升级/rebase需人工重审；hbbs/hbbr共同restart会中断会话；全量relay缺少failover和task-owned cost/connection circuit breaker；runtime same-intranet direct negative与hbbr positive尚未执行。
+- **人类动作**：在merge前复核并记录对private patch维护责任、dual-service中断和Acorn费用/单点风险的接受，同时指定流量/费用owner与stop threshold。
+- **自动下一步**：可创建PR并运行required checks；上述复核落盘前停止在merge，不得deploy。复核后从clean merged baseline执行本section runtime gates。
+- **完整证据**：`.legion/tasks/rustdesk-self-hosted-remote-access/docs/review-change.md`；`.legion/tasks/rustdesk-self-hosted-remote-access/docs/test-report.md`；`hosts/acorn/patches/rustdesk-server-force-relay-intranet.patch`。
+
+---
+
+## Historical review — Acorn hbbs force-relay
 
 ### Findings
 

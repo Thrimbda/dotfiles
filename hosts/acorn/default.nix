@@ -142,6 +142,11 @@
     services.rustdesk-server = {
       enable = true;
       openFirewall = false;
+      package = pkgs.rustdesk-server.overrideAttrs (oldAttrs: {
+        patches = (oldAttrs.patches or [ ]) ++ [
+          ./patches/rustdesk-server-force-relay-intranet.patch
+        ];
+      });
       signal = {
         relayHosts = [ "rustdesk.0xc1.wang" ];
         extraArgs = [ "-k" "_" ];

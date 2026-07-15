@@ -127,4 +127,5 @@
 - [Hey JPM Activation Safe Rebuild](tasks/hey-jpm-activation-safe-rebuild.md)
 - [Hey Activation Staging Environment](tasks/hey-activation-staging-env.md)
 - [SSH Foot Term Compatibility](tasks/ssh-foot-term-compat.md)
+- [RustDesk Self-Hosted Remote Access](tasks/rustdesk-self-hosted-remote-access.md)
 - [Theme Shell Terminal Migration](tasks/theme-shell-terminal-migration.md)

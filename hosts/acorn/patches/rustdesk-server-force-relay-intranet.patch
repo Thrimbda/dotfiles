@@ -1,0 +1,13 @@
+diff --git a/src/rendezvous_server.rs b/src/rendezvous_server.rs
+--- a/src/rendezvous_server.rs
++++ b/src/rendezvous_server.rs
+@@ -717,7 +717,8 @@ impl RendezvousServer {
+                 }
+                 ph.nat_type = NatType::SYMMETRIC.into(); // will force relay
+             }
+-            let same_intranet: bool = !ws
++            let same_intranet: bool = !ALWAYS_USE_RELAY.load(Ordering::SeqCst)
++                && !ws
+                 && (peer_is_lan && is_lan || {
+                     match (peer_addr, addr) {
+                         (SocketAddr::V4(a), SocketAddr::V4(b)) => a.ip() == b.ip(),

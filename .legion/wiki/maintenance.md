@@ -15,6 +15,12 @@
 - After deploying `auth-mini-resend-smtp`, verify `/run/agenix/auth-mini-resend-api-key` is owned by `auth-mini:auth-mini` with mode `0400`. SMTP and a live OTP send already succeeded; future Resend key rotation or auth-mini database recovery requires reapplying SMTP through the authenticated admin API.
 - After merging `auth-mini-gateway-login-failure`, switch Acorn with interactive remote sudo and restart all four `auth-mini-gateway-*` instances. In a fresh browser context, verify per-origin unauthenticated redirects, allowlisted Email OTP access to status/opencode/frps, Opencode WebSocket, opaque host-only cookies, non-allowlisted denial, and logout without recording credentials or session material.
 
+## RustDesk Relay Follow-Up
+
+- On every RustDesk Server upgrade, re-evaluate whether upstream still lets `same_intranet` bypass `ALWAYS_USE_RELAY`; require zero-fuzz patch application, stable-false equivalence, package tests and a fresh same-public-IP hbbr pairing smoke before retaining or removing the private patch.
+- Establish representative Acorn hbbr bandwidth、capacity、latency and cloud-cost monitoring with an owner and stop threshold. The current relay-only design has no failover and keeps Acorn/hbbr as a data-plane single point of failure.
+- If the full authentication matrix is needed for a later release, separately rerun old-password and cross-host negative controls; this delivery explicitly proves correct-password and wrong-password only.
+
 ## Terminal Follow-Up
 
 - Foot terminal notification behavior was disabled by removing unsupported `[main].notify` from the global config. If terminal notification behavior is still desired, restore it only through a Foot 1.25-supported option or an explicit external wrapper design validated with `foot --check-config`.
