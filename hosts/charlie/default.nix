@@ -311,7 +311,7 @@ with lib;
         source=${rustdeskDmgHash}
         public-config=${rustdeskPublicConfig}
         launchctl-parser=${rustdeskLaunchctlParser}
-        provision=charlie-rustdesk-provision-v8
+        provision=charlie-rustdesk-provision-v10
         ready-to-finalize=charlie-rustdesk-ready-v1
         manual-finalize=charlie-rustdesk-finalize-v1
         ciphertext=${./secrets/rustdesk-password.age}
@@ -1099,7 +1099,8 @@ with lib;
 
         /bin/launchctl kickstart -k system/com.carriez.RustDesk_service
         uid=$(/usr/bin/id -u "$rustdesk_user")
-        /bin/launchctl kickstart -k "gui/$uid/com.carriez.RustDesk_server"
+        /bin/launchctl asuser "$uid" /bin/launchctl kickstart -k \
+          "gui/$uid/com.carriez.RustDesk_server"
         wait_runtime || fail restart
         [ "$ready_service_pid" != "$provision_service_pid" ] \
           || fail service-not-restarted

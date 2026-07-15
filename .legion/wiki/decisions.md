@@ -20,6 +20,16 @@ For agenix-backed service migration between hosts, the target host must receive 
 
 `vault.0xc1.wang` should use Cloudflare-proxied DNS for browser-facing HTTPS and Cloudflare DNS-01 ACME for the `acorn` origin certificate. `status-axiom.0xc1.wang` should also use Cloudflare DNS-01 ACME with DNS-only `A` record origin routing and nginx Basic Auth. Public `80` remains closed; do not use HTTP-01 for this host.
 
+## Acorn Build Safety
+
+Never execute a Nix build or local `nixos-rebuild switch` on Acorn. Every Acorn build and deployment must run from Axiom with:
+
+```bash
+nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host localhost --sudo --ask-sudo-password --use-substitutes -L
+```
+
+`--build-host localhost` must resolve to Axiom. If the Axiom build, closure transfer, or remote activation fails, stop and report the blocker; never fall back to an Acorn-local build.
+
 ## Linux Workstation Desktop Baseline
 
 Shell prompt and tmux theme defaults are no longer owned by active theme modules. The current default prompt lives in `config/zsh/prompt.zsh` and is sourced by `config/zsh/.zshrc`; the current tmux theme lives in `config/tmux/theme.conf` and is sourced by `config/tmux/tmux.conf`. Do not reintroduce theme-module zsh/tmux injection unless a future scoped task designs an explicit shell theme option.

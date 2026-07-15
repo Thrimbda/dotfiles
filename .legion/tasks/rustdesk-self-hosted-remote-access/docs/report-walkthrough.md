@@ -1,48 +1,47 @@
-# Acorn RustDesk Server-Side Force Relay
+# RustDesk same-intranet 强制中继交付摘要
 
 > **Mode:** implementation
-> **Production scope:** one line in `hosts/acorn/default.nix`, hbbs only
-> **Verification:** PASS for diff, generated units, full Acorn build and pinned 1.1.14 source semantics
-> **Change review:** PASS for PR entry; no blocking findings
-> **Runtime relay:** NOT RUN / NOT PASS
+> **Verdict:** static/build、runtime 与 change review 均 **PASS**，无 blocking finding
+> **Production:** 已从当前 dirty candidate 激活；本 PR 只关闭 Git source-of-truth gap，**无需再次 deploy**
 
-## Why This Change
+## 根因与修复
 
-The operator-reported runtime sequence was:
+官方 RustDesk Server 1.1.14 在 `ALWAYS_USE_RELAY=true` 时会设置 `SYMMETRIC`，但 same-intranet 命中后仍进入 `FetchLocalAddr` 分支，导致同出口连接尝试直连而没有到达 hbbr。
 
-1. Charlie's direct listener first advertised the wrong fake-IP.
-2. After it was corrected to Charlie's LAN address, the controller still failed with `No route to host`.
-3. The attempted client-side force-relay path did not actually select relay.
+- Acorn package override 追加最小 source patch：`true` 时令 `same_intranet=false`，跳过 `FetchLocalAddr` 并进入既有 `PunchHole + SYMMETRIC` relay 链；稳定 `false` 时，原有 WebSocket、LAN 与 same-IP 判断逐项不变。
+- Charlie fresh-provision marker 推进到 v10；root provision 通过 `launchctl asuser "$uid"` 在正确的 GUI launchd domain 轮换 `com.carriez.RustDesk_server`。v10 实际运行成功。
 
-The user therefore approved RustDesk Server's hbbs-side force-relay mechanism.
+## PR scope
 
-## Production Change
+1. Acorn package override 与 source patch：`hosts/acorn/default.nix`、`hosts/acorn/patches/rustdesk-server-force-relay-intranet.patch`。
+2. Charlie v10 marker 与 GUI-domain restart：`hosts/charlie/default.nix`。
+3. Authoritative static/build/runtime evidence：`docs/test-report.md`。
+4. Authoritative independent review：`docs/review-change.md`。
 
-The complete production diff is one hbbs setting:
+不包含 RFC 变更。
 
-```nix
-systemd.services.rustdesk-signal.environment.ALWAYS_USE_RELAY = "Y";
+## 验证证据
+
+### Static / build — PASS
+
+- Exact source differential、zero-fuzz apply、8-case true/false truth table、fresh package tests、generated units 与完整 Acorn toplevel 均通过。
+- Acorn closure 只在 Axiom 使用以下指定命令构建并复制；**Acorn 从未本地 build**：
+
+```bash
+nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host localhost --sudo --ask-sudo-password --use-substitutes -L
 ```
 
-The realized hbbs unit gains exactly `Environment="ALWAYS_USE_RELAY=Y"`. The hbbr unit is byte-identical to baseline. There is no Axiom or Charlie production change and no package, key, authentication, listener, port or firewall change.
+### Runtime — PASS
 
-## Existing Evidence
+- Same-public-IP 会话在 Acorn hbbr 出现 fresh request 并 paired，不再由 `FetchLocalAddr` direct path 获胜。
+- 正确密码、远程画面、鼠标点击与键盘输入均通过；错误密码被拒绝。
+- Manual finalizer 写入 current stamp，`ready-to-finalize` 已移除；随后 provision fast-skip 以 exit `0` 返回且 process identity 保持。
+- 诊断用临时 hosts/route 已清理；恢复正常网络路径后的 final connection smoke 仍通过。
 
-- Clean-baseline differential evaluation and generated-unit comparison prove the hbbs-only effective change; full Acorn toplevel build and closure checks: **PASS**.
-- The pinned official RustDesk Server 1.1.14 source reads `ALWAYS_USE_RELAY=Y` in hbbs and marks the normal hole-punch response to select relay: **PASS** for source semantics.
-- Independent change review: **PASS** for PR entry, including scope, regression and security lenses, with no blocking finding.
+## Reviewer residuals
 
-These are configuration, build and source-semantics results. No Acorn switch, service restart, fresh RustDesk session, relay-traffic observation, authentication test or bandwidth measurement was run for this candidate.
+- 未做长期 relay 带宽、容量、云费用或 failover 验证；Acorn/hbbr 仍是数据面单点。
+- Private source patch 需要在每次 RustDesk Server 升级时重新证明必要性、精确应用、`false` 路径不变及 same-intranet runtime。
+- 本轮明确覆盖 correct-password 与 wrong-password；old-password / cross-host 未分别执行 fresh negative，不应声明其已通过。
 
-## Required After Merge
-
-1. Complete required checks and switch Acorn only from a clean merged `origin/master` using a preserved non-RustDesk fallback.
-2. Prove hbbs alone receives a new process identity and starts with `ALWAYS_USE_RELAY=Y`; prove hbbr remains active with the same process identity and unchanged listener exposure.
-3. Close pre-switch sessions and establish a fresh Axiom↔Charlie session. Prove both sides actually pair through hbbr and observe relay traffic, with a direct-path negative control; do not reuse an old session as evidence.
-4. Revalidate Charlie's ready-bound privileged-service and user-server PID/start identities. If either drifted, stop and do not finalize or reuse the pending ready state.
-5. Repeat correct-password positive and wrong, old and cross-host negative authentication controls on the fresh relayed session.
-6. Record representative hbbr load, throughput and Acorn ingress/egress cost, with an owner and containment threshold. Force relay makes Acorn/hbbr a data-plane and billing dependency for normal new sessions.
-
-The upstream same-intranet branch remains a separate topology caveat; build/source PASS must not be presented as a topology-independent runtime guarantee.
-
-Evidence: [`test-report.md`](./test-report.md), [`review-change.md`](./review-change.md).
+证据：[`test-report.md`](./test-report.md)、[`review-change.md`](./review-change.md)。

@@ -126,3 +126,11 @@
 - Exact eval、wrapper/plugin composition、1.4.9 pipeline三factory、generated syntax、isolated stale-state/finalize negative control和fresh Axiom full toplevel build均PASS；exact final output由本轮terminal handoff记录。完整命令与边界见`docs/test-report.md`。
 - 未读取secret plaintext，未启动RustDesk、运行production finalizer、deploy或switch；不声明runtime screen/input PASS。
 - Engineer阶段按职责未commit、push或开PR；不存在Git lifecycle bypass。用户随后要求按最短路径继续完成，下一步为提交并合并Axiom-only hotfix PR。
+
+## 2026-07-15 final same-intranet relay and Charlie closeout
+
+- Acorn `ALWAYS_USE_RELAY=Y`先以one-line配置部署；runtime证明RustDesk Server 1.1.14/1.1.15在same-intranet仍优先发送`FetchLocalAddr`。最终candidate为1.1.14追加最小source patch：force=true时跳过same-intranet，stable false行为保持。
+- Acorn patched closure只从Axiom用规定的`nixos-rebuild ... --build-host localhost`命令构建并复制；没有在Acorn运行Nix build。hbbs/hbbr均由patched package恢复，same-public-IP会话在hbbr出现fresh request和paired记录。
+- Charlie完成Screen Recording与Accessibility TCC。GUI takeover使v8 ready失效；v9在root GUI kickstart处fail closed；v10改为`launchctl asuser`后合法重跑成功，current revision为`7ed736b14dd87b5637ad1fa776457e7c34afd8c28c90c2ea3c8bc2868aee36a4`。
+- Operator确认correct password、画面、鼠标和键盘PASS，wrong password被拒绝。Manual finalizer成功写stamp并移除ready；后续provision fast-skip exit 0且PID保持。诊断用临时hosts/route清理后final connection smoke继续PASS。
+- Final static/build/runtime verification与独立change review均PASS，无blocking finding。长期relay带宽/费用/单点、private patch升级维护及未单列的old/cross-host fresh negative保留为non-blocking residual。
