@@ -3,20 +3,20 @@
 ## Metadata
 
 - `task-id`: `auth-mini-acorn-gateway`
-- `status`: `merged; runtime DNS/root-path follow-up handled by auth-mini-acorn-empty-response`
+- `status`: `historical topology; auth-mini and retained Acorn gateways remain current`
 - `risk`: `medium`
 - `schema-version`: `current`
-- `historical`: `false`
+- `historical`: `true`
 - `supersedes`: `nginx Basic Auth boundary for Acorn status/opencode/frps dashboard 0xc1.wang routes`
-- `superseded-by`: `(none)`
+- `superseded-by`: `auth-mini-node-gateway-migration`
 
 ## Outcome Summary
 
-This task deploys `auth-mini` and `auth-mini-gateway` on the canonical `acorn` host. `auth-mini` is published at `auth.0xc1.wang`. `auth-mini-gateway` is published at `auth-gateway.0xc1.wang` and also runs origin-scoped instances for the protected `0xc1.wang` service hostnames.
+At delivery time, this task deployed `auth-mini` and all `auth-mini-gateway` instances on the canonical `acorn` host. `auth-mini` was published at `auth.0xc1.wang`, and `auth-mini-gateway` at `auth-gateway.0xc1.wang`, with origin-scoped instances for the protected `0xc1.wang` service hostnames.
 
 Post-switch follow-up `auth-mini-acorn-empty-response` confirmed the auth-mini service was healthy, created the missing Cloudflare DNS-only A records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang`, and added a root redirect from `/` to auth-mini's browser UI at `/web/`.
 
-The Acorn nginx routes `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang` now use nginx `auth_request` against local gateway instances instead of nginx Basic Auth. Vaultwarden remains unchanged because it has native clients and app-level authentication.
+The original Acorn nginx routes for `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and `frps-acorn.0xc1.wang` used local gateway instances instead of nginx Basic Auth. `auth-mini-node-gateway-migration` moves only the status/OpenCode instances to Axiom; Acorn still owns auth-mini plus the `auth-gateway` and `frps-acorn` instances. Vaultwarden remains unchanged because it has native clients and app-level authentication.
 
 ## Reusable Decisions
 
@@ -33,7 +33,9 @@ The Acorn nginx routes `status-axiom.0xc1.wang`, `opencode-axiom.0xc1.wang`, and
 - Focused evals proved backend ports `7777`-`7781` are not firewall-opened, gateway env uses per-origin public base URLs, protected vhosts use `auth_request`, and Vaultwarden still proxies to its original local service.
 - Generated nginx config inspection confirmed full public hostnames and per-origin gateway ports.
 
-## Operational Follow-Up
+## Historical Operational Follow-Up
+
+This checklist applied to the original all-Acorn gateway topology. Use `auth-mini-node-gateway-migration` for current status/OpenCode placement and cutover evidence.
 
 - DNS-only Cloudflare records for `auth.0xc1.wang` and `auth-gateway.0xc1.wang` now point to Acorn (`8.159.128.125`). If a client still sees `198.18.x.x`, refresh the local browser/proxy DNS cache.
 - After deploying the root-path hotfix, confirm `https://auth.0xc1.wang/` redirects to `/web/`.

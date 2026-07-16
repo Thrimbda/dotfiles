@@ -164,6 +164,57 @@ with builtins;
       cloudflaredReadyUrl = "http://127.0.0.1:20241/ready";
       frpcDirectRouteUnit = "frpc-acorn-direct-route.service";
       frpcDirectRoutePriority = 8500;
+      gatewayPackage = pkgs.callPackage ../../packages/auth-mini-gateway {};
+      gatewayUser = "auth-mini-gateway";
+      mkGatewayService = instance: {
+        description = "auth-mini gateway for ${instance.publicHost}";
+        after = [ "network-online.target" instance.appUnit ];
+        wants = [ "network-online.target" instance.appUnit ];
+        wantedBy = [ "multi-user.target" ];
+        environment = {
+          HOST = "127.0.0.1";
+          PORT = toString instance.port;
+          UPSTREAM_URL = instance.upstream;
+          GATEWAY_PUBLIC_BASE_URL = "https://${instance.publicHost}";
+          AUTH_MINI_ISSUER = "https://auth.0xc1.wang";
+          AUTH_MINI_PUBLIC_BASE_URL = "https://auth.0xc1.wang";
+          GATEWAY_DB = "/var/lib/${instance.stateDirectory}/gateway.sqlite";
+          GATEWAY_MAX_DOWNSTREAM_CONNECTIONS = "256";
+          GATEWAY_MAX_ACTIVE_UPSTREAMS = "128";
+          GATEWAY_MAX_BLOCKING_RESOLVERS = "8";
+          TRUSTED_PROXY_CIDRS = "";
+          COOKIE_SECURE = "true";
+          COOKIE_SAME_SITE = "lax";
+          SESSION_TTL_SECONDS = "28800";
+          SESSION_ABSOLUTE_TTL_SECONDS = "2592000";
+          SESSION_TOUCH_INTERVAL_SECONDS = "3600";
+          LOGIN_STATE_TTL_SECONDS = "300";
+          REFRESH_SKEW_SECONDS = "60";
+          LOGOUT_REDIRECT = "/";
+        };
+        serviceConfig = {
+          Type = "simple";
+          User = gatewayUser;
+          Group = gatewayUser;
+          EnvironmentFile = config.age.secrets.auth-mini-gateway-env.path;
+          ExecStart = "${gatewayPackage}/bin/auth-mini-gateway";
+          Restart = "on-failure";
+          RestartSec = "5s";
+          StateDirectory = instance.stateDirectory;
+          StateDirectoryMode = "0700";
+          WorkingDirectory = "/var/lib/${instance.stateDirectory}";
+          ReadWritePaths = [ "/var/lib/${instance.stateDirectory}" ];
+          UMask = "0077";
+          LimitNOFILE = 4096;
+          LimitCORE = 0;
+          CapabilityBoundingSet = "";
+          AmbientCapabilities = "";
+          NoNewPrivileges = true;
+          PrivateTmp = true;
+          ProtectHome = true;
+          ProtectSystem = "strict";
+        };
+      };
       rustdeskVersion = "1.4.9";
       rustdeskHost = "rustdesk.0xc1.wang";
       rustdeskUser = config.users.users.${userName};
@@ -1567,10 +1618,24 @@ with builtins;
       }
     ];
 
-    age.secrets.rustdesk-password = {
-      owner = "root";
-      group = "root";
-      mode = "0400";
+    users.groups.${gatewayUser} = {};
+    users.users.${gatewayUser} = {
+      isSystemUser = true;
+      group = gatewayUser;
+      home = "/var/lib/${gatewayUser}";
+    };
+
+    age.secrets = {
+      auth-mini-gateway-env = {
+        owner = gatewayUser;
+        group = gatewayUser;
+        mode = "0400";
+      };
+      rustdesk-password = {
+        owner = "root";
+        group = "root";
+        mode = "0400";
+      };
     };
 
     systemd.services.rustdesk = {
@@ -1650,9 +1715,33 @@ with builtins;
       '';
     };
 
+    systemd.services.auth-mini-gateway-status-axiom = mkGatewayService {
+      publicHost = "status-axiom.0xc1.wang";
+      port = 7779;
+      upstream = "http://127.0.0.1:8080";
+      stateDirectory = "auth-mini-gateway-status-axiom";
+      appUnit = "gatus.service";
+    };
+
+    systemd.services.auth-mini-gateway-opencode-axiom = mkGatewayService {
+      publicHost = "opencode-axiom.0xc1.wang";
+      port = 7780;
+      upstream = "http://127.0.0.1:4096";
+      stateDirectory = "auth-mini-gateway-opencode-axiom";
+      appUnit = "opencode-server.service";
+    };
+
     systemd.services.frpc = {
-      after = [ frpcDirectRouteUnit ];
-      wants = [ frpcDirectRouteUnit ];
+      after = [
+        frpcDirectRouteUnit
+        "auth-mini-gateway-status-axiom.service"
+        "auth-mini-gateway-opencode-axiom.service"
+      ];
+      wants = [
+        frpcDirectRouteUnit
+        "auth-mini-gateway-status-axiom.service"
+        "auth-mini-gateway-opencode-axiom.service"
+      ];
       requires = [ frpcDirectRouteUnit ];
     };
 
@@ -1671,14 +1760,14 @@ with builtins;
           name = "axiom-gatus-http";
           type = "tcp";
           localIP = "127.0.0.1";
-          localPort = gatusPort;
+          localPort = 7779;
           remotePort = 18080;
         }
         {
           name = "axiom-opencode-http";
           type = "tcp";
           localIP = "127.0.0.1";
-          localPort = 4096;
+          localPort = 7780;
           remotePort = 18081;
         }
       ];
