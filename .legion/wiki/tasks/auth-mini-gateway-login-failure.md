@@ -8,7 +8,7 @@
 - `schema-version`: `current`
 - `historical`: `false`
 - `supersedes`: `gateway-owned Passkey/amr authorization from auth-mini-acorn-gateway`
-- `superseded-by`: `(none)`
+- `superseded-by`: `auth-mini-node-gateway-migration for package pin and host placement only; exact-identity authorization remains current`
 
 ## Outcome Summary
 
@@ -33,4 +33,4 @@ An allowlisted user completed auth-mini login with Email OTP but auth-mini-gatew
 ## Notes
 
 - Upstream auth-mini-gateway PR #4 merged at `f0519d1fcfbf49be43602f7a25ad2373434366fe`.
-- After the dotfiles PR merges, switch Acorn with interactive remote sudo, restart all four gateway instances, and browser-smoke Email OTP access plus denied-user/logout behavior.
+- The package pin and four-Acorn-instance rollout context are superseded by `auth-mini-node-gateway-migration`; the exact email/user-id authorization decision remains current. After migration rollout, browser-smoke Email OTP, denied-user, logout, and per-origin behavior across the retained Acorn gateways and the Axiom status/OpenCode gateways.

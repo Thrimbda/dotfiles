@@ -267,3 +267,6 @@
 - Marked `dotfiles-caelestia-only-bluetooth` completed after implementation PR #136 merged and the implementation worktree was removed.
 - Added task summary for `auth-mini-upstream-release-pin` and recorded the fixed-output release refresh/build pattern.
 - Added task summary for `auth-mini-gateway-latest-pin` and recorded the package-plus-generated-unit validation boundary.
+- Added task summary for `auth-mini-node-gateway-migration`.
+- Updated current FRP, auth gateway, status, OpenCode, and rollout guidance so Axiom owns the status/OpenCode proxy-mode gateways before loopback apps while Acorn retains TLS, auth-mini, FRP ingress, `auth-gateway`, and `frps-acorn`.
+- Marked the original all-Acorn status/OpenCode gateway topology and older gateway pin as historical and superseded by `auth-mini-node-gateway-migration`.

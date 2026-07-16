@@ -20,20 +20,6 @@ let
       protectedUpstream = null;
       proxyWebsockets = false;
     };
-    status-axiom = {
-      hostName = "status-axiom.0xc1.wang";
-      port = 7779;
-      dbName = "status-axiom";
-      protectedUpstream = "http://127.0.0.1:18080";
-      proxyWebsockets = true;
-    };
-    opencode-axiom = {
-      hostName = "opencode-axiom.0xc1.wang";
-      port = 7780;
-      dbName = "opencode-axiom";
-      protectedUpstream = "http://127.0.0.1:18081";
-      proxyWebsockets = true;
-    };
     frps-acorn = {
       hostName = "frps-acorn.0xc1.wang";
       port = 7781;
@@ -119,6 +105,40 @@ let
     };
   };
 
+  mkNodeProxyVhost = hostName: remotePort: {
+    onlySSL = true;
+    useACMEHost = hostName;
+    extraConfig = ''
+      underscores_in_headers on;
+      ignore_invalid_headers on;
+      client_max_body_size 0;
+    '';
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${toString remotePort}";
+      recommendedProxySettings = false;
+      extraConfig = ''
+        proxy_http_version 1.1;
+        proxy_set_header Host ${hostName};
+        proxy_set_header X-Forwarded-Host ${hostName};
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_cache off;
+        gzip off;
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 24h;
+        proxy_read_timeout 24h;
+        proxy_intercept_errors off;
+        proxy_next_upstream off;
+        proxy_redirect off;
+      '';
+    };
+  };
+
   mkGatewayService = name: instance: {
     description = "auth-mini gateway for ${instance.hostName}";
     after = [ "network-online.target" "auth-mini.service" ];
@@ -150,12 +170,18 @@ let
       StateDirectoryMode = "0750";
       WorkingDirectory = "/var/lib/${gatewayUser}";
       ReadWritePaths = [ "/var/lib/${gatewayUser}" ];
+      UMask = "0077";
+      LimitNOFILE = 4096;
+      LimitCORE = 0;
+      CapabilityBoundingSet = "";
+      AmbientCapabilities = "";
       NoNewPrivileges = true;
       PrivateTmp = true;
       ProtectHome = true;
       ProtectSystem = "strict";
     };
   };
+
 in
 
 {
@@ -228,7 +254,10 @@ in
         };
       };
     };
-  } // mapAttrs' (_: instance: nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances;
+  } // mapAttrs' (_: instance: nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances // {
+    "status-axiom.0xc1.wang" = mkNodeProxyVhost "status-axiom.0xc1.wang" 18080;
+    "opencode-axiom.0xc1.wang" = mkNodeProxyVhost "opencode-axiom.0xc1.wang" 18081;
+  };
 
   security.acme.certs = {
     ${authHost} = acmeCert;
