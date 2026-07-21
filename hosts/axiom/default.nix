@@ -49,8 +49,8 @@ with builtins;
           }
 
           cursor {
-            # Keep the host cursor out of hidden-cursor PipeWire captures.
-            no_hardware_cursors = false
+            # XDPH cannot embed a hardware cursor in RustDesk's capture.
+            no_hardware_cursors = true
           }
         '';
         monitors = [
@@ -365,7 +365,7 @@ with builtins;
         portal-picker=${rustdeskPortalPicker}
         portal-config=${rustdeskPortalConfig}
         portal-output=DP-4
-        hardware-cursor=true
+        software-cursor=true
         ciphertext=${./secrets/rustdesk-password.age}
       ''}";
       rustdeskRevision = pkgs.writeText "axiom-rustdesk-revision" ''
