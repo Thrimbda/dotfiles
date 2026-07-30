@@ -4,6 +4,10 @@
 
 - Full all-host NixOS evaluation is currently blocked by an unrelated existing package rename: `godot_4-export-templates` should be updated to `godot_4-export-templates-bin` in a separate scoped task if all-host evaluation or full flake checks become required.
 
+## Acorn Vaultwarden Follow-Up
+
+- Complete `acorn-vaultwarden-restore-drill` within 90 days of the 2026-07-30 deployment, or earlier after any Vaultwarden backup failure, rollback attempt, or storage anomaly. The drill must restore a named backup in an isolated non-public environment with a non-production environment file, validate service startup and SQLite access, then securely remove the isolated copy. Do not treat the successful `backup-vaultwarden.service` result as restore proof until this is recorded.
+
 ## Acorn Aliyun ECS Follow-Up
 
 - Before running live `acorn` validation, confirm the OSS bucket/object, image-import RAM role, VPC/vSwitch/security group, instance type, operator SSH CIDR, auto-release time, expected cost/dry-run result, and cleanup owner.

@@ -30,6 +30,12 @@ nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host
 
 `--build-host localhost` must resolve to Axiom. If the Axiom build, closure transfer, or remote activation fails, stop and report the blocker; never fall back to an Acorn-local build.
 
+## Acorn Vaultwarden and Auth-mini Package Sources
+
+Acorn Vaultwarden must source both `services.vaultwarden.package` and `services.vaultwarden.webVaultPackage` from the dedicated `hey.inputs.nixpkgs-vaultwarden` input. Update only that lock node for Vaultwarden releases; do not advance the primary `nixpkgs` or shared `nixpkgs-unstable` pin as a side effect.
+
+The Acorn auth-mini package must not fetch the mutable `/releases/download/latest/` URL directly. Pin the intended official GitHub release asset by asset-ID API endpoint, use `Accept: application/octet-stream`, and retain a fixed-output SRI hash verified against the official asset digest. If the API asset, header behavior, or content changes, the build must fail rather than silently replace the authentication binary.
+
 ## Linux Workstation Desktop Baseline
 
 Shell prompt and tmux theme defaults are no longer owned by active theme modules. The current default prompt lives in `config/zsh/prompt.zsh` and is sourced by `config/zsh/.zshrc`; the current tmux theme lives in `config/tmux/theme.conf` and is sourced by `config/tmux/tmux.conf`. Do not reintroduce theme-module zsh/tmux injection unless a future scoped task designs an explicit shell theme option.

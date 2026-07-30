@@ -10,6 +10,7 @@
 
 - [Acorn Aliyun Host Profile Rename](tasks/acorn-aliyun-host-rename.md)
 - [Acorn frps Dashboard Nginx](tasks/acorn-frps-dashboard-nginx.md)
+- [Acorn Vaultwarden Package Update](tasks/acorn-vaultwarden-package-update.md)
 - [Auth Mini Gateway on Acorn](tasks/auth-mini-acorn-gateway.md)
 - [Auth Mini Node Gateway Migration](tasks/auth-mini-node-gateway-migration.md)
 - [Auth Mini Acorn Empty Response Hotfix](tasks/auth-mini-acorn-empty-response.md)

@@ -1,0 +1,49 @@
+# Preflight and Deployment Evidence
+
+## Preflight Backup
+
+The user-authorized local credential was redirected only to Acorn `sudo` to start the existing backup unit. Its value was not read, logged, or stored in this repository.
+
+Command result: exit 0 for the remote `backup-vaultwarden.service` start.
+
+Post-start evidence:
+
+```text
+ActiveState=inactive
+SubState=dead
+Result=success
+ExecMainExitTimestamp=Thu 2026-07-30 13:08:25 CST
+ExecMainStatus=0
+
+type=directory mode=750 owner=vaultwarden:vaultwarden modified=2026-07-30 13:08:25.733267260 +0800
+
+LoadState=loaded
+ActiveState=active
+SubState=waiting
+NextElapseUSecRealtime=Thu 2026-07-30 23:00:00 CST
+```
+
+## Prescribed Deployment Command
+
+The command ran from the Axiom task worktree with local build host and the required remote target:
+
+```bash
+nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host localhost --sudo --ask-sudo-password --use-substitutes -L
+```
+
+The first non-interactive invocation reached the remote sudo prompt but had no stdin and performed no build or switch. The second invocation received the user-authorized local credential through stdin. It began local Axiom evaluation/build but failed before closure transfer or remote activation.
+
+Failure excerpt:
+
+```text
+error: hash mismatch in fixed-output derivation '/nix/store/srzkzfmkk9dddlhgn9a8hg5iylg7jg2c-auth-mini-linux-x86_64.tar.gz.drv':
+         specified: sha256-OFLkVvKkVrai+Mv22Rhlmq2SVv+Gw6Py6sKhonCZsVk=
+            got:    sha256-aAIhKH4MyncxGs9rXJdDCJ2I2RFTMrqDqfPONd6QiSI=
+error: Cannot build '/nix/store/8ay31kq6q9nlycz8dyxy83lz6djjr3xn-auth-mini-latest-2026-07-12.drv'.
+       Reason: 1 dependency failed.
+error: Cannot build '/nix/store/pjzbaxa43apncjqp6n6y7rl7blnh12i2-nixos-system-acorn-25.11.20260630.b6018f8.drv'.
+       Reason: 1 dependency failed.
+Command 'ssh -o ControlMaster=auto -o ControlPath=/tmp/nixos-rebuild.kfqa_68h/ssh-%n -o ControlPersist=60 localhost -- nix ... build ...' returned non-zero exit status 1.
+```
+
+The failure is in the existing `auth-mini` fixed-output package, outside this Vaultwarden update scope. No fallback build on Acorn was attempted.
