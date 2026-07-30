@@ -8,7 +8,7 @@
 - 风险：`high`
 - 阶段结论：`PASS`
 - 审查状态：`PASS`
-- 最终状态：Deployed and verified; residual risks accepted; PR lifecycle in progress\.
+- 最终状态：Implementation PR \#154 merged after successful deployment and accepted residual risks; closeout record in progress\.
 
 Acorn now runs Vaultwarden 1\.37\.0 and the reviewed auth\-mini latest\-2026\-07\-24 package\. The primary Nixpkgs lock was unchanged; build, transfer, activation, backup preflight, and status\-only health checks succeeded from Axiom\.
 
@@ -93,7 +93,8 @@ Acorn now runs Vaultwarden 1\.37\.0 and the reviewed auth\-mini latest\-2026\-07
 - [ ] Vaultwarden 1\.37\.0 is active and its HTTPS root returned 200\.
 - [ ] Auth\-mini latest\-2026\-07\-24 is active and local/public health checks returned 200\.
 - [ ] No Acorn\-local build or fallback deployment was used\.
-- [ ] PR creation and merge are authorized; cleanup and main\-workspace refresh remain pending until merge completes\.
+- [ ] Implementation PR \#154 was squash\-merged as dabc923b3826994f847c5eb1a809a365ff3519b3 and its worktree was removed\.
+- [ ] Closeout\-worktree cleanup and main\-workspace refresh follow this closeout PR merge\.
 
 ## 渲染交接
 
@@ -103,6 +104,6 @@ Acorn now runs Vaultwarden 1\.37\.0 and the reviewed auth\-mini latest\-2026\-07
 
 ## 最终状态与下一阶段
 
-- 当前状态：Deployed and verified; residual risks accepted; PR lifecycle in progress\.
-- 下一阶段：Commit intended files, create the PR, follow required checks and review, merge, clean the worktree, and refresh the main workspace\.
+- 当前状态：Implementation PR \#154 merged after successful deployment and accepted residual risks; closeout record in progress\.
+- 下一阶段：Merge the closeout PR, remove its worktree, and fast\-forward refresh the main workspace\.
 - lifecycle 声明：This walkthrough is delivery evidence only\. It does not create a PR, prove review approvals, merge changes, clean the worktree, or refresh the main workspace\.

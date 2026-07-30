@@ -19,6 +19,8 @@
 - Generated report-walkthrough, PR-body, HTML artifacts, and completed the Legion wiki writeback.
 - User reviewed and accepted the auth-mini upstream-binary and deferred Vaultwarden restore-fidelity residual risks.
 - User explicitly authorized commit, PR creation, and PR merge.
+- Implementation PR #154 was squash-merged as dabc923b3826994f847c5eb1a809a365ff3519b3.
+- The implementation worktree was removed after the merged PR reached terminal state.
 ### 🟡 进行中
 
 - Producing the focused RFC and verifying the current package source and version.
@@ -34,6 +36,7 @@
 - Producing reviewer-facing delivery artifacts and required wiki writeback.
 - Awaiting residual-risk review and explicit version-control disposition.
 - Completing the PR lifecycle, checks, merge, worktree cleanup, and main workspace refresh.
+- Merging this closeout record, then removing the closeout worktree and fast-forward refreshing the main workspace.
 ### ⚠️ 阻塞/待定
 
 - RFC review R1: define an immediate backup, timestamp evidence, and stop condition before deployment.
@@ -53,17 +56,19 @@
 | 决策 | 原因 | 替代方案 | 日期 |
 |------|------|----------|------|
 | decision-id: residual-risk-and-vcs-disposition; accept the recorded residual risks and proceed through commit, PR creation, and merge. | The current auth-mini source is pinned by asset ID plus fixed SHA, the full Axiom deployment and health checks passed, and the user explicitly authorized merge after clarification. | Keep the review gate open or retain uncommitted worktree changes. | 2026-07-30 |
+| Record implementation PR #154 as the successful terminal delivery and use a minimal closeout PR for final task state. | PR #154 merged after verified deployment; the closeout record allows the repository to retain final lifecycle disposition before operational cleanup and main refresh. | Leave task and wiki state active after the implementation PR merged. | 2026-07-30 |
 ---
 
 ## 快速交接
 
 **下次继续从这里开始：**
 
-1. Commit intended files, rebase on origin/master, create the PR, follow required checks, merge, clean the worktree, and refresh the main workspace.
+1. Merge the closeout PR, remove its worktree, and run the safe main-workspace refresh.
 
 **注意事项：**
 
-- The restore drill remains due within 90 days under successor task acorn-vaultwarden-restore-drill.
+- Implementation PR: https://github.com/Thrimbda/dotfiles/pull/154
+- Restore drill successor remains acorn-vaultwarden-restore-drill.
 
 (暂无)
 (暂无)
@@ -78,4 +83,4 @@
 (暂无)
 ---
 
-*最后更新: 2026-07-30 06:09 by Legion CLI*
+*最后更新: 2026-07-30 06:16 by Legion CLI*
