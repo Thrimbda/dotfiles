@@ -261,6 +261,43 @@ with builtins;
           custom_picker_binary = ${rustdeskPortalPicker}
         }
       '';
+      rustdeskStateAccess = pkgs.writeShellScript "axiom-rustdesk-state-access" ''
+        set -eu
+        umask 077
+
+        user=${escapeShellArg userName}
+        uid=$(${pkgs.coreutils}/bin/id -u "$user")
+        gid=$(${pkgs.coreutils}/bin/id -g "$user")
+        config_home=/root/.config
+        config_dir=$config_home/rustdesk
+        config_file=$config_dir/RustDesk2.toml
+
+        if [ ! -e "$config_home" ]; then
+          ${pkgs.coreutils}/bin/install -d -m 0700 -o root -g root \
+            "$config_home"
+        fi
+        [ -d "$config_home" ] && [ ! -L "$config_home" ] || exit 1
+
+        if [ ! -e "$config_dir" ]; then
+          ${pkgs.coreutils}/bin/install -d -m 1700 -o root -g root \
+            "$config_dir"
+        fi
+        [ -d "$config_dir" ] && [ ! -L "$config_dir" ] || exit 1
+        ${pkgs.coreutils}/bin/chmod 1700 "$config_dir"
+
+        if [ ! -e "$config_file" ]; then
+          ${pkgs.coreutils}/bin/install -m 0600 -o "$uid" -g "$gid" \
+            /dev/null "$config_file"
+        fi
+        [ -f "$config_file" ] && [ ! -L "$config_file" ] || exit 1
+
+        # Config2 holds the Wayland restore token; Config keeps password material root-only.
+        ${pkgs.coreutils}/bin/chown "$uid:$gid" "$config_file"
+        ${pkgs.coreutils}/bin/chmod 0600 "$config_file"
+        ${pkgs.acl}/bin/setfacl --modify "u:$uid:--x" /root
+        ${pkgs.acl}/bin/setfacl --modify "u:$uid:--x" "$config_home"
+        ${pkgs.acl}/bin/setfacl --modify "u:$uid:-wx" "$config_dir"
+      '';
       rustdeskSecret = config.age.secrets.rustdesk-password;
       rustdeskSecretMetadata =
         "${rustdeskSecret.owner}:${rustdeskSecret.group}:${removePrefix "0" rustdeskSecret.mode}";
@@ -1650,8 +1687,10 @@ with builtins;
       ];
       path = with pkgs; [ bash coreutils gawk gnugrep gnused procps sudo systemd util-linux ];
       environment = rustdeskRuntimeEnvironment;
+      restartTriggers = [ rustdeskStateAccess ];
       serviceConfig = {
         Type = "simple";
+        ExecStartPre = rustdeskStateAccess;
         ExecStart = "${rustdeskPackage}/bin/rustdesk --service";
         ExecStop = "${pkgs.procps}/bin/pkill -f \"rustdesk --\"";
         User = "root";

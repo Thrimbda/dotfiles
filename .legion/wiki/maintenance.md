@@ -25,6 +25,10 @@
 - Establish representative Acorn hbbr bandwidth、capacity、latency and cloud-cost monitoring with an owner and stop threshold. The current relay-only design has no failover and keeps Acorn/hbbr as a data-plane single point of failure.
 - If the full authentication matrix is needed for a later release, separately rerun old-password and cross-host negative controls; this delivery explicitly proves correct-password and wrong-password only.
 
+## Axiom RustDesk Capture Follow-Up
+
+- After `axiom-rustdesk-fixed-dp4-capture` merges, switch Axiom from refreshed `origin/master`. Confirm `RustDesk.toml` remains root-owned, `RustDesk2.toml` is c1-owned, and c1 cannot read the password file. Then make a new remote connection and another after restarting RustDesk; both must capture `DP-4` with no Axiom-side chooser. If the live portal behavior differs, preserve the logs and open a scoped follow-up rather than adding a virtual output.
+
 ## Terminal Follow-Up
 
 - Foot terminal notification behavior was disabled by removing unsupported `[main].notify` from the global config. If terminal notification behavior is still desired, restore it only through a Foot 1.25-supported option or an explicit external wrapper design validated with `foot --check-config`.
