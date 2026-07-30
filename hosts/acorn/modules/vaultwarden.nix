@@ -1,6 +1,9 @@
-{ config, ... }:
+{ config, hey, pkgs, ... }:
 
 let
+  vaultwardenPackage =
+    hey.inputs.nixpkgs-vaultwarden.legacyPackages.${pkgs.stdenv.hostPlatform.system}.vaultwarden;
+
   mkVaultwardenVhost = domain: {
     # TLS listener ownership is staged from the host module.
     root = "/srv/www/${domain}";
@@ -33,6 +36,8 @@ in
   services.vaultwarden = {
     backupDir = "/backup/vaultwarden";
     environmentFile = config.age.secrets.vaultwarden-env.path;
+    package = vaultwardenPackage;
+    webVaultPackage = vaultwardenPackage.webvault;
     config = {
       domain = "https://vault.0xc1.wang";
       invitationsAllowed = true;

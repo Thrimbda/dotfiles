@@ -1,0 +1,63 @@
+# Successful Axiom-to-Acorn Deployment Evidence
+
+## Fresh Backup Preflight
+
+The user-authorized local credential was supplied only to Acorn `sudo` through stdin to start the declared backup service. It was not read, printed, persisted, or committed.
+
+```text
+Result=success
+ExecMainExitTimestamp=Thu 2026-07-30 13:25:08 CST
+ExecMainStatus=0
+type=directory mode=750 owner=vaultwarden:vaultwarden modified=2026-07-30 13:25:07.941549675 +0800
+```
+
+## Deployment
+
+The required command ran from the Axiom task worktree with local build host and the specified remote target:
+
+```bash
+nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host localhost --sudo --ask-sudo-password --use-substitutes -L
+```
+
+Exit: 0
+
+Sanitized success markers from the command output:
+
+```text
+488807338> 100  4.61M 100  4.61M
+building '/nix/store/11w621fsiwcbqk54a66v837lcpk1vxhn-auth-mini-latest-2026-07-24.drv'...
+copying path '/nix/store/as5g5qzfah8y8z471jykqa1pvngkz23n-auth-mini-latest-2026-07-24' from 'ssh://localhost' to 'ssh://c1@8.159.128.125'...
+stopping the following units: auth-mini.service, vaultwarden.service
+starting the following units: auth-mini.service, vaultwarden.service
+Done. The new configuration is /nix/store/18qzsqsgv0h2283lpj9j87xm1hl7xw0c-nixos-system-acorn-25.11.20260630.b6018f8
+```
+
+## Post-switch Health
+
+```text
+vaultwarden:
+ActiveState=active
+SubState=running
+ActiveEnterTimestamp=Thu 2026-07-30 13:32:56 CST
+ExecStart=/nix/store/gqabz7m6ckxv3jvw5vsgql9q9jc1s37z-vaultwarden-1.37.0/bin/vaultwarden
+
+auth-mini:
+ActiveState=active
+SubState=running
+ActiveEnterTimestamp=Thu 2026-07-30 13:32:56 CST
+ExecStart=/nix/store/as5g5qzfah8y8z471jykqa1pvngkz23n-auth-mini-latest-2026-07-24/bin/auth-mini --host 127.0.0.1 --port 7777 --db /var/lib/auth-mini/auth-mini.sqlite
+
+https://vault.0xc1.wang/ -> 200
+http://127.0.0.1:7777/healthz -> 200
+https://auth.0xc1.wang/healthz -> 200
+
+backup-vaultwarden.timer:
+LoadState=loaded
+ActiveState=active
+SubState=waiting
+NextElapseUSecRealtime=Thu 2026-07-30 23:00:00 CST
+
+/run/current-system -> /nix/store/18qzsqsgv0h2283lpj9j87xm1hl7xw0c-nixos-system-acorn-25.11.20260630.b6018f8
+```
+
+The fresh backup completed 7 minutes 48 seconds before both restarted services entered the active state, within the RFC 15-minute bound.

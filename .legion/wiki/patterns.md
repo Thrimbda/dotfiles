@@ -14,6 +14,12 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
+## Mutable GitHub Release Asset Pinning
+
+When an upstream publishes only a mutable `latest` release tag, do not merely refresh a fixed-output hash against its browser download URL. First query the official GitHub release asset API, record the concrete asset ID, name, upload state, and SHA-256 digest, then convert the digest to SRI and compare it with the failed or newly fetched Nix hash.
+
+Use the asset-ID API endpoint with `fetchurl.curlOpts = "--header Accept:application/octet-stream"` and the verified fixed-output hash. Test the endpoint through the required host build, not an Acorn-local fallback. This preserves fail-closed behavior if GitHub deletes the asset, changes API behavior, or returns different content; record any asset-ID, source header, or upstream binary change as a security-sensitive package update with non-authenticated post-switch health checks.
+
 ## Agenix Host Migration Pattern
 
 For host-to-host migration of an agenix-backed service, treat the encrypted `.age` file as host recipient material rather than portable configuration. First verify the source secret decrypts with a valid source identity, then re-encrypt it under the target host's `secrets/secrets.nix` rule context for the target recipient. Validate the new target `.age` file with `agenix -d <secret>.age -i <target-private-key> > /dev/null` so decryptability is proven without printing plaintext.

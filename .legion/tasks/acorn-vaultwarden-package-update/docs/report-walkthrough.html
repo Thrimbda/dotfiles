@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acorn Vaultwarden Package Update | 交付审阅</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.012 92);
+      --surface: oklch(99% 0.006 92);
+      --ink: oklch(24% 0.018 132);
+      --muted: oklch(49% 0.025 132);
+      --line: oklch(82% 0.018 105);
+      --accent: oklch(45% 0.12 153);
+      --soft: oklch(91% 0.05 144);
+      --warn: oklch(91% 0.06 82);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; line-height: 1.62; }
+    main { width: min(1120px, calc(100vw - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+    h1, h2 { line-height: 1.18; text-wrap: balance; }
+    h1 { max-width: 22ch; font-size: clamp(2.1rem, 6vw, 4.8rem); margin: .3rem 0 1rem; }
+    h2 { margin-top: 0; }
+    p, li { max-width: 72ch; }
+    code { overflow-wrap: anywhere; }
+    a { color: var(--accent); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 32px; align-items: end; margin-bottom: 32px; }
+    .kicker { color: var(--accent); font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+    .status, section { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); padding: 24px; }
+    .status p { margin: .45rem 0; }
+    .pill { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--soft); padding: .08rem .58rem; font-weight: 750; }
+    .layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 28px; align-items: start; }
+    nav { position: sticky; top: 18px; display: grid; gap: 8px; }
+    nav a { text-decoration: none; padding: .36rem .55rem; border-radius: 8px; }
+    nav a:hover { background: var(--soft); }
+    section { margin-bottom: 20px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: .94rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 10px; overflow-wrap: anywhere; }
+    th { color: var(--muted); }
+    ul, ol { padding-left: 1.35rem; }
+    .empty { color: var(--muted); }
+    .boundary { background: var(--warn); border-radius: 12px; padding: 12px 14px; }
+    @media (max-width: 820px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      nav { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      section { overflow-x: auto; }
+    }
+    @media print {
+      body { background: var(--surface); }
+      main { width: 100%; padding: 0; }
+      nav { display: none; }
+      .status, section { break-inside: avoid; box-shadow: none; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">acorn-vaultwarden-package-update · 交付审阅</p>
+        <h1>Acorn Vaultwarden Package Update</h1>
+        <p>Deploy Vaultwarden 1.37.0 from an isolated Nixpkgs input without advancing the primary system pin, while repairing the reviewed auth-mini source pin that blocked the required Axiom build.</p>
+        <p>审阅者：Repository and operations reviewer</p>
+      </div>
+      <aside class="status" aria-label="当前结论与动作">
+        <p><span class="pill">交付类型 implementation</span> <span class="pill">Profile strict</span> <span class="pill">风险 high</span> <span class="pill">结论 PASS</span></p>
+        <p>审查：<strong>PASS</strong></p>
+        <p>注意力：<strong>review</strong></p>
+        <p class="boundary"><strong>未获得 verifier：</strong>restore-fidelity；聚合等级：review；当前唯一人类动作：Completed on 2026-07-30: the user accepted the recorded residual risks and authorized commit, PR creation, and merge.；停止点：Stop only if a required check, review, conflict, or merge-protection gate fails.；证据：<code>.legion/tasks/acorn-vaultwarden-package-update/docs/rfc.md</code></p>
+        <p><strong>当前唯一人类动作</strong></p>
+        <p>Completed on 2026-07-30: the user accepted the recorded residual risks and authorized commit, PR creation, and merge.</p>
+        <p class="boundary"><strong>停止点：</strong>Stop only if a required check, review, conflict, or merge-protection gate fails.</p>
+        <p><strong>最终状态：</strong>Deployed and verified; residual risks accepted; PR lifecycle in progress.</p>
+      </aside>
+    </header>
+    <div class="layout">
+      <nav aria-label="交付审阅导航">
+        <a href="#summary">审阅结论</a>
+        <a href="#attention">当前动作</a>
+        <a href="#claims">认知状态</a>
+        <a href="#verifiers">领域验证</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据地图</a>
+        <a href="#path">交付路径</a>
+        <a href="#changes">变更决定</a>
+        <a href="#verification">验证审查</a>
+        <a href="#risks">风险限制</a>
+        <a href="#checklist">审阅清单</a>
+        <a href="#render">渲染交接</a>
+        <a href="#final">下一阶段</a>
+      </nav>
+      <div>
+        <section id="summary"><h2>审阅结论</h2><p>Acorn now runs Vaultwarden 1.37.0 and the reviewed auth-mini latest-2026-07-24 package. The primary Nixpkgs lock was unchanged; build, transfer, activation, backup preflight, and status-only health checks succeeded from Axiom.</p></section>
+        <section id="attention"><h2>人类注意力与当前动作</h2><p>Deployment evidence passes. The user reviewed and accepted the unaudited upstream auth-mini binary and deferred Vaultwarden restore-drill residual risks.</p><p><strong>当前唯一人类动作：</strong>Completed on 2026-07-30: the user accepted the recorded residual risks and authorized commit, PR creation, and merge.</p><p class="boundary"><strong>lifecycle 边界：</strong>The residual-risk gate is cleared; normal required checks, review, conflict, and branch-protection gates still apply.</p><p><strong>证据：</strong><code>.legion/tasks/acorn-vaultwarden-package-update/docs/review-change.md</code>、<code>.legion/tasks/acorn-vaultwarden-package-update/docs/test-report.md</code>、<code>.legion/tasks/acorn-vaultwarden-package-update/docs/rfc.md</code></p></section>
+        <section id="claims"><h2>未解决的认知状态</h2><table><thead><tr><th scope="col">主张</th><th scope="col">状态 / 门槛</th><th scope="col">影响</th><th scope="col">负责人 / 状态字段</th><th scope="col">当前缓解</th><th scope="col">证据</th></tr></thead><tbody><tr><td><code>restore-fidelity</code><br>The Vaultwarden backup can be fully restored during a real disaster.</td><td>DEFERRED<br>domain</td><td>A successful backup job alone does not prove recovery fidelity for credential data.</td><td>Acorn operator<br>未获得 verifier；触发条件：Within 90 days after deployment, or at the first backup failure, rollback attempt, or storage anomaly, whichever occurs first.；届时方法：Restore a named backup in an isolated, non-public environment with a non-production environment file and no production egress; confirm service start, SQLite open, and local health before securely destroying the isolated copy.；所需数据：Named Vaultwarden backup snapshot（来源：/backup/vaultwarden generated by backup-vaultwarden.service；验收：The snapshot timestamp and protected handling are recorded without exposing vault data.）；Isolated restore environment（来源：Acorn operator maintenance environment；验收：It has no public reachability and uses a non-production environment file.）；停止条件：Stop and clean up if the restored service cannot start, SQLite cannot open, public reachability appears, or secure isolation and deletion cannot be guaranteed.；后续任务：acorn-vaultwarden-restore-drill；通过后：Record the drill evidence and add verified recovery steps to maintenance knowledge.／Update restore-fidelity from DEFERRED to PASS.；失败后：Create or resume the restore-drill repair phase and retain the recovery risk as unresolved.／Keep restore-fidelity unresolved and do not equate backup success with recoverability.；聚合停止点：Stop only if a required check, review, conflict, or merge-protection gate fails.</td><td>A fresh SQLite backup succeeded before this deployment; no deployment claim treats that result as a restore proof.</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/rfc.md</code></td></tr></tbody></table></section>
+        <section id="verifiers"><h2>领域验证摘要</h2><table><thead><tr><th scope="col">claim-id</th><th scope="col">来源 / 版本</th><th scope="col">方法</th><th scope="col">独立性</th><th scope="col">置信度</th><th scope="col">结论 / 未证明</th><th scope="col">残余不确定性</th><th scope="col">原始证据</th></tr></thead><tbody><tr><td><code>restore-fidelity</code></td><td><strong>未获得 verifier</strong></td><td>Restore a named backup in an isolated, non-public environment with a non-production environment file and no production egress; confirm service start, SQLite open, and local health before securely destroying the isolated copy.</td><td>不适用</td><td>未建立</td><td>DEFERRED</td><td>Stop and clean up if the restored service cannot start, SQLite cannot open, public reachability appears, or secure isolation and deletion cannot be guaranteed.</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/rfc.md</code></td></tr></tbody></table></section>
+        <section id="scope"><h2>范围</h2><h3>范围内</h3><ul><li>Dedicated nixpkgs-vaultwarden input and lock node</li><li>Acorn Vaultwarden server and Web Vault package selection</li><li>Auth-mini asset-ID source, request header, metadata, and fixed-output hash</li><li>Axiom build, remote deployment, and non-sensitive service health verification</li></ul><h3>范围外</h3><ul><li>Primary nixpkgs and existing nixpkgs-unstable updates</li><li>Vaultwarden or auth-mini secrets, databases, routes, authentication policy, and service configuration</li><li>Authenticated login, session, admin, or vault-data testing</li><li>Any build on Acorn</li></ul></section>
+        <section id="evidence"><h2>证据地图</h2><table><thead><tr><th scope="col">证据</th><th scope="col">类型</th><th scope="col">状态</th><th scope="col">locator</th></tr></thead><tbody><tr><td>Task contract</td><td>plan</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/plan.md</code></td></tr><tr><td>High-risk deployment and source-pin RFC</td><td>rfc</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/rfc.md</code></td></tr><tr><td>RFC review with current PASS verdict</td><td>review-rfc</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/review-rfc.md</code></td></tr><tr><td>Successful build, deployment, and health verification</td><td>test-report</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/test-report.md</code></td></tr><tr><td>Scope, correctness, and security review</td><td>review-change</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/review-change.md</code></td></tr><tr><td>Deployment success evidence</td><td>other</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/evidence/deployment-success.txt</code></td></tr></tbody></table></section>
+        <section id="path"><h2>交付路径</h2><ol><li>Stable contract and strict RFC review</li><li>Isolated worktree implementation</li><li>Axiom local build and remote Acorn activation</li><li>Verification and read-only change review</li><li>Reviewer walkthrough and required wiki disposition</li></ol></section>
+        <section id="changes"><h2>变更与决定</h2><ul><li>Added a dedicated nixpkgs-vaultwarden input, leaving the primary Nixpkgs and shared unstable revisions unchanged.</li><li>Set both Vaultwarden server and Web Vault packages from the same isolated package set.</li><li>Replaced auth-mini mutable latest download with an official release asset-ID endpoint, required Accept header, date metadata, and verified fixed-output hash.</li></ul></section>
+        <section id="verification"><h2>验证与审查状态</h2><table><thead><tr><th scope="col">检查</th><th scope="col">状态</th><th scope="col">证据</th></tr></thead><tbody><tr><td>Lock isolation and configuration evaluation</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/evidence/lock-and-eval.txt</code></td></tr><tr><td>Official auth-mini asset provenance</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/evidence/auth-mini-asset.txt</code></td></tr><tr><td>Fresh backup, Axiom build, transfer, activation, and health checks</td><td>PASS</td><td><code>.legion/tasks/acorn-vaultwarden-package-update/docs/evidence/deployment-success.txt</code></td></tr></tbody></table></section>
+        <section id="risks"><h2>风险与限制</h2><table><thead><tr><th scope="col">风险</th><th scope="col">缓解</th></tr></thead><tbody><tr><td>Vaultwarden migration behavior and recovery fidelity cannot be fully proven by a non-destructive deployment.</td><td>A fresh backup completed within the RFC time bound; the isolated restore-drill protocol is deferred with a concrete owner, trigger, and stop condition.</td></tr><tr><td>The auth-mini upstream binary is trusted through official asset metadata and fixed-output integrity rather than an independent audit.</td><td>The asset ID, official digest, SRI conversion, full build, and non-authenticated health checks all agree; future source drift fails closed.</td></tr></tbody></table></section>
+        <section id="checklist"><h2>审阅清单</h2><ul><li>Vaultwarden 1.37.0 is active and its HTTPS root returned 200.</li><li>Auth-mini latest-2026-07-24 is active and local/public health checks returned 200.</li><li>No Acorn-local build or fallback deployment was used.</li><li>PR creation and merge are authorized; cleanup and main-workspace refresh remain pending until merge completes.</li></ul></section>
+        <section id="render"><h2>渲染交接</h2><p><strong>PR-backed：</strong>是</p><p><strong>状态：</strong>local</p><p>The repository has no PR HTML preview workflow. Review the generated local artifact at .legion/tasks/acorn-vaultwarden-package-update/docs/report-walkthrough.html; the PR uses the generated Markdown body.</p></section>
+        <section id="final"><h2>最终状态与下一阶段</h2><p><strong>当前状态：</strong>Deployed and verified; residual risks accepted; PR lifecycle in progress.</p><p><strong>下一阶段：</strong>Commit intended files, create the PR, follow required checks and review, merge, clean the worktree, and refresh the main workspace.</p><p class="boundary">This walkthrough is delivery evidence only. It does not create a PR, prove review approvals, merge changes, clean the worktree, or refresh the main workspace.</p></section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

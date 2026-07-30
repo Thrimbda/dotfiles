@@ -1,0 +1,32 @@
+# Official Vaultwarden 1.37.0 Release Evidence
+
+Retrieved on 2026-07-30 from the official GitHub Releases API:
+
+`https://api.github.com/repos/dani-garcia/vaultwarden/releases/tags/1.37.0`
+
+Selected response fields:
+
+```text
+html_url=https://github.com/dani-garcia/vaultwarden/releases/tag/1.37.0
+tag_name=1.37.0
+target_commitish=main
+draft=false
+immutable=true
+prerelease=false
+created_at=2026-07-24T16:28:59Z
+published_at=2026-07-24T17:04:39Z
+full_changelog=https://github.com/dani-garcia/vaultwarden/compare/1.36.0...1.37.0
+```
+
+Release-note excerpt relevant to compatibility:
+
+```text
+This update is required for support with clients with version 2026.7.0+, please update before reporting any issues with them.
+
+Security Fixes
+This release contains security fixes for the following advisories. We strongly advice to update as soon as possible.
+
+Reject unrecognised DATABASE_URL instead of silent SQLite fallback
+```
+
+The official release notes list security fixes and compatibility changes but do not prescribe a manual database migration, configuration conversion, or rollback procedure for the `1.36.0...1.37.0` interval. The Acorn host configuration does not set `DATABASE_URL`; its NixOS module remains on the SQLite default with its existing `backupDir`.

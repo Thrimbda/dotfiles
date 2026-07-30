@@ -15,6 +15,7 @@
       # Core dependecies
       nixpkgs.url = "nixpkgs/nixos-25.11";
       nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
+      nixpkgs-vaultwarden.url = "nixpkgs/nixos-unstable";
       nixpkgs-darwin.url = "nixpkgs/nixpkgs-25.11-darwin";
       home-manager.url = "github:nix-community/home-manager/release-25.11";
       home-manager.inputs.nixpkgs.follows = "nixpkgs";
