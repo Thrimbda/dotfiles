@@ -271,3 +271,4 @@
 - Updated current FRP, auth gateway, status, OpenCode, and rollout guidance so Axiom owns the status/OpenCode proxy-mode gateways before loopback apps while Acorn retains TLS, auth-mini, FRP ingress, `auth-gateway`, and `frps-acorn`.
 - Marked the original all-Acorn status/OpenCode gateway topology and older gateway pin as historical and superseded by `auth-mini-node-gateway-migration`.
 - Added task summary for `acorn-vaultwarden-package-update`, current package-source decisions, mutable GitHub asset pinning pattern, and the restore-drill maintenance follow-up.
+- Marked `acorn-vaultwarden-package-update` completed after implementation PR #154 merged and the implementation worktree was removed; closeout cleanup and main refresh follow the closeout PR.

@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `acorn-vaultwarden-package-update`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `high`
 - `schema-version`: `1.1`
 - `historical`: `false`
@@ -15,7 +15,7 @@
 - Acorn now runs Vaultwarden `1.37.0` and Web Vault `2026.6.4+0` from a dedicated `nixpkgs-vaultwarden` input; the primary Nixpkgs and shared unstable locks were unchanged.
 - A pre-existing auth-mini fixed-output hash mismatch blocked the first required Axiom build. The package now uses the verified official GitHub release asset-ID API endpoint, content-negotiation header, and fixed SRI hash for `latest-2026-07-24`.
 - A fresh Vaultwarden SQLite backup completed within the configured 15-minute deployment bound. The required Axiom build, closure transfer, remote activation, and status-only Vaultwarden/auth-mini health checks passed.
-- The task remains active because upstream auth-mini binary provenance has no independent audit and the Vaultwarden restore drill is deferred; no PR, merge, cleanup, or main-workspace refresh has occurred.
+- Implementation PR [#154](https://github.com/Thrimbda/dotfiles/pull/154) was squash-merged as `dabc923b3826994f847c5eb1a809a365ff3519b3`; the user accepted the documented auth-mini provenance and deferred restore-drill risks. The implementation worktree was removed, and this closeout record precedes final closeout-worktree cleanup and main-workspace refresh.
 
 ## Reusable Decisions
 
