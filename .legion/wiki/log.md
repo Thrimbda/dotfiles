@@ -273,3 +273,6 @@
 - Marked the original all-Acorn status/OpenCode gateway topology and older gateway pin as historical and superseded by `auth-mini-node-gateway-migration`.
 - Added task summary for `acorn-vaultwarden-package-update`, current package-source decisions, mutable GitHub asset pinning pattern, and the restore-drill maintenance follow-up.
 - Marked `acorn-vaultwarden-package-update` completed after implementation PR #154 merged and the implementation worktree was removed; closeout cleanup and main refresh follow the closeout PR.
+- Added task summary for `rollout-auth-mini-audience-user-id`.
+- Updated current auth gateway decisions so all four instances use audience-bound JWT validation with user-ID-only `ALLOW_USER_IDS`, nonempty `ALLOW_EMAILS` is unsupported, and Axiom cleartext proxy gateways explicitly select `http1`.
+- Recorded PR #157 `8872e1f81947cc5fde20891e013d162d3e8a64ea` and PR #158 `fb78aea6a97e3a2b388972cbdfbcf540ed8cfcc2`, successful Axiom/Acorn live rollout, and the remaining user browser login smoke.

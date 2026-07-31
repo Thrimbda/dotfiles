@@ -13,6 +13,7 @@
 - [Acorn Vaultwarden Package Update](tasks/acorn-vaultwarden-package-update.md)
 - [Auth Mini Gateway on Acorn](tasks/auth-mini-acorn-gateway.md)
 - [Auth Mini Node Gateway Migration](tasks/auth-mini-node-gateway-migration.md)
+- [Rollout Audience-Bound Gateway User IDs](tasks/rollout-auth-mini-audience-user-id.md)
 - [Auth Mini Acorn Empty Response Hotfix](tasks/auth-mini-acorn-empty-response.md)
 - [Auth Mini Gateway Login Failure](tasks/auth-mini-gateway-login-failure.md)
 - [Auth Mini Gateway Latest Pin](tasks/auth-mini-gateway-latest-pin.md)
