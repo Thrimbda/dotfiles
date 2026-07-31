@@ -21,10 +21,13 @@
 | `nix eval --impure --json .#nixosConfigurations.acorn.config.age.secrets.auth-mini-gateway-env.owner` | PASS | Returned `"auth-mini-gateway"`. |
 | Repository plaintext scan for the supplied user ID | PASS | No file in the worktree contains the value; it exists only inside encrypted age payloads and the runtime secret path after deployment. |
 | `git diff --check` | PASS | No patch-format or whitespace errors. |
+| Axiom `UPSTREAM_PROTOCOL` evaluation for both gateway units | PASS | Both return `"http1"`, addressing the live `upstream_protocol_cleartext_auto` startup failure observed during the first Axiom switch. |
+| `nix build --impure --no-link -L .#nixosConfigurations.axiom.config.system.build.toplevel` | PASS | Axiom toplevel builds with the explicit protocol fix. Existing unrelated xorg rename warnings remain. |
 
 ## Changed Files
 
 - `packages/auth-mini-gateway/default.nix`: pins upstream `e1ea3e77fc39612b7418a3a44db5e2cc2b8618d4` with verified source and Cargo hashes.
+- `hosts/axiom/default.nix`: sets `UPSTREAM_PROTOCOL=http1` for cleartext proxy-mode gateway units required by the new gateway startup contract.
 - `hosts/axiom/secrets/auth-mini-gateway-env.age`: re-encrypted for the Axiom recipient after user-ID migration.
 - `hosts/acorn/secrets/auth-mini-gateway-env.age`: re-encrypted for the Acorn recipient after user-ID migration.
 - `.legion/tasks/rollout-auth-mini-audience-user-id/**`: task evidence only; no plaintext user ID or gateway secret.

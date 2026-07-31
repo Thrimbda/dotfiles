@@ -23,6 +23,7 @@ None.
 | Authorization migration | Both encrypted env files were transformed and re-decrypted successfully. Assertions prove the previous cookie secret was preserved, the supplied exact user ID is the only allowlist entry, and no nonempty `ALLOW_EMAILS` remains. |
 | Secret handling | No plaintext gateway secret or supplied user ID appears in Nix, task docs, PR evidence, or the worktree. Repository scan found no plaintext UID match. |
 | Runtime permissions | Axiom and Acorn agenix metadata still evaluate to owner `auth-mini-gateway` and mode `0400`. |
+| Cleartext proxy startup | Axiom gateway units explicitly set `UPSTREAM_PROTOCOL=http1`; both evaluations return `http1`, and the Axiom toplevel builds. This closes the live `upstream_protocol_cleartext_auto` failure from the first switch. |
 | Scope | No unrelated host, auth-mini, nginx, FRP, Cloudflare, firewall, or session-database changes are present. |
 | Rollback | Rollback is a normal dotfiles revert plus host switch. The gateway package and secret changes are small and independently recoverable; old sessions may still require bounded re-login under the upstream audience contract. |
 

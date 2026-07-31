@@ -5,6 +5,7 @@
 - Pin `auth-mini-gateway` to merged upstream `e1ea3e77fc39612b7418a3a44db5e2cc2b8618d4`.
 - Migrate both Axiom and Acorn encrypted gateway environments from email allowlist authorization to the user-supplied exact auth-mini user ID.
 - Preserve existing gateway cookie secrets and agenix recipient boundaries.
+- Set Axiom cleartext proxy gateways to `UPSTREAM_PROTOCOL=http1`, required by the new gateway startup contract.
 - Keep auth-mini, nginx, FRP, Cloudflare, firewall, protected upstreams, and session databases unchanged.
 
 The supplied user ID is present only inside encrypted age payloads and is intentionally absent from repository docs and this PR body.

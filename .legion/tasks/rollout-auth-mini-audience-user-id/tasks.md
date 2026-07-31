@@ -2,21 +2,22 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 1 - Configuration and review
-**当前检查项**: Create a clean worktree, update the gateway pin and both encrypted environments, build/evaluate, review, merge, and refresh main.
-**进度**: 0/4 任务完成
+**当前阶段**: 阶段 2 - Axiom deployment
+**当前检查项**: Switch Axiom from refreshed origin/master and verify both gateway services and login redirects.
+**进度**: 2/5 任务完成
 
 ---
 
 ## 阶段 1: Configuration and review ⏳ NOT STARTED
 
-- [ ] Create a clean worktree, update the gateway pin and both encrypted environments, build/evaluate, review, merge, and refresh main. | 验收: Merged dotfiles commit contains the correct pin and encrypted env migration with no plaintext secret or user-ID exposure. ← CURRENT
+- [x] Create a clean worktree, update the gateway pin and both encrypted environments, build/evaluate, review, merge, and refresh main. | 验收: Merged dotfiles commit contains the correct pin and encrypted env migration with no plaintext secret or user-ID exposure.
+- [x] Add explicit cleartext proxy protocol selection required by the new gateway. | 验收: Axiom units evaluate with `UPSTREAM_PROTOCOL=http1` and no `upstream_protocol_cleartext_auto` startup failure.
 
 ---
 
 ## 阶段 2: Axiom deployment ⏳ NOT STARTED
 
-- [ ] Switch Axiom from refreshed origin/master and verify both gateway services and login redirects. | 验收: Axiom status/opencode gateways run the new binary, read the migrated env, and return correct auth-mini redirects.
+- [ ] Switch Axiom from refreshed origin/master and verify both gateway services and login redirects. | 验收: Axiom status/opencode gateways run the new binary, read the migrated env, and return correct auth-mini redirects. ← CURRENT
 
 ---
 

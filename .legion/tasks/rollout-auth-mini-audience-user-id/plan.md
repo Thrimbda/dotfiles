@@ -43,6 +43,7 @@ The repository fix for current auth-mini audience-bound login is merged, but pro
 ## 范围
 
 - packages/auth-mini-gateway/default.nix - gateway source pin and hashes.
+- hosts/axiom/default.nix - explicit HTTP/1 protocol selection for cleartext proxy-mode gateway upstreams.
 - hosts/axiom/secrets/auth-mini-gateway-env.age - encrypted user-ID migration for status/opencode gateways.
 - hosts/acorn/secrets/auth-mini-gateway-env.age - encrypted user-ID migration for auth-gateway/frps gateways.
 - .legion/tasks/rollout-auth-mini-audience-user-id/ - rollout evidence and reports.
