@@ -1,25 +1,20 @@
-# Roll out audience-bound gateway user IDs
+# Close audience gateway rollout
 
 ## Summary
 
-- Pin `auth-mini-gateway` to merged upstream `e1ea3e77fc39612b7418a3a44db5e2cc2b8618d4`.
-- Migrate both Axiom and Acorn encrypted gateway environments from email allowlist authorization to the user-supplied exact auth-mini user ID.
-- Preserve existing gateway cookie secrets and agenix recipient boundaries.
-- Set Axiom cleartext proxy gateways to `UPSTREAM_PROTOCOL=http1`, required by the new gateway startup contract.
-- Keep auth-mini, nginx, FRP, Cloudflare, firewall, protected upstreams, and session databases unchanged.
+Close the production rollout for audience-bound auth-mini gateways:
 
-The supplied user ID is present only inside encrypted age payloads and is intentionally absent from repository docs and this PR body.
+- gateway package pinned to upstream `e1ea3e77fc39612b7418a3a44db5e2cc2b8618d4`;
+- Axiom and Acorn encrypted envs migrated to the supplied exact user ID without exposing it in repository files;
+- Axiom proxy gateways set `UPSTREAM_PROTOCOL=http1`;
+- PR #157 merged the package/env migration;
+- PR #158 merged the cleartext protocol fix;
+- Axiom and Acorn live services are active and return correct auth-mini login redirects.
 
-## Validation
+## Evidence
 
-- `nix build --no-link -L .#packages.x86_64-linux.auth-mini-gateway` — passed, including 119 library + 50 proxy integration tests.
-- Axiom and Acorn secret decrypt/transform/re-encrypt/decrypt assertions — passed.
-- Agenix owner/mode evaluation for both hosts — `auth-mini-gateway`, `0400`.
-- Plaintext repository scan for the supplied user ID — no match.
-- `git diff --check` — passed.
+See `.legion/tasks/rollout-auth-mini-audience-user-id/docs/test-report.md`, `docs/review-change.md`, and `docs/report-walkthrough.md`.
 
-See `.legion/tasks/rollout-auth-mini-audience-user-id/docs/test-report.md` and `docs/review-change.md`.
+## Remaining
 
-## Rollout
-
-After merge, deploy Axiom and Acorn from refreshed `origin/master`. Acorn must use the mandated Axiom build-host `nixos-rebuild` path; no Nix build or rebuild may run on Acorn.
+The user performs the credential-bearing browser login smoke. Automation did not modify production auth-mini data or use real credentials.
