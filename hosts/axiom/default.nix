@@ -175,6 +175,7 @@ with builtins;
           HOST = "127.0.0.1";
           PORT = toString instance.port;
           UPSTREAM_URL = instance.upstream;
+          UPSTREAM_PROTOCOL = "http1";
           GATEWAY_PUBLIC_BASE_URL = "https://${instance.publicHost}";
           AUTH_MINI_ISSUER = "https://auth.0xc1.wang";
           AUTH_MINI_PUBLIC_BASE_URL = "https://auth.0xc1.wang";
