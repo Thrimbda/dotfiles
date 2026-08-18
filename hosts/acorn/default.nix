@@ -84,10 +84,16 @@
       mode = "0400";
     };
 
-    assertions = [{
-      assertion = lib.versionAtLeast config.services.rustdesk-server.package.version "1.1.14";
-      message = "acorn RustDesk Server must stay >= 1.1.14 (client pairing baseline)";
-    }];
+    assertions = [
+      {
+        assertion = lib.versionAtLeast config.services.rustdesk-server.package.version "1.1.14";
+        message = "acorn RustDesk Server must stay >= 1.1.14 (client pairing baseline)";
+      }
+      {
+        assertion = !(lib.elem 18082 config.networking.firewall.allowedTCPPorts);
+        message = "acorn PI WEB FRP remote port must remain closed in the host firewall";
+      }
+    ];
 
     nix.settings = {
       substituters = lib.mkBefore [
@@ -236,6 +242,12 @@
       reloadServices = [ "nginx.service" ];
     };
     security.acme.certs."opencode-axiom.0xc1.wang" = {
+      dnsProvider = "cloudflare";
+      environmentFile = config.age.secrets.cloudflare-dns-env.path;
+      group = "nginx";
+      reloadServices = [ "nginx.service" ];
+    };
+    security.acme.certs."pi-axiom.0xc1.wang" = {
       dnsProvider = "cloudflare";
       environmentFile = config.age.secrets.cloudflare-dns-env.path;
       group = "nginx";

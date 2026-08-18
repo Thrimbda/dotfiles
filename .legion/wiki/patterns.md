@@ -138,6 +138,12 @@ For auth gateway deployments, keep the protected upstream and gateway backend lo
 
 For Acorn-published Axiom loopback applications, put the proxy-mode gateway on Axiom immediately before the application and make FRP target the gateway listener rather than the application port. Acorn nginx should terminate TLS and proxy all paths to the FRP remote port without a duplicate `auth_request` boundary, while preserving the public Host, cookies, WebSocket upgrades, uploads, and unbuffered streaming. Keep application, gateway, and FRP backend ports off public firewalls.
 
+## Cookie-Authenticated WebSocket Edge Guard
+
+For cookie-authenticated browser WebSockets that carry terminal, agent, or equivalent user authority, enforce an exact public-Origin allowlist at the outer reverse proxy before the authentication gateway, tunnel, or upstream. Reject sibling, foreign, malformed/suffixed, and missing Origin upgrades; keep ordinary HTTP/API requests and unrelated virtual hosts outside the guard. Cookie authentication alone does not prevent a cross-site WebSocket handshake.
+
+Verify the edge decision with differential raw handshake probes carrying only a non-secret sentinel Cookie. Rejected origins should receive the edge-specific denial, while the exact Origin should pass the guard and reach normal unauthenticated gateway behavior. This proves the allow/deny branch without exposing real session material; use a separate authenticated operator smoke for positive application behavior.
+
 When an auth callback UI maps every non-2xx response to one generic failure, diagnose the callback/session HTTP status and policy decision before changing redirect, cookie, or origin topology. Preserve authentication and authorization as separate checks: the identity provider selects authentication methods, while the gateway should enforce its documented exact-identity allowlist unless a separately reviewed method policy is intentional.
 
 When a lightweight service stores provider credentials in application-owned state and has an authenticated configuration API, retain the source credential in a host-recipient agenix secret and apply it through the loopback admin API without logging it. Do not add startup reconciliation by default; document that key rotation or database recovery requires an explicit reapply step.

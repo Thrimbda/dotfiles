@@ -20,6 +20,7 @@
 - [Auth Mini Resend SMTP](tasks/auth-mini-resend-smtp.md)
 - [Auth Mini Upstream Release Pin](tasks/auth-mini-upstream-release-pin.md)
 - [Deploy 1Ex Portfolio Adapter on Acorn](tasks/deploy-oneex-portfolio-acorn.md)
+- [Deploy Legion Pi Web via Acorn FRP](tasks/deploy-legion-pi-web-frp.md)
 - [Register Private 1Ex Portfolio Fund](tasks/register-oneex-portfolio-fund.md)
 - [Aliyun NixOS Image Host](tasks/aliyun-nixos-image-host.md)
 - [Aliyun Acorn ECS Deploy](tasks/aliyun-acorn-ecs-deploy.md)
