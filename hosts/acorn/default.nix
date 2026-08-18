@@ -54,6 +54,7 @@
     imports = [
       "${modulesPath}/profiles/qemu-guest.nix"
       ./modules/auth-mini.nix
+      ./modules/oneex-portfolio-adapter.nix
       ./modules/vaultwarden.nix
     ];
 

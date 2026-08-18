@@ -19,6 +19,7 @@
 - [Auth Mini Gateway Latest Pin](tasks/auth-mini-gateway-latest-pin.md)
 - [Auth Mini Resend SMTP](tasks/auth-mini-resend-smtp.md)
 - [Auth Mini Upstream Release Pin](tasks/auth-mini-upstream-release-pin.md)
+- [Deploy 1Ex Portfolio Adapter on Acorn](tasks/deploy-oneex-portfolio-acorn.md)
 - [Aliyun NixOS Image Host](tasks/aliyun-nixos-image-host.md)
 - [Aliyun Acorn ECS Deploy](tasks/aliyun-acorn-ecs-deploy.md)
 - [Aliyun Acorn Nix Cache Mirror](tasks/aliyun-acorn-nix-cache-mirror.md)

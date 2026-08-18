@@ -19,6 +19,10 @@
 - After deploying `auth-mini-resend-smtp`, verify `/run/agenix/auth-mini-resend-api-key` is owned by `auth-mini:auth-mini` with mode `0400`. SMTP and a live OTP send already succeeded; future Resend key rotation or auth-mini database recovery requires reapplying SMTP through the authenticated admin API.
 - The audience-bound gateway rollout is deployed on all four instances. In a fresh browser context, complete one real user login for `opencode-axiom.0xc1.wang`, then optionally spot-check `status-axiom.0xc1.wang` and `frps-acorn.0xc1.wang`; do not record credentials, tokens, cookies, or callback bodies. Existing legacy sessions may require one bounded re-login at refresh.
 
+## Acorn 1Ex Portfolio Adapter Follow-Up
+
+- The upstream `auth.ntnl.io` and 1Ex Fund endpoints can fail transiently. The adapter intentionally fails closed with `502`; monitor the consumer's retry behavior and make any resilience change through a separately scoped task rather than weakening the authentication or partial-data boundary.
+
 ## RustDesk Relay Follow-Up
 
 - On every RustDesk Server upgrade, re-evaluate whether upstream still lets `same_intranet` bypass `ALWAYS_USE_RELAY`; require zero-fuzz patch application, stable-false equivalence, package tests and a fresh same-public-IP hbbr pairing smoke before retaining or removing the private patch.

@@ -1,0 +1,34 @@
+# deploy-oneex-portfolio-acorn
+
+## Metadata
+
+- `task-id`: `deploy-oneex-portfolio-acorn`
+- `status`: `active`
+- `risk`: `medium`
+- `schema-version`: `v1`
+- `historical`: `false`
+- `supersedes`: `(none)`
+- `superseded-by`: `(none)`
+
+## Outcome Summary
+
+- A 1Ex portfolio Custom Account Source adapter is deployed on Acorn behind `https://1ex-portfolio.0xc1.wang`.
+- The live service is loopback-only, uses a dedicated unprivileged user and age-encrypted identity environment, and is exposed through nginx TLS.
+- The tracked vendor snapshot exactly matches upstream `8dcf21f` before the Nix-only 5.8-second read-timeout patch.
+- Local closure build, remote activation, ACME, public DNS, unauthenticated `401`, and authenticated live positions evidence all passed.
+- PR lifecycle is still active; this summary remains current until merge or explicit rollback.
+
+## Reusable Decisions
+
+- Use a tracked, explicitly pinned snapshot for a private source that a pure Nix flake cannot fetch.
+- Keep adapter processes on loopback and let nginx own public TLS; secrets stay in age ciphertext, not in Nix expressions or task documents.
+- Validate fake-IP environments through public DoH plus an independent hostname request, while direct SNI verifies the origin path.
+
+## Related Raw Sources
+
+- `plan`: `.legion/tasks/deploy-oneex-portfolio-acorn/plan.md`
+- `log`: `.legion/tasks/deploy-oneex-portfolio-acorn/log.md`
+- `tasks`: `.legion/tasks/deploy-oneex-portfolio-acorn/tasks.md`
+- `rfc`: `.legion/tasks/deploy-oneex-portfolio-acorn/docs/rfc.md`
+- `reviews`: `.legion/tasks/deploy-oneex-portfolio-acorn/docs/review-rfc.md`, `.legion/tasks/deploy-oneex-portfolio-acorn/docs/review-change.md`
+- `report`: `.legion/tasks/deploy-oneex-portfolio-acorn/docs/report-walkthrough.md`
