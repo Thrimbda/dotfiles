@@ -92,6 +92,10 @@ For root-run timer healthchecks that restart local services after repeated failu
 
 For host files that still contain large script bodies after service extraction, continue one level deeper before calling the host modular: mutable user-config migrations belong in the owning desktop module, hardware/session readiness scripts belong in a focused desktop/hardware module, remote-access runtime services belong in a service module, and VM stack policy belongs in a virtualization module. The host should pass card names, sink names, app ids, remote host/port facts, hostnames, labels, and enablement flags.
 
+## Private Adapter Package And Public Route Pattern
+
+When a private Rust adapter must be built by a pure Nix flake, track a source snapshot tied to an explicit upstream revision, verify the snapshot hashes against a fresh authenticated clone, and apply any deployment-only source delta as a narrow derivation patch. For a bearer-protected Acorn adapter, run the process as a dedicated unprivileged loopback service with an age-owned `0400` environment file, terminate TLS in nginx, and separately validate the local build, remote activation, listener scope, ACME, provider DNS record, public DoH, unauthenticated boundary, and authenticated origin result. In fake-IP environments, do not treat local normal-hostname curl failures as public DNS evidence.
+
 For healthchecks, prefer typed predicates over host-owned shell bodies when the predicate shape is reusable. Current reusable shapes are HTTP readiness, autossh endpoint-key comparison, and service-core/interface health. Keep raw `check` script support for genuinely one-off predicates, but do not use it as the default for common daemon checks.
 
 For permission policy moved out of hosts, default the module option to disabled and require explicit host enablement. Preserve fixed action allowlists and local subject/user checks; do not turn a host-local polkit rule into group membership, prefix grants, sudo wrappers, or broader default module behavior.

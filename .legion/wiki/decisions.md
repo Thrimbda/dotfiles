@@ -36,6 +36,10 @@ Acorn Vaultwarden must source both `services.vaultwarden.package` and `services.
 
 The Acorn auth-mini package must not fetch the mutable `/releases/download/latest/` URL directly. Pin the intended official GitHub release asset by asset-ID API endpoint, use `Accept: application/octet-stream`, and retain a fixed-output SRI hash verified against the official asset digest. If the API asset, header behavior, or content changes, the build must fail rather than silently replace the authentication binary.
 
+## Acorn 1Ex Portfolio Adapter
+
+The 1Ex portfolio adapter is a loopback-only Acorn systemd service at `127.0.0.1:8090`, exposed solely through nginx TLS at `1ex-portfolio.0xc1.wang`. Its identity stays in an Acorn-only age environment file owned by the dedicated service user; the public API retains the adapter's existing HMAC-derived Bearer check. The private Rust source is tracked as a snapshot pinned to upstream `8dcf21f9a2549212bff4b380dc5daf3f5c1236f9`, with only the measured 4.5s-to-5.8s read timeout adjusted by the Nix derivation.
+
 ## Linux Workstation Desktop Baseline
 
 Shell prompt and tmux theme defaults are no longer owned by active theme modules. The current default prompt lives in `config/zsh/prompt.zsh` and is sourced by `config/zsh/.zshrc`; the current tmux theme lives in `config/tmux/theme.conf` and is sourced by `config/tmux/tmux.conf`. Do not reintroduce theme-module zsh/tmux injection unless a future scoped task designs an explicit shell theme option.
