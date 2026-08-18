@@ -279,3 +279,4 @@
 - Added task summary for `deploy-oneex-portfolio-acorn`, the private-source packaging decision, loopback TLS adapter pattern, and upstream availability follow-up.
 - Marked `deploy-oneex-portfolio-acorn` completed after implementation PR #161 merged.
 - Added `register-oneex-portfolio-fund` summary and recorded the private Fund/source recursion-exclusion decision, registration pattern, and sampling follow-up.
+- Marked `register-oneex-portfolio-fund` completed after implementation PR #163 merged.

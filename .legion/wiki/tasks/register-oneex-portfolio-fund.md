@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `register-oneex-portfolio-fund`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `v1`
 - `historical`: `false`
@@ -16,7 +16,7 @@
 - Created and enabled the private USD `My Portfolio` Fund with subscriptions closed and one initial NAV.
 - Reused the adapter's verified-unused exclusion UUID as the Fund ID, then proved the enabled Fund remains absent from direct adapter output.
 - No Acorn configuration or adapter source change was required; runtime credentials remained in Acorn-only memory and cleaned `/run` files.
-- PR lifecycle is active; this summary becomes completed after merge and cleanup.
+- Implementation PR [#163](https://github.com/Thrimbda/dotfiles/pull/163) merged as `407b634d`; the source and Fund remain current until an explicit replacement or rollback task.
 
 ## Reusable Decisions
 
