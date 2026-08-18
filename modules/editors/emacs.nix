@@ -119,7 +119,7 @@ in {
 
     (if isDarwin then {} else {
       fonts.packages = [
-        (pkgs.nerdfonts.override { fonts = [ "NerdFontsSymbolsOnly" ]; })
+        pkgs.nerd-fonts.symbols-only
       ];
       system.userActivationScripts = mkIf doomEnabled {
         installDoomEmacs = ''

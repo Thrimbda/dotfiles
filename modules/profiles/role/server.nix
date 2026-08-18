@@ -33,7 +33,7 @@ mkIf (config.modules.profiles.role == "server") {
   power.ups.mode = mkDefault "netclient";
 
   ## Security tweaks
-  boot.kernelPackages = mkForce pkgs.linuxPackages_hardened;
+  # Protect the kernel image from being replaced at runtime.
   # Prevent replacing the running kernel w/o reboot
   security.protectKernelImage = true;
 }

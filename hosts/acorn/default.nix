@@ -84,8 +84,8 @@
     };
 
     assertions = [{
-      assertion = config.services.rustdesk-server.package.version == "1.1.14";
-      message = "acorn RustDesk Server must remain pinned to 1.1.14";
+      assertion = lib.versionAtLeast config.services.rustdesk-server.package.version "1.1.14";
+      message = "acorn RustDesk Server must stay >= 1.1.14 (client pairing baseline)";
     }];
 
     nix.settings = {

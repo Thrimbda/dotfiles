@@ -140,7 +140,11 @@ in {
     (mkIf (config.modules.desktop.type != null) {
       modules.theme.gtk = {
         enable = true;
-        font = mkAliasDefinitions options.modules.theme.fonts.sans;
+        font = {
+          name = mkAliasDefinitions options.modules.theme.fonts.sans.name;
+          size = mkAliasDefinitions options.modules.theme.fonts.sans.size;
+          package = mkAliasDefinitions options.modules.theme.fonts.sans.package;
+        };
         gtk2 = {
           extraConfig = "gtk-application-prefer-dark-theme=${boolToStr cfg.preferDark}";
           # Keep $HOME clean, damn it! (Writes to ~/.gtkrc-2.0 otherwise)
