@@ -22,6 +22,7 @@
 ## Acorn 1Ex Portfolio Adapter Follow-Up
 
 - The upstream `auth.ntnl.io` and 1Ex Fund endpoints can fail transiently. The adapter intentionally fails closed with `502`; monitor the consumer's retry behavior and make any resilience change through a separately scoped task rather than weakening the authentication or partial-data boundary.
+- `My Portfolio` has one initial NAV and enabled hourly sampling. Monitor subsequent samples for upstream `502` failures. Before rotating the adapter seed, update the stored Custom Account Source header through the 1Ex source API; the derived source bearer rotates with that seed.
 
 ## RustDesk Relay Follow-Up
 

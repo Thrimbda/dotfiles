@@ -40,6 +40,8 @@ The Acorn auth-mini package must not fetch the mutable `/releases/download/lates
 
 The 1Ex portfolio adapter is a loopback-only Acorn systemd service at `127.0.0.1:8090`, exposed solely through nginx TLS at `1ex-portfolio.0xc1.wang`. Its identity stays in an Acorn-only age environment file owned by the dedicated service user; the public API retains the adapter's existing HMAC-derived Bearer check. The private Rust source is tracked as a snapshot pinned to upstream `8dcf21f9a2549212bff4b380dc5daf3f5c1236f9`, with only the measured 4.5s-to-5.8s read timeout adjusted by the Nix derivation.
 
+`My Portfolio` is the user-owned private USD Trading Fund backed by the enabled `1Ex Portfolio Adapter` Custom Account Source. Its Fund ID is the adapter's already deployed `EXCLUDED_FUND_ID`, so the adapter omits the Fund and avoids recursive valuation. Keep the Fund private with subscriptions closed; do not rotate that ID or remove the source without first disabling the Fund and designing the replacement/rollback path.
+
 ## Linux Workstation Desktop Baseline
 
 Shell prompt and tmux theme defaults are no longer owned by active theme modules. The current default prompt lives in `config/zsh/prompt.zsh` and is sourced by `config/zsh/.zshrc`; the current tmux theme lives in `config/tmux/theme.conf` and is sourced by `config/tmux/tmux.conf`. Do not reintroduce theme-module zsh/tmux injection unless a future scoped task designs an explicit shell theme option.

@@ -278,3 +278,4 @@
 - Recorded PR #157 `8872e1f81947cc5fde20891e013d162d3e8a64ea` and PR #158 `fb78aea6a97e3a2b388972cbdfbcf540ed8cfcc2`, successful Axiom/Acorn live rollout, and the remaining user browser login smoke.
 - Added task summary for `deploy-oneex-portfolio-acorn`, the private-source packaging decision, loopback TLS adapter pattern, and upstream availability follow-up.
 - Marked `deploy-oneex-portfolio-acorn` completed after implementation PR #161 merged.
+- Added `register-oneex-portfolio-fund` summary and recorded the private Fund/source recursion-exclusion decision, registration pattern, and sampling follow-up.
