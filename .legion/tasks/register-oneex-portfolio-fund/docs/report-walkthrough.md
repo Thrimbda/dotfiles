@@ -21,6 +21,10 @@
 
 The runtime seed, both bearer types, and decrypted environment never entered the repository or task artifacts. Short-lived signing material used root-owned `/run` files removed at shell exit. If a future source/Fund issue requires rollback, disable the Fund before attempting source removal; no Acorn configuration changed in this task.
 
+## Delivery Lifecycle
+
+Implementation PR [#163](https://github.com/Thrimbda/dotfiles/pull/163) merged at `2026-08-18T16:02:49Z` as `407b634d`. GitHub reported no required checks and no reviews. The implementation worktree is cleaned up after this closeout evidence is merged.
+
 ## Evidence
 
 - Design: `docs/rfc.md`

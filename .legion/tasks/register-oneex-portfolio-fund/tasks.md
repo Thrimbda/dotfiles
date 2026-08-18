@@ -2,9 +2,9 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 5 - Review and delivery
-**当前检查项**: Record verification, review, wiki, and PR lifecycle evidence
-**进度**: 4/5 任务完成
+**当前阶段**: 完成
+**当前检查项**: 所有阶段已完成；后续仅按 maintenance 项监控 source 与 hourly NAV sampling
+**进度**: 5/5 任务完成
 ---
 
 ## 阶段 1: Design and preflight ✅ COMPLETE
@@ -27,9 +27,9 @@
 - [x] Create and sample the private USD My Portfolio Fund | 验收: The Fund is private, non-subscribable, bound to the source account, and absent from direct adapter positions.
 ---
 
-## 阶段 5: Review and delivery ⏳ NOT STARTED
+## 阶段 5: Review and delivery ✅ COMPLETE
 
-- [ ] Record verification, review, wiki, and PR lifecycle evidence | 验收: The external mutations and code/config change are reviewed, merged or explicitly blocked, and rollback state is recorded. ← CURRENT
+- [x] Record verification, review, wiki, and PR lifecycle evidence | 验收: The external mutations and code/config change are reviewed, merged or explicitly blocked, and rollback state is recorded. PR #163 merged; no required checks or review gate were configured.
 ---
 
 ## 发现的新任务
