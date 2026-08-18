@@ -277,3 +277,4 @@
 - Updated current auth gateway decisions so all four instances use audience-bound JWT validation with user-ID-only `ALLOW_USER_IDS`, nonempty `ALLOW_EMAILS` is unsupported, and Axiom cleartext proxy gateways explicitly select `http1`.
 - Recorded PR #157 `8872e1f81947cc5fde20891e013d162d3e8a64ea` and PR #158 `fb78aea6a97e3a2b388972cbdfbcf540ed8cfcc2`, successful Axiom/Acorn live rollout, and the remaining user browser login smoke.
 - Added task summary for `deploy-oneex-portfolio-acorn`, the private-source packaging decision, loopback TLS adapter pattern, and upstream availability follow-up.
+- Marked `deploy-oneex-portfolio-acorn` completed after implementation PR #161 merged.
