@@ -280,3 +280,6 @@
 - Marked `deploy-oneex-portfolio-acorn` completed after implementation PR #161 merged.
 - Added `register-oneex-portfolio-fund` summary and recorded the private Fund/source recursion-exclusion decision, registration pattern, and sampling follow-up.
 - Marked `register-oneex-portfolio-fund` completed after implementation PR #163 merged.
+- Added the deployed and independently verified `deploy-legion-pi-web-frp` task summary with Axiom runtime ownership, authenticated port topology, Acorn DNS/TLS ingress, rollback, and accepted residuals.
+- Updated current FRP/Auth Mini topology for PI WEB and promoted the exact-Origin WebSocket guard plus sentinel-Cookie differential probe pattern.
+- Recorded scoped maintenance triggers for FRP server-identity verification and the imperative PI/PI WEB runtime.

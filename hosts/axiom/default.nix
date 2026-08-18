@@ -156,6 +156,9 @@ with builtins;
       userName = config.user.name;
       opencodeDir = config.modules.services.opencode-server.dir;
       reverseSsh = config.modules.services.reverse-ssh;
+      legionPiProfile = "${config.home.dataDir}/legion-pi/profile";
+      piWebDataDir = "${config.home.dataDir}/legion-pi/pi-web";
+      piWebUserManagerUnit = "user@${toString config.users.users.${userName}.uid}.service";
       acornPublicIp = "8.159.128.125";
       acornSshHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE6WwypfVtdA16Au8kXoCVJgkTDlvgu98sqA0Z04Ux3l";
       acornAutosshKnownHosts = pkgs.writeText "axiom-acorn-known-hosts" ''
@@ -1565,6 +1568,17 @@ with builtins;
       lowPrioritySinks = [ "alsa_output.pci-0000_11_00.6.iec958-stereo" ];
     };
 
+    modules.shell.zsh.envInit = mkAfter ''
+      export PATH="${legionPiProfile}/runtime/node_modules/.bin:$PATH"
+      export PI_CODING_AGENT_DIR="${legionPiProfile}/agent"
+      export PI_CODING_AGENT_SESSION_DIR="${legionPiProfile}/sessions"
+      export PI_SUBAGENT_PI_BINARY="${legionPiProfile}/runtime/node_modules/.bin/pi"
+      export PI_LENS_HOME="${legionPiProfile}/.legionmind/pi-lens"
+      export PI_WEB_DATA_DIR="${piWebDataDir}"
+      export PI_WEB_HOST="127.0.0.1"
+      export PI_WEB_PORT="8504"
+    '';
+
     modules.services.todesk.enable = true;
     modules.services.docker.package = pkgs.docker_29;
     modules.virt.libvirt.enable = true;
@@ -1583,6 +1597,8 @@ with builtins;
     environment.systemPackages = [ c1ctl rustdeskFinalize ];
 
     home.configFile."hypr/xdph.conf".source = rustdeskPortalConfig;
+
+    user.linger = true;
 
     user.packages = with pkgs; [
       unstable.antigravity-fhs
@@ -1653,6 +1669,10 @@ with builtins;
           "agenix"
         ];
         message = "axiom RustDesk finalizer must not contain a secret path, password invocation, or secret resolver";
+      }
+      {
+        assertion = all (port: !(elem port config.networking.firewall.allowedTCPPorts)) [ 7782 8504 ];
+        message = "axiom PI WEB and auth gateway ports must remain closed in the host firewall";
       }
     ];
 
@@ -1771,16 +1791,26 @@ with builtins;
       appUnit = "opencode-server.service";
     };
 
+    systemd.services.auth-mini-gateway-pi-axiom = mkGatewayService {
+      publicHost = "pi-axiom.0xc1.wang";
+      port = 7782;
+      upstream = "http://127.0.0.1:8504";
+      stateDirectory = "auth-mini-gateway-pi-axiom";
+      appUnit = piWebUserManagerUnit;
+    };
+
     systemd.services.frpc = {
       after = [
         frpcDirectRouteUnit
         "auth-mini-gateway-status-axiom.service"
         "auth-mini-gateway-opencode-axiom.service"
+        "auth-mini-gateway-pi-axiom.service"
       ];
       wants = [
         frpcDirectRouteUnit
         "auth-mini-gateway-status-axiom.service"
         "auth-mini-gateway-opencode-axiom.service"
+        "auth-mini-gateway-pi-axiom.service"
       ];
       requires = [ frpcDirectRouteUnit ];
     };
@@ -1809,6 +1839,13 @@ with builtins;
           localIP = "127.0.0.1";
           localPort = 7780;
           remotePort = 18081;
+        }
+        {
+          name = "axiom-pi-web-http";
+          type = "tcp";
+          localIP = "127.0.0.1";
+          localPort = 7782;
+          remotePort = 18082;
         }
       ];
     };

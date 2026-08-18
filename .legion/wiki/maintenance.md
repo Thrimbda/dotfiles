@@ -19,6 +19,11 @@
 - After deploying `auth-mini-resend-smtp`, verify `/run/agenix/auth-mini-resend-api-key` is owned by `auth-mini:auth-mini` with mode `0400`. SMTP and a live OTP send already succeeded; future Resend key rotation or auth-mini database recovery requires reapplying SMTP through the authenticated admin API.
 - The audience-bound gateway rollout is deployed on all four instances. In a fresh browser context, complete one real user login for `opencode-axiom.0xc1.wang`, then optionally spot-check `status-axiom.0xc1.wang` and `frps-acorn.0xc1.wang`; do not record credentials, tokens, cookies, or callback bodies. Existing legacy sessions may require one bounded re-login at refresh.
 
+## FRP And PI WEB Follow-Up
+
+- The current FRP transport is encrypted and token-authenticated but does not verify frps certificate identity. Before treating the path as resistant to active MITM or expanding its trust boundary, scope and verify a separate FRP server-identity/PKI migration.
+- Axiom's pinned Pi `0.84.2` and PI WEB `1.202608.1` runtime is persistent but imperative. Future upgrades or reinstalls must preserve the profile/data boundaries and rerun Pi `verify`, PI WEB `doctor/status/version`, unit, listener, gateway, and end-to-end checks; scope disruptive reboot/logout/rollback proof separately if it becomes a release requirement.
+
 ## Acorn 1Ex Portfolio Adapter Follow-Up
 
 - The upstream `auth.ntnl.io` and 1Ex Fund endpoints can fail transiently. The adapter intentionally fails closed with `502`; monitor the consumer's retry behavior and make any resilience change through a separately scoped task rather than weakening the authentication or partial-data boundary.

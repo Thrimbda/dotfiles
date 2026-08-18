@@ -105,7 +105,7 @@ let
     };
   };
 
-  mkNodeProxyVhost = hostName: remotePort: {
+  mkNodeProxyVhost = hostName: remotePort: extraLocationConfig: {
     onlySSL = true;
     useACMEHost = hostName;
     extraConfig = ''
@@ -135,6 +135,7 @@ let
         proxy_intercept_errors off;
         proxy_next_upstream off;
         proxy_redirect off;
+        ${extraLocationConfig}
       '';
     };
   };
@@ -240,6 +241,15 @@ in
     };
   } // mapAttrs' (name: instance: nameValuePair "auth-mini-gateway-${name}" (mkGatewayService name instance)) gatewayInstances;
 
+  # SameSite cookies do not prevent sibling-origin WebSocket handshakes.
+  services.nginx.commonHttpConfig = ''
+    map "$http_upgrade:$http_origin" $pi_axiom_websocket_origin_rejected {
+      default 0;
+      ~*^websocket:https://pi-axiom\.0xc1\.wang$ 0;
+      ~*^websocket: 1;
+    }
+  '';
+
   services.nginx.virtualHosts = {
     ${authHost} = {
       onlySSL = true;
@@ -255,8 +265,13 @@ in
       };
     };
   } // mapAttrs' (_: instance: nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances // {
-    "status-axiom.0xc1.wang" = mkNodeProxyVhost "status-axiom.0xc1.wang" 18080;
-    "opencode-axiom.0xc1.wang" = mkNodeProxyVhost "opencode-axiom.0xc1.wang" 18081;
+    "status-axiom.0xc1.wang" = mkNodeProxyVhost "status-axiom.0xc1.wang" 18080 "";
+    "opencode-axiom.0xc1.wang" = mkNodeProxyVhost "opencode-axiom.0xc1.wang" 18081 "";
+    "pi-axiom.0xc1.wang" = mkNodeProxyVhost "pi-axiom.0xc1.wang" 18082 ''
+      if ($pi_axiom_websocket_origin_rejected) {
+        return 403;
+      }
+    '';
   };
 
   security.acme.certs = {
