@@ -22,6 +22,20 @@ in
     # through without failing evaluation.
     _module.check = false;
 
+    # nixpkgs is pinned as a channel tarball, so flake metadata (lastModified,
+    # shortRev) is unavailable and lib.version would read "19800101.dirty".
+    # Read the real version info embedded in the tarball instead.
+    system.nixos.versionSuffix =
+      let suffix = "${pkgs.path}/.version-suffix";
+      in mkDefault (optionalString (pathExists suffix) (strings.fileContents suffix));
+    system.nixos.revision =
+      let rev = "${pkgs.path}/.git-revision";
+      in mkDefault (optionalString (pathExists rev) (strings.fileContents rev));
+
+    # Doc outputs are rarely wanted and can break builds when uncached (e.g.
+    # python docs failing to build from sphinx on some nixpkgs revs).
+    documentation.doc.enable = mkIf (!isDarwin) (mkDefault false);
+
     assertions = [{
       assertion = config.user ? name;
       message = "config.user.name is not set!";

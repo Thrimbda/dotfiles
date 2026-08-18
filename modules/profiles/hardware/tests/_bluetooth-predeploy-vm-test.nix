@@ -447,8 +447,8 @@ pkgs.testers.runNixOSTest {
       wants = tlpProjection.tlpBootWants;
     };
 
-    # Replace only the sleep executor. Requires/After=sleep.target and every
-    # suspend/post-resume ordering edge continue to come from pinned systemd.
+    # Replace only the sleep executor. Requires/After=sleep.target and the
+    # tlp-sleep/sleep-actions ordering edge mirror production explicitly.
     systemd.services.systemd-suspend = {
       overrideStrategy = "asDropin";
       serviceConfig.ExecStart = lib.mkForce [
@@ -468,6 +468,12 @@ pkgs.testers.runNixOSTest {
     # Runs after the production resume command and only keeps the real
     # post-resume invocation observable to the test driver.
     powerManagement.powerUpCommands = "${postResumeProbe}";
+    # 26.05: resumeCommands/powerUpCommands live in sleep-actions.preStop,
+    # which must not race `tlp resume`. Mirror the production ordering edge
+    # and bind tlp-sleep's stop to sleep.target (StopWhenUnneeded alone does
+    # not deterministically stop it, cf. nixpkgs#507185).
+    systemd.services.sleep-actions.after = [ "tlp-sleep.service" ];
+    systemd.services.tlp-sleep.partOf = [ "sleep.target" ];
   };
 
   testScript = ''
@@ -923,14 +929,25 @@ pkgs.testers.runNixOSTest {
     )
     assert udev_rule.count("bluetooth-rfkill-unblock@%k.service") == 1
 
-    post_resume_unit = tlp.succeed("systemctl cat post-resume.service")
+    post_resume_unit = tlp.succeed("systemctl cat sleep-actions.service")
     resume_command = "${pkgs.systemd}/bin/systemctl --no-block restart bluetooth-rfkill-unblock.service"
-    post_resume_exec = tlp_show("post-resume.service", ["ExecStart"])
+    post_resume_exec = tlp_show("sleep-actions.service", ["ExecStop"])
     post_resume_path_match = re.search(r"path=([^ ;]+)", post_resume_exec)
     assert post_resume_path_match is not None
     post_resume_script = tlp.succeed("cat " + post_resume_path_match.group(1))
     assert post_resume_script.count(resume_command) == 1
     assert post_resume_script.index(resume_command) < post_resume_script.index("${postResumeProbe}")
+    sleep_actions_after = tlp_show("sleep-actions.service", ["After"])
+    assert "tlp-sleep.service" in sleep_actions_after
+    tlp_sleep_partof = tlp_show("tlp-sleep.service", ["PartOf"])
+    assert "sleep.target" in tlp_sleep_partof
+    boot_unit = tlp.succeed("systemctl cat post-boot.service")
+    boot_exec = tlp_show("post-boot.service", ["ExecStart"])
+    boot_path_match = re.search(r"path=([^ ;]+)", boot_exec)
+    assert boot_path_match is not None
+    boot_script = tlp.succeed("cat " + boot_path_match.group(1))
+    assert boot_script.count("${postResumeProbe}") == 1
+    assert boot_script.count(resume_command) == 0
     tlp_sleep_unit = tlp.succeed("systemctl cat tlp-sleep.service")
     assert "ExecStop=${fakeTlpPackage}/sbin/tlp resume" in tlp_sleep_unit
     assert "bluetooth-rfkill-unblock" not in tlp_sleep_unit
@@ -1223,8 +1240,8 @@ pkgs.testers.runNixOSTest {
     assert tlp.succeed("cat " + tlp_rfroot + "/sys/class/rfkill/rfkill1/soft") == "0\n"
 
     # Exercise the actual sleep.target -> systemd-suspend -> suspend.target ->
-    # post-resume graph. Only systemd-sleep's executor is replaced; the test
-    # never starts the helper directly for either resume variant.
+    # sleep-actions resume graph. Only systemd-sleep's executor is replaced;
+    # the test never starts the helper directly for either resume variant.
     def monotonic_property(show_output, name):
         match = re.search(r"^" + re.escape(name) + r"=(\d+)$", show_output, re.MULTILINE)
         assert match is not None, show_output
@@ -1233,8 +1250,8 @@ pkgs.testers.runNixOSTest {
     def run_resume_variant(mode, expected_tlp_result, phase, previous_helper):
         tlp.succeed(
             "systemctl reset-failed bluetooth-rfkill-unblock.service; "
-            "for unit in tlp-sleep.service systemd-suspend.service suspend.target "
-            "post-resume.service post-resume.target; do "
+            "for unit in tlp-sleep.service systemd-suspend.service sleep-actions.service "
+            "suspend.target sleep.target; do "
             "systemctl reset-failed $unit 2>/dev/null || :; done; "
             "rm -f " + tlp_root + "/post-resume-held-* " + tlp_root + "/release-post-resume; "
             "touch " + tlp_root + "/hold-post-resume; "
@@ -1260,7 +1277,7 @@ pkgs.testers.runNixOSTest {
         ).strip()
         assert re.fullmatch(r"[0-9a-f]{32}", post_id) is not None
         post_show = tlp_show(
-            "post-resume.service",
+            "sleep-actions.service",
             [
                 "Result",
                 "ActiveState",
@@ -1270,7 +1287,7 @@ pkgs.testers.runNixOSTest {
             ],
         )
         assert invocation_id(post_show) == post_id
-        assert "ActiveState=activating" in post_show
+        assert "ActiveState=deactivating" in post_show
         resume_end = int(phase_entry["__MONOTONIC_TIMESTAMP"])
         post_start = monotonic_property(post_show, "ExecMainStartTimestampMonotonic")
         helper_start = journal_timestamp(
@@ -1280,7 +1297,7 @@ pkgs.testers.runNixOSTest {
         )
         probe_timestamp = journal_timestamp(
             "post-resume-fixture phase=trigger-held",
-            "post-resume.service",
+            "sleep-actions.service",
             post_id,
         )
         assert resume_end < helper_start, (resume_end, helper_start)
@@ -1289,7 +1306,7 @@ pkgs.testers.runNixOSTest {
         tlp.succeed("touch " + tlp_root + "/release-post-resume")
         tlp.wait_until_succeeds(
             "test \"$(systemctl show -P ActiveState suspend.target)\" = inactive "
-            "&& test \"$(systemctl show -P ActiveState post-resume.service)\" = inactive"
+            "&& test \"$(systemctl show -P ActiveState sleep-actions.service)\" = inactive"
         )
         tlp.succeed(
             "rm -f " + tlp_root + "/hold-post-resume "

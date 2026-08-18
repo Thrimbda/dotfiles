@@ -12,6 +12,17 @@ let
     pycairo
   ];
   pythonModulePath = makeSearchPath pkgs.python3.sitePackages pythonPath;
+  giTypelibPath = makeSearchPath "lib/girepository-1.0" (
+    map lib.getLib [
+      pkgs.gobject-introspection
+      pkgs.glib
+      pkgs.gtk3
+      pkgs.gdk-pixbuf
+      pkgs.pango
+      pkgs.atk
+      pkgs.harfbuzz
+    ]
+  );
 
   bluemanAuthAgent = pkgs.stdenvNoCC.mkDerivation {
     pname = "blueman-auth-agent";
@@ -36,6 +47,9 @@ let
     '';
 
     preFixup = ''
+      # 26.05's wrapGAppsHook3 no longer derives GI_TYPELIB_PATH from
+      # buildInputs, so Gtk/GLib typelibs must be provided explicitly.
+      gappsWrapperArgs+=(--prefix GI_TYPELIB_PATH : "${giTypelibPath}")
       gappsWrapperArgs+=(--prefix PYTHONPATH : ${pythonModulePath})
     '';
 
@@ -371,6 +385,18 @@ mkIf enabled (mkMerge [
     services.udev.extraRules = rfkillProjection.udevRule;
 
     powerManagement.resumeCommands = rfkillProjection.resumeCommands;
+
+    # NixOS 26.05 folded powerUpCommands/resumeCommands into
+    # sleep-actions.service's preStop, which no longer orders against
+    # tlp-sleep.service. Keep the 25.11 suspend.target-style ordering:
+    # helper restart must run only after `tlp resume` has finished.
+    systemd.services.sleep-actions.after = mkIf config.services.tlp.enable
+      [ "tlp-sleep.service" ];
+    # StopWhenUnneeded alone does not deterministically stop tlp-sleep when
+    # sleep.target deactivates (see nixpkgs#507185), which would skip
+    # `tlp resume` entirely. Bind it explicitly to sleep.target.
+    systemd.services.tlp-sleep.partOf = mkIf config.services.tlp.enable
+      [ "sleep.target" ];
 
     # Keep the focused privacy/lifecycle and radio-boundary checks attached to
     # every Bluetooth generation without exposing their dependencies in PATH.
