@@ -10,15 +10,16 @@
 - Direct SNI HTTPS validation proved the TLS boundary, unauthorized `401`, authenticated `200` accounts/positions responses, five positions, and a live valuation.
 - Public recursive DNS now resolves to Acorn; an independent ordinary-hostname request reaches the expected `401` bearer boundary.
 - A fresh upstream clone verified the tracked vendor files match the pinned `8dcf21f` source before the Nix timeout patch.
+- Implementation PR [#161](https://github.com/Thrimbda/dotfiles/pull/161) merged at `2026-08-18T14:21:18Z` as `670f844c`; GitHub reported no required checks and no review gate.
 - Change review passed with no code or security blockers.
 
 ### 🟡 进行中
 
-- Complete walkthrough, wiki, commit, PR, and merge lifecycle evidence.
+(暂无，任务已完成。)
 
 ### ⚠️ 阻塞/待定
 
-- `auth.ntnl.io` and 1Ex occasionally fail transiently; the adapter correctly returns `502` rather than exposing a partial result. This is an operational residual, not an activation blocker.
+(暂无。上游瞬时失败已记录为 maintenance follow-up，不阻塞本次交付。)
 
 ---
 
@@ -46,14 +47,14 @@
 
 **下次继续从这里开始：**
 
-1. Produce the walkthrough and wiki entry, then run final diff/build checks.
-2. Rebase on `origin/master`, commit, push, create the PR, and follow checks/review through merge and cleanup.
+1. 如需提高可用性，单独定义 caller retry 或 upstream resilience 任务；不要弱化 bearer 或 partial-data 边界。
 
 **注意事项：**
 
 - subagent 不直接改写 .legion 三文件。
 - Do not run Nix builds on Acorn. Use the exact remote switch command with `--build-host localhost`.
 - Do not print or commit the bearer, identity seed, or decrypted environment values.
+- Delivery branch: `legion/deploy-oneex-portfolio-acorn`; implementation PR: #161 (merged); closeout cleanup follows this task artifact update.
 
 ---
 

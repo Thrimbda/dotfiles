@@ -2,9 +2,9 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 4 - Review and delivery
-**当前检查项**: Recheck public DNS, then complete walkthrough, wiki, and PR lifecycle evidence
-**进度**: 3/4 任务完成
+**当前阶段**: 完成
+**当前检查项**: 所有阶段已完成；后续仅按 maintenance 项监控上游可用性
+**进度**: 4/4 任务完成
 
 ---
 
@@ -26,9 +26,9 @@
 
 ---
 
-## 阶段 4: Review and delivery 🟡 IN PROGRESS
+## 阶段 4: Review and delivery ✅ COMPLETE
 
-- [ ] Capture verification, review, walkthrough, wiki, and PR lifecycle evidence | 验收: The change is reviewed, merged or explicitly blocked, and its rollout/rollback state is recorded. ← CURRENT
+- [x] Capture verification, review, walkthrough, wiki, and PR lifecycle evidence | 验收: The change is reviewed, merged or explicitly blocked, and its rollout/rollback state is recorded. PR #161 merged; no required checks or review gate were configured.
 
 
 ---

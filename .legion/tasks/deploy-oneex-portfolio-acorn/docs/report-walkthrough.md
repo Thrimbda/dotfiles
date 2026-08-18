@@ -21,6 +21,10 @@
 
 `docs/review-change.md` records a PASS after scope, correctness, provenance, and security review. The age ciphertext is the only tracked secret material, the bearer remains the adapter's existing 43-character HMAC-derived value, and the service runs without ambient capabilities or root privileges.
 
+## Delivery Lifecycle
+
+Implementation PR [#161](https://github.com/Thrimbda/dotfiles/pull/161) merged at `2026-08-18T14:21:18Z` as `670f844c`. GitHub reported no required checks and no review gate. The implementation worktree is cleaned up after this closeout evidence is merged.
+
 ## Operational Boundary
 
 The external auth and 1Ex Fund endpoints can fail transiently. The adapter returns `502` rather than a partial result; callers that need higher availability should retry. Rollback is a prior Acorn NixOS generation followed by A-record removal only if the endpoint is retired.

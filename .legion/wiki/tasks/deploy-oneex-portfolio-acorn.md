@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `deploy-oneex-portfolio-acorn`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `v1`
 - `historical`: `false`
@@ -16,7 +16,7 @@
 - The live service is loopback-only, uses a dedicated unprivileged user and age-encrypted identity environment, and is exposed through nginx TLS.
 - The tracked vendor snapshot exactly matches upstream `8dcf21f` before the Nix-only 5.8-second read-timeout patch.
 - Local closure build, remote activation, ACME, public DNS, unauthenticated `401`, and authenticated live positions evidence all passed.
-- PR lifecycle is still active; this summary remains current until merge or explicit rollback.
+- Implementation PR [#161](https://github.com/Thrimbda/dotfiles/pull/161) merged as `670f844c`; the deployed state is current until an explicit rollback or replacement task.
 
 ## Reusable Decisions
 
