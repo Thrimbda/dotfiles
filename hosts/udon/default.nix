@@ -43,28 +43,32 @@ with builtins;
             position = "1280x0"; }
         ];
         extraConfig = ''
-          # REVIEW: Might be a hyprland bug, but an "Unknown-1" display is
-          #   always created and reserves some desktop space, so I disable it.
-          monitor = Unknown-1,disable
+          -- REVIEW: Might be a hyprland bug, but an "Unknown-1" display is
+          --   always created and reserves some desktop space, so I disable it.
+          hl.monitor({ output = "Unknown-1", disabled = true })
 
-          # Bind fixed workspaces to external monitors
-          workspace = name:left, monitor:DP-3, default:true
-          workspace = name:right, monitor:DP-2, default:true
-          workspace = name:tv, monitor:HDMI-A-1, default:true, gapsout:4
+          -- Bind fixed workspaces to external monitors
+          hl.workspace_rule({ workspace = "name:left", monitor = "DP-3", default = true })
+          hl.workspace_rule({ workspace = "name:right", monitor = "DP-2", default = true })
+          hl.workspace_rule({ workspace = "name:tv", monitor = "HDMI-A-1", default = true, gaps_out = 4 })
 
-          # Scroll by holding down a side button, because the wheel is broken
-          device {
-              name = mosart-semi.-2.4g-wireless-mouse
-              scroll_method = on_button_down
-              scroll_button = 276
-          }
+          -- Scroll by holding down a side button, because the wheel is broken
+          hl.device({
+            name = "mosart-semi.-2.4g-wireless-mouse",
+            scroll_method = "on_button_down",
+            scroll_button = 276,
+          })
 
-          # To address 1px overscan on my U2724D's
-          general {
-            gaps_out = 0,0,1,0
-          }
+          -- To address 1px overscan on my U2724D's
+          hl.config({
+            general = {
+              gaps_out = { top = 0, right = 0, bottom = 1, left = 0 },
+            },
+          })
 
-          exec-once = hyprctl keyword monitor HDMI-A-1,disable
+          hl.on("hyprland.start", function()
+            hl.exec_cmd("hyprctl keyword monitor HDMI-A-1,disable")
+          end)
         '';
       };
       term.default = "foot";
