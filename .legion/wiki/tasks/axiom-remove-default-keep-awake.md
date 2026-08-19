@@ -19,7 +19,7 @@
 
 ## Reusable Decisions
 
-- Do not validate Axiom idle policy by checking Hypridle only; also check Caelestia `general.idle.timeouts` and absence of default `idleInhibitor enable` wiring.
+- Validate Caelestia `general.idle.timeouts`, absence of the Axiom Hypridle unit, and absence of default `idleInhibitor enable` wiring; do not treat a checked-in Hypridle config as active Axiom policy.
 - Treat Keep Awake as manual unless a future scoped task explicitly restores default never-sleep or default no-idle behavior.
 - Preserve manual Caelestia Keep Awake commands while removing default startup enablement.
 
