@@ -1971,16 +1971,16 @@ with builtins;
     boot.supportedFilesystems = [ "ntfs" ];
 
     fileSystems."/" = {
-      device = "/dev/disk/by-label/nixos";
+      device = "/dev/disk/by-label/nixos-2t";
       fsType = "ext4";
       options = [ "noatime" ];
     };
 
     fileSystems."/boot" = {
-      device = "/dev/disk/by-label/BOOT";
+      device = "/dev/disk/by-label/AXIOM2T";
       fsType = "vfat";
     };
 
-    swapDevices = [ { device = "/dev/disk/by-label/swap"; } ];
+    swapDevices = [ { device = "/dev/disk/by-label/swap-2t"; } ];
   };
 }
