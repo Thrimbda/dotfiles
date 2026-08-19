@@ -16,6 +16,7 @@
 - Local password, API-key, private-key, nested-worktree, and mutable Fcitx paths remained outside Git.
 - Auth-mini-gateway pin evidence and the hey/c1ctl capability inventory were preserved as reviewed non-sensitive documentation.
 - Initial review rejected three unrelated regressions; the final checkpoint preserves Axiom's single idle owner and the merged #166/#167/#168 evidence.
+- PR #169 squash-merged as `c5d21092`; its implementation worktree and remote branch were removed and the main workspace was refreshed.
 
 ## Reusable Decisions
 
