@@ -40,3 +40,7 @@ PASS after remediation. No blocking correctness, scope, auditability, or credent
 
 - No full Axiom toplevel build was run; focused evaluation covers the label-only executable change.
 - No live DPMS/wake test was run because the final diff preserves the already-merged single-idle-owner behavior rather than changing it.
+
+## Delivery
+
+PR #169 squash-merged as `c5d21092de324881f28622fc044ce3812f2f89f3`. It had no required checks or blocking review. The implementation worktree and remote branch were removed, and the main workspace was refreshed without tracking or deleting the excluded local credential files.
