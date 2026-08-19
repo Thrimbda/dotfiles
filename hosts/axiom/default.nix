@@ -36,22 +36,28 @@ with builtins;
       hyprland = {
         enable = true;
         extraConfig = ''
-          render {
-            # Work around Hyprland 0.53.x color-management crashes on DPMS/resume.
-            # HDR is lower priority than 240Hz and needs color management, so keep
-            # this guard until the Axiom session is re-tested on the real display.
-            cm_enabled = false
-          }
+          hl.config({
+            render = {
+              -- Work around Hyprland 0.53.x color-management crashes on DPMS/resume.
+              -- HDR is lower priority than 240Hz and needs color management, so keep
+              -- this guard until the Axiom session is re-tested on the real display.
+              cm_enabled = false,
+            },
+          })
 
-          misc {
-            # Permit relaunching the Caelestia WlSessionLock client if it exits.
-            allow_session_lock_restore = true
-          }
+          hl.config({
+            misc = {
+              -- Permit relaunching the Caelestia WlSessionLock client if it exits.
+              allow_session_lock_restore = true,
+            },
+          })
 
-          cursor {
-            # XDPH cannot embed a hardware cursor in RustDesk's capture.
-            no_hardware_cursors = true
-          }
+          hl.config({
+            cursor = {
+              -- XDPH cannot embed a hardware cursor in RustDesk's capture.
+              no_hardware_cursors = true,
+            },
+          })
         '';
         monitors = [
           {

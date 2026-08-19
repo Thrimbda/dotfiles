@@ -46,22 +46,22 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       if monitor.modePolicy == "native-max-refresh" && monitor.fallbackMode != null
       then monitor.fallbackMode
       else monitor.mode;
-    monitorV2Fields = monitor: [
-      "  output = ${monitor.output}"
-      "  mode = ${monitorEffectiveMode monitor}"
-      "  position = ${monitor.position}"
-      "  scale = ${toString monitor.scale}"
+    monitorFields = monitor: [
+      "    output = \"${monitor.output}\""
+      "    mode = \"${monitorEffectiveMode monitor}\""
+      "    position = \"${monitor.position}\""
+      "    scale = ${toString monitor.scale}"
     ]
-      ++ optional (monitor.bitdepth != null) "  bitdepth = ${toString monitor.bitdepth}"
-      ++ optional (monitor.cm != null) "  cm = ${monitor.cm}"
-      ++ optional (monitor.sdrbrightness != null) "  sdrbrightness = ${toString monitor.sdrbrightness}"
-      ++ optional (monitor.sdrsaturation != null) "  sdrsaturation = ${toString monitor.sdrsaturation}";
+      ++ optional (monitor.bitdepth != null) "    bitdepth = ${toString monitor.bitdepth}"
+      ++ optional (monitor.cm != null) "    cm = \"${monitor.cm}\""
+      ++ optional (monitor.sdrbrightness != null) "    sdrbrightness = ${toString monitor.sdrbrightness}"
+      ++ optional (monitor.sdrsaturation != null) "    sdrsaturation = ${toString monitor.sdrsaturation}";
     monitorLine = monitor:
       if monitor.disable
-      then "monitor = ${monitor.output},disable"
+      then "  hl.monitor({ output = \"${monitor.output}\", disabled = true })"
       else if hasAdvancedMonitorFields monitor
-      then concatStringsSep "\n" ([ "monitorv2 {" ] ++ monitorV2Fields monitor ++ [ "}" ])
-      else "monitor = ${monitor.output},${monitorEffectiveMode monitor},${monitor.position},${toString monitor.scale}";
+      then concatStringsSep "\n" ([ "  hl.monitor({" ] ++ monitorFields monitor ++ [ "  })" ])
+      else "  hl.monitor({ output = \"${monitor.output}\", mode = \"${monitorEffectiveMode monitor}\", position = \"${monitor.position}\", scale = ${toString monitor.scale} })";
     monitorInventory = {
       known = map (monitor: {
         inherit (monitor) output position scale disable modePolicy;
@@ -292,25 +292,25 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
     ];
     primaryWorkspaceLines = concatStringsSep "\n" (map
       (n:
-        let suffix = optionalString (n == 1) ",default:true,persistent:true";
-            monitorPart = optionalString (primaryMonitorName != "") ",monitor:$PRIMARY_MONITOR";
-        in "workspace=${toString n}${monitorPart}${suffix}")
+        let suffix = optionalString (n == 1) ", default = true, persistent = true";
+            monitorPart = optionalString (primaryMonitorName != "") ", monitor = \"${primaryMonitorName}\"";
+        in "  hl.workspace_rule({ workspace = \"${toString n}\"${monitorPart}${suffix} })")
       (range 1 10));
     secondaryWorkspaceLines = optionalString (secondaryMonitorName != "") (concatStringsSep "\n" (map
       (n:
-        let suffix = optionalString (n == 11) ",default:true,persistent:true";
-        in "workspace=${toString n},monitor:$SECONDARY_MONITOR${suffix}")
+        let suffix = optionalString (n == 11) ", default = true, persistent = true";
+        in "  hl.workspace_rule({ workspace = \"${toString n}\", monitor = \"${secondaryMonitorName}\"${suffix} })")
       (range 11 20)));
     workspaceLines = concatStringsSep "\n" (filter (line: line != "") [
       primaryWorkspaceLines
       secondaryWorkspaceLines
     ]);
     workspaceKeybindLines = concatStringsSep "\n" (
-      (map (entry: "bind = SUPER, ${entry.key}, workspace, ${toString entry.primary}") workspaceKeys)
-      ++ (map (entry: "bind = SUPER+SHIFT, ${entry.key}, movetoworkspace, ${toString entry.primary}") workspaceKeys)
+      (map (entry: "hl.bind(\"SUPER + ${entry.key}\", hl.dsp.focus({ workspace = ${toString entry.primary} }))") workspaceKeys)
+      ++ (map (entry: "hl.bind(\"SUPER + SHIFT + ${entry.key}\", hl.dsp.window.move({ workspace = ${toString entry.primary} }))") workspaceKeys)
       ++ optionals (secondaryMonitorName != "") (
-        (map (entry: "bind = SUPER+ALT, ${entry.key}, workspace, ${toString entry.secondary}") workspaceKeys)
-        ++ (map (entry: "bind = SUPER+ALT+SHIFT, ${entry.key}, movetoworkspace, ${toString entry.secondary}") workspaceKeys)
+        (map (entry: "hl.bind(\"SUPER + ALT + ${entry.key}\", hl.dsp.focus({ workspace = ${toString entry.secondary} }))") workspaceKeys)
+        ++ (map (entry: "hl.bind(\"SUPER + ALT + SHIFT + ${entry.key}\", hl.dsp.window.move({ workspace = ${toString entry.secondary} }))") workspaceKeys)
       )
     );
     keybindingHelpText = ''
@@ -378,6 +378,7 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
 in {
   options.modules.desktop.hyprland = with types; {
     enable = mkBoolOpt false;
+    # Extra Lua configuration appended to hypr/custom/general.lua.
     extraConfig = mkOpt lines "";
     monitors = mkOpt (listOf (submodule {
       options = {
@@ -586,9 +587,9 @@ in {
           hey.do ${monitorReconcilePackage}/bin/hyprland-reconcile-monitors
         '';
 
-        # I'm using this instead of exec= lines in hyprland.conf so I can ensure
+        # I'm using this instead of exec-once lines in hyprland.lua so I can ensure
         # these aren't run at startup and sequentially (i.e. predictable order,
-        # since Hyprland's exec= calls are parallelized).
+        # since Hyprland's exec calls are parallelized).
         reload."95-hyprland" = ''
           for i in $(hyprctl instances -j | jq -r '.[].instance'); do
             echo "Hyprland: reloading instance $i"
@@ -623,145 +624,141 @@ in {
         }
       '';
 
-      "hypr/monitors.conf".text = ''
-        # Generated by NixOS from modules.desktop.hyprland.monitors.
+      "hypr/monitors.lua".text = ''
+        -- Generated by NixOS from modules.desktop.hyprland.monitors.
         ${concatStringsSep "\n" (map
           monitorLine
           cfg.monitors)}
       '';
 
-      "hypr/workspaces.conf".text = ''
-        # Generated by NixOS from Axiom host workspace facts.
-        $PRIMARY_MONITOR = ${primaryMonitorName}
-        ${optionalString (secondaryMonitorName != "") "$SECONDARY_MONITOR = ${secondaryMonitorName}"}
+      "hypr/workspaces.lua".text = ''
+        -- Generated by NixOS from Axiom host workspace facts.
         ${optionalString (primaryMonitorName != "") ''
-          cursor {
-            default_monitor = $PRIMARY_MONITOR
-          }
+          hl.config({
+            cursor = {
+              default_monitor = "${primaryMonitorName}",
+            },
+          })
 
-          # Since Wayland does not have a global primary monitor concept,
-          # XWayland windows need an explicit hint when an output is known.
-          exec-once = xrandr --output $PRIMARY_MONITOR --primary
+          -- Since Wayland does not have a global primary monitor concept,
+          -- XWayland windows need an explicit hint when an output is known.
+          hl.on("hyprland.start", function()
+            hl.exec_cmd("xrandr --output ${primaryMonitorName} --primary")
+          end)
         ''}
         ${workspaceLines}
       '';
 
-      "hypr/custom/env.conf".text = ''
-        # Generated by NixOS for Axiom desktop integration.
-        env = XDG_CURRENT_DESKTOP,Hyprland
-        env = XDG_SESSION_DESKTOP,Hyprland
-        env = XDG_SESSION_TYPE,wayland
-        env = NIXOS_OZONE_WL,1
-        env = MOZ_ENABLE_WAYLAND,1
-        env = GTK_USE_PORTAL,1
-        ${optionalString caelestiaCfg.enable "env = QT_QPA_PLATFORM,${qtPlatform}"}
-        ${optionalString caelestiaCfg.enable "env = QT_QPA_PLATFORMTHEME,${qtPlatformTheme}"}
-        ${optionalString caelestiaCfg.enable "env = QT_WAYLAND_DISABLE_WINDOWDECORATION,1"}
-        ${optionalString caelestiaCfg.enable "env = QT_AUTO_SCREEN_SCALE_FACTOR,1"}
-        env = TERMINAL,${terminalCommand}
-        env = BROWSER,${browserCommand}
-        env = EDITOR,${editorCommand}
+      "hypr/custom/env.lua".text = ''
+        -- Generated by NixOS for Axiom desktop integration.
+        hl.env("XDG_CURRENT_DESKTOP", "Hyprland")
+        hl.env("XDG_SESSION_DESKTOP", "Hyprland")
+        hl.env("XDG_SESSION_TYPE", "wayland")
+        hl.env("NIXOS_OZONE_WL", "1")
+        hl.env("MOZ_ENABLE_WAYLAND", "1")
+        hl.env("GTK_USE_PORTAL", "1")
+        ${optionalString caelestiaCfg.enable ''hl.env("QT_QPA_PLATFORM", "${qtPlatform}")''}
+        ${optionalString caelestiaCfg.enable ''hl.env("QT_QPA_PLATFORMTHEME", "${qtPlatformTheme}")''}
+        ${optionalString caelestiaCfg.enable ''hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")''}
+        ${optionalString caelestiaCfg.enable ''hl.env("QT_AUTO_SCREEN_SCALE_FACTOR", "1")''}
+        hl.env("TERMINAL", "${terminalCommand}")
+        hl.env("BROWSER", "${browserCommand}")
+        hl.env("EDITOR", "${editorCommand}")
       '';
 
-      "hypr/custom/variables.conf".text = ''
-        # Generated by NixOS for host-owned defaults and service boundaries.
-        $terminal = ${terminalCommand}
-        $fileExplorer = thunar
-        $fileManager = thunar
-        $browser = ${browserCommand}
-        $codeEditor = ${editorCommand}
-        $textEditor = ${editorCommand}
-        $volumeMixer = pavucontrol
-        $settingsApp = pavucontrol
-        $taskManager = ${terminalCommand} -e htop
-        $caelestia = ${caelestiaCli}
+      "hypr/custom/execs.lua".text = ''
+        -- Generated by NixOS. UWSM/greetd start Hyprland; this starts Nix-owned user units.
+        hl.on("hyprland.start", function()
+          hl.exec_cmd("hey hook startup")
+        end)
       '';
 
-      "hypr/custom/execs.conf".text = ''
-        # Generated by NixOS. UWSM/greetd start Hyprland; this starts Nix-owned user units.
-        exec-once = hey hook startup
+      "hypr/custom/rules.lua".text = ''
+        -- Generated by NixOS for Axiom host application placement.
+        hl.window_rule({ name = "zen-browser-workspace", match = { class = "^(${zenWmClass}|zen|zen-browser)$" }, workspace = "3 silent" })
+        hl.window_rule({ name = "chat-workspace", match = { class = "^(vesktop|discord)$" }, workspace = "4 silent" })
+        hl.window_rule({ name = "gaming-workspace", match = { class = "^(steam|gamescope)$" }, workspace = "5 silent" })
+        hl.window_rule({ name = "gaming-titles-workspace", match = { title = "^(Friends List|Steam)$" }, workspace = "5 silent" })
+        hl.window_rule({ name = "network-workspace", match = { class = "^(nm-connection-editor)$" }, workspace = "8 silent" })
+        hl.window_rule({ name = "settings-float", match = { class = "^(nm-connection-editor|org.pulseaudio.pavucontrol)$" }, float = true })
+        hl.window_rule({ name = "pip-float", match = { title = "^(Picture-in-Picture)$" }, float = true })
+        hl.window_rule({ name = "pip-pin", match = { title = "^(Picture-in-Picture)$" }, pin = true })
+        hl.window_rule({ name = "suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })
+        hl.window_rule({ name = "gaming-immediate", match = { class = "^(gamescope|steam_app_.*)$" }, immediate = true })
+        hl.window_rule({ name = "idle-inhibit-fullscreen", match = { class = ".*" }, idle_inhibit = "fullscreen" })
+        hl.window_rule({ name = "idle-inhibit-focus", match = { class = "^(mpv|vesktop|discord|gamescope|steam_app_.*)$" }, idle_inhibit = "focus" })
+        hl.layer_rule({ name = "caelestia-blur", match = { namespace = "caelestia.*" }, blur = true })
+        hl.layer_rule({ name = "caelestia-alpha", match = { namespace = "caelestia.*" }, ignore_alpha = 0.79 })
+        hl.layer_rule({ name = "selection-no-anim", match = { namespace = "selection" }, no_anim = true })
       '';
 
-      "hypr/custom/rules.conf".text = ''
-        # Generated by NixOS for Axiom host application placement.
-        windowrule = match:class ^(${zenWmClass}|zen|zen-browser)$, workspace 3 silent
-        windowrule = match:class ^(vesktop|discord)$, workspace 4 silent
-        windowrule = match:class ^(steam|gamescope)$, workspace 5 silent
-        windowrule = match:title ^(Friends List|Steam)$, workspace 5 silent
-        windowrule = match:class ^(nm-connection-editor)$, workspace 8 silent
-        windowrule = match:class ^(nm-connection-editor|org.pulseaudio.pavucontrol)$, float yes
-        windowrule = match:title ^(Picture-in-Picture)$, float yes
-        windowrule = match:title ^(Picture-in-Picture)$, pin true
-        windowrule = match:class .*, suppress_event maximize
-        windowrule = match:class ^(gamescope|steam_app_.*)$, immediate true
-        windowrule = match:class .*, idle_inhibit fullscreen
-        windowrule = match:class ^(mpv|vesktop|discord|gamescope|steam_app_.*)$, idle_inhibit focus
-        layerrule = match:namespace caelestia.*, blur true
-        layerrule = match:namespace caelestia.*, ignore_alpha 0.79
-        layerrule = match:namespace selection, no_anim true
-      '';
+      "hypr/custom/keybinds.lua".text = ''
+        -- Generated by NixOS for Axiom host policy and Caelestia entrypoints.
+        hl.bind("SUPER + slash", hl.dsp.exec_cmd("${keybindingHelpScript}"))
+        hl.bind("SUPER + Space", hl.dsp.exec_cmd("${caelestiaCli} shell drawers toggle launcher"))
+        hl.bind("SUPER + A", hl.dsp.exec_cmd("${caelestiaCli} shell drawers toggle sidebar"))
+        hl.bind("CTRL + ALT + Delete", hl.dsp.exec_cmd("${caelestiaCli} shell drawers toggle session"))
+        hl.bind("SUPER + SHIFT + L", hl.dsp.exec_cmd("${caelestiaLockCommand}"))
+        hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("${caelestiaCli} shell brightness set +10%"), { locked = true })
+        hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("${caelestiaCli} shell brightness set 10%-"), { locked = true })
+        hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("${caelestiaCli} shell mpris playPause"), { locked = true })
+        hl.bind("XF86AudioPause", hl.dsp.exec_cmd("${caelestiaCli} shell mpris playPause"), { locked = true })
+        hl.bind("XF86AudioNext", hl.dsp.exec_cmd("${caelestiaCli} shell mpris next"), { locked = true })
+        hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("${caelestiaCli} shell mpris previous"), { locked = true })
+        hl.bind("XF86AudioStop", hl.dsp.exec_cmd("${caelestiaCli} shell mpris stop"), { locked = true })
 
-      "hypr/custom/keybinds.conf".text = ''
-        # Generated by NixOS for Axiom host policy and Caelestia entrypoints.
-        bind = SUPER, slash, exec, ${keybindingHelpScript}
-        bind = SUPER, Space, exec, $caelestia shell drawers toggle launcher
-        bind = SUPER, A, exec, $caelestia shell drawers toggle sidebar
-        bind = CTRL+ALT, Delete, exec, $caelestia shell drawers toggle session
-        bind = SUPER+SHIFT, L, exec, ${caelestiaLockCommand}
-        bindl = , XF86MonBrightnessUp, exec, $caelestia shell brightness set +10%
-        bindl = , XF86MonBrightnessDown, exec, $caelestia shell brightness set 10%-
-        bindl = , XF86AudioPlay, exec, $caelestia shell mpris playPause
-        bindl = , XF86AudioPause, exec, $caelestia shell mpris playPause
-        bindl = , XF86AudioNext, exec, $caelestia shell mpris next
-        bindl = , XF86AudioPrev, exec, $caelestia shell mpris previous
-        bindl = , XF86AudioStop, exec, $caelestia shell mpris stop
+        hl.bind("CTRL + SUPER + SHIFT + R", hl.dsp.exec_cmd("${caelestiaSession} stop"), { release = true })
+        hl.bind("CTRL + SUPER + ALT + R", hl.dsp.exec_cmd("${caelestiaSession} restart"), { release = true })
 
-        bindr = CTRL+SUPER+SHIFT, R, exec, ${caelestiaSession} stop
-        bindr = CTRL+SUPER+ALT, R, exec, ${caelestiaSession} restart
+        hl.bind("SUPER + SHIFT + Return", hl.dsp.exec_cmd("${tmuxTerminalCommand}"))
+        hl.bind("SUPER + B", hl.dsp.exec_cmd("app2unit -- ${browserCommand}"))
+        hl.bind("SUPER + E", hl.dsp.exec_cmd("app2unit -- thunar"))
+        hl.bind("SUPER + Q", hl.dsp.window.close())
+        hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))
+        hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
+        hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
+        hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 
-        bind = SUPER+SHIFT, Return, exec, ${tmuxTerminalCommand}
-        bind = SUPER, B, exec, app2unit -- ${browserCommand}
-        bind = SUPER, E, exec, app2unit -- $fileExplorer
-        bind = SUPER, Q, killactive
-        bind = SUPER, F, fullscreen, 0
-        bindm = SUPER, mouse:272, movewindow
-        bindm = SUPER, mouse:273, resizewindow
-        bind = SUPER+SHIFT, C, exec, hyprpicker -a
-
-        bindl = , Print, exec, $caelestia screenshot
-        bind = SUPER+SHIFT, S, exec, $caelestia shell picker openFreeze
-        bind = SUPER+SHIFT+ALT, S, exec, $caelestia shell picker open
-        bind = SUPER+ALT, R, exec, $caelestia record -s
-        bind = CTRL+ALT, R, exec, $caelestia record
-        bind = SUPER+SHIFT+ALT, R, exec, $caelestia record -r
-        bind = SUPER, V, exec, $caelestia clipboard
-        bind = SUPER, Period, exec, $caelestia emoji -p
+        hl.bind("Print", hl.dsp.exec_cmd("${caelestiaCli} screenshot"), { locked = true })
+        hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("${caelestiaCli} shell picker openFreeze"))
+        hl.bind("SUPER + SHIFT + ALT + S", hl.dsp.exec_cmd("${caelestiaCli} shell picker open"))
+        hl.bind("SUPER + ALT + R", hl.dsp.exec_cmd("${caelestiaCli} record -s"))
+        hl.bind("CTRL + ALT + R", hl.dsp.exec_cmd("${caelestiaCli} record"))
+        hl.bind("SUPER + SHIFT + ALT + R", hl.dsp.exec_cmd("${caelestiaCli} record -r"))
+        hl.bind("SUPER + V", hl.dsp.exec_cmd("${caelestiaCli} clipboard"))
+        hl.bind("SUPER + Period", hl.dsp.exec_cmd("${caelestiaCli} emoji -p"))
 
         ${workspaceKeybindLines}
-        bind = SUPER+SHIFT, mouse_down, movetoworkspace, +1
-        bind = SUPER+SHIFT, mouse_up, movetoworkspace, -1
+        hl.bind("SUPER + SHIFT + mouse_down", hl.dsp.window.move({ workspace = "+1" }))
+        hl.bind("SUPER + SHIFT + mouse_up", hl.dsp.window.move({ workspace = "-1" }))
 
-        bind = SUPER+SHIFT, R, exec, hey reload
+        hl.bind("SUPER + SHIFT + R", hl.dsp.exec_cmd("hey reload"))
       '';
 
-      "hypr/custom/general.conf".text = ''
-        # Generated by NixOS for host policy and module extraConfig.
-        ecosystem {
-          no_update_news = true
-        }
+      "hypr/custom/general.lua".text = ''
+        -- Generated by NixOS for host policy and module extraConfig (Lua).
+        hl.config({
+          ecosystem = {
+            no_update_news = true,
+          },
+        })
 
-        input {
-          # Host keyboard facts come from modules.desktop.input.* and must win
-          # over the imported upstream default `kb_layout = us`.
-          kb_layout = ${xkbLayout}
-          ${optionalString (xkbVariant != "") "kb_variant = ${xkbVariant}"}
-          ${optionalString (xkbOptions != "") "kb_options = ${xkbOptions}"}
-        }
+        hl.config({
+          input = {
+            -- Host keyboard facts come from modules.desktop.input.* and must win
+            -- over the imported upstream default `kb_layout = us`.
+            kb_layout = "${xkbLayout}",
+            ${optionalString (xkbVariant != "") ''kb_variant = "${xkbVariant}",''}
+            ${optionalString (xkbOptions != "") ''kb_options = "${xkbOptions}",''}
+          },
+        })
 
         ${optionalString hasScaledMonitor ''
-          xwayland {
-            force_zero_scaling = true
-          }
+          hl.config({
+            xwayland = {
+              force_zero_scaling = true,
+            },
+          })
         ''}
 
         ${cfg.extraConfig}
