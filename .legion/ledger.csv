@@ -103,3 +103,11 @@
 2026-06-10T14:23:59.985Z,legion_report_walkthrough,axiom-critical-network-resilience,Axiom Critical Network Resilience,OpenCode,"wrote report-walkthrough and pr-body",success
 2026-06-10T14:25:09.328Z,legion_wiki_writeback,axiom-critical-network-resilience,Axiom Critical Network Resilience,OpenCode,"added task summary, decisions, patterns, maintenance",success
 2026-06-10T14:28:24.851Z,legion_update_tasks,axiom-critical-network-resilience,Axiom Critical Network Resilience,OpenCode,"implementation PR #79 merged; closeout records terminal task state",success
+2026-08-19T05:45:00.000Z,legion_create_task,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"brainstorm contract materialized with deferred approval",success
+2026-08-19T05:55:00.000Z,legion_update_tasks,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"spec-rfc written; review-rfc PASS with axiom gap folded back",success
+2026-08-19T06:10:00.000Z,legion_update_tasks,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"engineer implemented in worktree; udon extraConfig gap found and converted",success
+2026-08-19T06:20:00.000Z,legion_update_tasks,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"verify: rendered+luac all hosts, axiom closure build PASS",success
+2026-08-19T06:25:00.000Z,legion_review_change,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"result: PASS; security lens evaluated (no triggers)",success
+2026-08-19T06:30:00.000Z,legion_report_walkthrough,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"wrote report-walkthrough and pr-body",success
+2026-08-19T06:40:00.000Z,legion_update_tasks,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"implementation PR #167 merged; worktree removed; main worktree refreshed",success
+2026-08-19T06:45:00.000Z,legion_wiki_writeback,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"added task summary, decisions, maintenance; closeout PR",success

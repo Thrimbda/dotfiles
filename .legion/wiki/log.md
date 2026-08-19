@@ -288,3 +288,5 @@
 - Marked older Axiom power follow-ups and the active `axiom-remove-never-sleep` summary as superseded where they still described Hypridle as Axiom's idle owner.
 - Updated the active `axiom-remove-idle-suspend` summary so its no-suspend rule remains current without preserving obsolete Hypridle, hyprlock, or 5/10-minute timing as current behavior.
 - Aligned older active idle-policy summaries with the current Axiom check: Caelestia timeouts plus absence of the Axiom Hypridle unit.
+- Added `dotfiles-hyprland-lua-migration` summary: Hyprland config is now Lua-only (hyprland.lua + required generated modules), extraConfig carries Lua, hypridle/xdph stay hyprlang; recorded bind-flag mapping and render+luac verification pattern as reusable decisions.
+- Marked `dotfiles-hyprland-lua-migration` completed after implementation PR #167 merged; live-session smoke remains a post-merge deploy check on axiom.

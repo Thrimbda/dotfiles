@@ -255,3 +255,9 @@ The public Gatus page should only include public-safe endpoints. Do not add priv
 When `modules.dev.playwright.enable = true` on Linux, the Playwright dev module should expose Chromium runtime libraries through `programs.nix-ld.libraries`. The Nix-packaged `playwright` wrapper remains the preferred baseline, but npm/npx Playwright downloads Ubuntu fallback browsers on unsupported Linux distributions, so those binaries also need a working `nix-ld` library path.
 
 Because `modules.dev.playwright` is also imported by Darwin hosts, the NixOS-only `programs.nix-ld` definition must only be generated when the module option exists. A platform `mkIf` around an unknown option is not sufficient protection for nix-darwin module checking.
+
+## Hyprland Config Language (Lua)
+
+Hyprland 0.55+ deprecated hyprlang config and 0.57 removes it. The repo's generated Hyprland configuration is Lua-only: `hyprland.lua` requires the Nix-generated `custom/{env,execs,general,rules,keybinds}.lua`, `workspaces.lua`, and `monitors.lua` in that fixed order. `modules.desktop.hyprland.extraConfig` now carries Lua code appended to `custom/general.lua`; host and theme contributions must be written as `hl.*` calls, not hyprlang. Generated values are inlined from Nix — there are no `$var` variables.
+
+Bind flags map from hyprlang as: bindl → `{ locked = true }`, bindr → `{ release = true }`, bindm → `{ mouse = true }`. Before deploying Hyprland config changes, render the generated files (`nix eval --raw` on the home file texts) and run `luac -p`; a Lua syntax error in one generated file kills that file's config load. `hypridle.conf` and `hypr/xdph.conf` remain hyprlang because those programs are unaffected by Hyprland's config format removal.
