@@ -138,3 +138,4 @@
 - [SSH Foot Term Compatibility](tasks/ssh-foot-term-compat.md)
 - [RustDesk Self-Hosted Remote Access](tasks/rustdesk-self-hosted-remote-access.md)
 - [Theme Shell Terminal Migration](tasks/theme-shell-terminal-migration.md)
+- [Workspace Non-Sensitive Checkpoint 2026-08-19](tasks/workspace-nonsensitive-checkpoint-2026-08-19.md)

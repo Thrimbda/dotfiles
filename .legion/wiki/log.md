@@ -290,3 +290,4 @@
 - Aligned older active idle-policy summaries with the current Axiom check: Caelestia timeouts plus absence of the Axiom Hypridle unit.
 - Added `dotfiles-hyprland-lua-migration` summary: Hyprland config is now Lua-only (hyprland.lua + required generated modules), extraConfig carries Lua, hypridle/xdph stay hyprlang; recorded bind-flag mapping and render+luac verification pattern as reusable decisions.
 - Marked `dotfiles-hyprland-lua-migration` completed after implementation PR #167 merged; live-session smoke remains a post-merge deploy check on axiom.
+- Added `workspace-nonsensitive-checkpoint-2026-08-19`: recorded Axiom's 2TB filesystem labels, local credential exclusion boundary, and review requirement for broad workspace checkpoints.

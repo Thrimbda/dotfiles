@@ -15,6 +15,7 @@ Added `hosts/axiom`, an `x86_64-linux` NixOS workstation host for C1's AMD Ryzen
 - Hardware profile: `cpu/amd`, `gpu/nvidia`, audio/realtime audio, SSD, Bluetooth, Wi-Fi.
 - NVIDIA package currently evaluates to `nvidia-x11-580.119.02-6.12.68`.
 - Includes compatibility fixes for current nixpkgs package/option renames encountered while enabling the workstation path.
+- Current storage labels are `nixos-2t` for root, `AXIOM2T` for EFI, and `swap-2t` for swap on the KIOXIA 2TB disk.
 
 ## Validation
 
@@ -22,4 +23,4 @@ Local validation passed for metadata, system name, hardware profile, NVIDIA pack
 
 ## Remaining hardware validation
 
-During physical install, confirm NIC name, disk labels `nixos`/`BOOT`, monitor layout, and RTX 5090 runtime behavior.
+During physical validation, confirm NIC name, monitor layout, and RTX 5090 runtime behavior. The current 2TB disk labels are already live-boot verified.
