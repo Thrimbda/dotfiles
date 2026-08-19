@@ -283,3 +283,8 @@
 - Added the deployed and independently verified `deploy-legion-pi-web-frp` task summary with Axiom runtime ownership, authenticated port topology, Acorn DNS/TLS ingress, rollback, and accepted residuals.
 - Updated current FRP/Auth Mini topology for PI WEB and promoted the exact-Origin WebSocket guard plus sentinel-Cookie differential probe pattern.
 - Recorded scoped maintenance triggers for FRP server-identity verification and the imperative PI/PI WEB runtime.
+- Added task summary for `axiom-hyprland-xwayland-idle-crash-fix` and updated Axiom desktop power current truth so Caelestia is the sole automatic idle owner.
+- Added dynamic Hyprland socket-discovery/reconnect guidance and a post-deploy long-idle DPMS/wake evidence requirement; retained the XWayland/DRM coredump as an upstream residual.
+- Marked older Axiom power follow-ups and the active `axiom-remove-never-sleep` summary as superseded where they still described Hypridle as Axiom's idle owner.
+- Updated the active `axiom-remove-idle-suspend` summary so its no-suspend rule remains current without preserving obsolete Hypridle, hyprlock, or 5/10-minute timing as current behavior.
+- Aligned older active idle-policy summaries with the current Axiom check: Caelestia timeouts plus absence of the Axiom Hypridle unit.

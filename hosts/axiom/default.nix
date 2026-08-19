@@ -89,6 +89,7 @@ with builtins;
             scale = 1.5;
           };
         };
+        hypridle.enable = false;
         workspaces.secondary.enable = true;
       };
       apps = {

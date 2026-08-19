@@ -163,18 +163,27 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       exit "$status"
     '';
     monitorHotplugWatcher = pkgs.writeShellScript "hyprland-monitor-hotplug" ''
-      set -eu
+      set -euo pipefail
 
       reconcile=${escapeShellArg "${monitorReconcilePackage}/bin/hyprland-reconcile-monitors"}
+      hyprctl=${escapeShellArg "${config.programs.hyprland.package}/bin/hyprctl"}
+      jq=${escapeShellArg "${pkgs.jq}/bin/jq"}
       runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
-
-      if [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
-        printf 'hyprland-monitor-hotplug: HYPRLAND_INSTANCE_SIGNATURE is not set\n' >&2
-        exit 1
-      fi
-
-      socket="$runtime_dir/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
       debounce_file="$runtime_dir/hyprland-monitor-hotplug.debounce"
+
+      current_socket() {
+        instance="$("$hyprctl" instances -j 2>/dev/null | "$jq" -r --arg wayland_display "''${WAYLAND_DISPLAY:-}" '
+          . as $instances
+          | [ .[] | select($wayland_display == "" or .wl_socket == $wayland_display) ] as $matching
+          | if ($matching | length) > 0 then $matching else $instances end
+          | if length == 0 then empty else max_by(.time).instance end
+        ' 2>/dev/null || true)"
+        [ -n "$instance" ] || return 1
+
+        socket="$runtime_dir/hypr/$instance/.socket2.sock"
+        [ -S "$socket" ] || return 1
+        printf '%s\n' "$socket"
+      }
 
       schedule_reconcile() {
         [ ! -e "$debounce_file" ] || return 0
@@ -187,18 +196,21 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       }
 
       while true; do
-        if [ ! -S "$socket" ]; then
-          ${pkgs.coreutils}/bin/sleep 1
+        socket="$(current_socket || true)"
+        if [ -z "$socket" ]; then
+          ${pkgs.coreutils}/bin/sleep 2
           continue
         fi
 
-        ${pkgs.socat}/bin/socat -u UNIX-CONNECT:"$socket" - | while IFS= read -r event; do
+        if ${pkgs.socat}/bin/socat -u UNIX-CONNECT:"$socket" - 2>/dev/null | while IFS= read -r event; do
           case "$event" in
             monitor*|configreloaded*) schedule_reconcile ;;
           esac
-        done
-
-        ${pkgs.coreutils}/bin/sleep 1
+        done; then
+          :
+        fi
+        # A compositor restart invalidates socket2; rediscover it after a bounded delay.
+        ${pkgs.coreutils}/bin/sleep 2
       done
     '';
     caelestiaMonitorSeeds = filter (entry: entry.settings != {} && entry.output != "") (map (monitor: {
@@ -411,6 +423,7 @@ in {
         scale = mkOpt (oneOf [ int float ]) 1;
       };
     };
+    hypridle.enable = mkBoolOpt true;
     workspaces.secondary.enable = mkBoolOpt false;
     idle = {
       time = mkOpt int 600;       # 10 min
@@ -509,7 +522,7 @@ in {
       };
     };
 
-    systemd.user.services.hypridle = {
+    systemd.user.services.hypridle = mkIf cfg.hypridle.enable {
       description = "Hyprland idle daemon";
       wantedBy = [ "hyprland-session.target" ];
       after = [ "hyprland-session.target" ];

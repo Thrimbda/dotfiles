@@ -81,6 +81,7 @@
 - [Axiom Build And Caelestia Regression](tasks/axiom-build-caelestia-regression.md)
 - [Axiom Host](tasks/axiom-host.md)
 - [Axiom Hyprland DPMS Safe Mode Fix](tasks/axiom-hyprland-dpms-safe-mode-fix.md)
+- [Axiom Hyprland XWayland Idle Crash Fix](tasks/axiom-hyprland-xwayland-idle-crash-fix.md)
 - [Axiom Hyprland Mouse Workspace Move](tasks/axiom-hyprland-mouse-workspace-move.md)
 - [Axiom Install Sops CLI](tasks/axiom-install-sops-cli.md)
 - [Axiom Install ToDesk](tasks/axiom-install-todesk.md)

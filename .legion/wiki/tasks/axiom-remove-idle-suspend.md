@@ -8,18 +8,18 @@
 - `schema-version`: `current`
 - `historical`: `false`
 - `supersedes`: `(none)`
-- `superseded-by`: `(none)`
+- `superseded-by`: `axiom-hyprland-xwayland-idle-crash-fix` idle-owner and timing conclusions only
 
 ## Outcome Summary
 
-- Axiom's checked-in Hypridle policy no longer triggers automatic suspend after 15 minutes of idle time.
-- The active checked-in idle behavior remains 5 minute lock through `hyprlock` and 10 minute DPMS off/on through `hyprctl`.
+- This task's no-automatic-suspend conclusion remains current for Axiom.
+- Its earlier Hypridle ownership, `hyprlock`, and 5/10-minute timing conclusions are superseded by `axiom-hyprland-xwayland-idle-crash-fix`: Caelestia owns the current 15-minute lock and 30-minute DPMS policy.
 - This task does not remove manual suspend capability, Caelestia power controls, polkit allowlists, or existing Keep Awake/session-inhibitor wiring.
 - Validation passed for focused suspend-string search, `git diff --check`, and the Axiom NixOS toplevel build.
 
 ## Reusable Decisions
 
-- Hypridle should not be treated as Axiom's automatic suspend owner unless a future task explicitly restores that behavior.
+- Neither Caelestia nor Hypridle should be treated as Axiom's automatic suspend owner unless a future task explicitly restores that behavior.
 - For Axiom idle policy changes, distinguish idle lock/DPMS behavior from manual suspend permissions and Caelestia power-control authorization.
 
 ## Related Raw Sources
