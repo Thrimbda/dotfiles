@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-hyprland-hotplug-crash`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -13,9 +13,9 @@
 ## Outcome Summary
 
 - Four retained Axiom Hyprland 0.56.1 incidents share the XWayland floating-map path during temporary loss of both configured outputs.
-- Axiom now has an unmerged, host-only package patch that uses the cached floating work-area origin when a workspace monitor is absent, rather than dereferencing it.
+- PR #180 merged Axiom's host-only package patch that uses the cached floating work-area origin when a workspace monitor is absent, rather than dereferencing it.
 - The exact patched package and Axiom closure build successfully while retaining XWayland, DP-4/DP-5 scaling, and monitor hotplug.
-- No live deployment or physical output-loss smoke has run; the task remains active through PR delivery and later deployment confirmation.
+- Source delivery is complete. No live deployment or physical output-loss smoke has run; that work remains a maintenance follow-up.
 
 ## Reusable Decisions
 

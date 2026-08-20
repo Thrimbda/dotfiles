@@ -10,11 +10,11 @@ Hyprland v0.56.1 crashed in CXWaylandSurface::map while Floating::newTarget ran 
 
 ## 验收标准
 
-- [ ] A reviewed evidence-based design identifies a bounded mitigation rather than broadly disabling XWayland or monitor hotplug.
-- [ ] The Nix configuration or package override applies the selected mitigation while preserving the configured DP-4/DP-5 multi-monitor behavior.
-- [ ] Axiom configuration evaluation and the relevant Axiom build complete successfully with no new warnings attributable to this change.
-- [ ] Targeted static checks demonstrate the mitigation is present and the live session is not restarted or switched during validation.
-- [ ] The change is delivered through an isolated worktree and PR with rollback instructions.
+- [x] A reviewed evidence-based design identifies a bounded mitigation rather than broadly disabling XWayland or monitor hotplug.
+- [x] The Nix configuration or package override applies the selected mitigation while preserving the configured DP-4/DP-5 multi-monitor behavior.
+- [x] Axiom configuration evaluation and the relevant Axiom build complete successfully with no new warnings attributable to this change.
+- [x] Targeted static checks demonstrate the mitigation is present and the live session is not restarted or switched during validation.
+- [x] The change is delivered through an isolated worktree and PR with rollback instructions.
 
 ## 假设 / 约束 / 风险
 
