@@ -4,10 +4,11 @@ with lib;
 with builtins;
 let
   facts = import ./_facts.nix;
+  rustdesk = import ./_rustdesk-package.nix { inherit pkgs; };
   userName = config.user.name;
   acornPublicIp = facts.acorn.publicIp;
   frpcDirectRouteUnit = facts.acorn.frpcDirectRouteUnit;
-  rustdeskVersion = "1.4.9";
+  rustdeskVersion = rustdesk.version;
       rustdeskHost = "rustdesk.0xc1.wang";
       rustdeskUser = config.users.users.${userName};
       rustdeskUserUid = rustdeskUser.uid;
@@ -25,26 +26,11 @@ let
         PIPEWIRE_LATENCY = "1024/48000";
         PULSE_LATENCY_MSEC = "60";
       };
-      rustdeskSourceHash = "sha256-AnwdIO4TveC48uMioBCvH60xun24ckK420ONSEB9lQI=";
-      rustdeskCargoHash = "sha256-HPvvsTcjSErGfdNwsHgWhs930Fe0hmK1g5J/ngtlkKM=";
-      rustdeskSource = pkgs.unstable.fetchFromGitHub {
-        owner = "rustdesk";
-        repo = "rustdesk";
-        rev = "6c578292e8ebbbec708b76986ba8c4bc7c509747";
-        fetchSubmodules = true;
-        hash = rustdeskSourceHash;
-      };
-      rustdeskCargoDeps = pkgs.unstable.rustPlatform.fetchCargoVendor {
-        name = "rustdesk-${rustdeskVersion}";
-        src = rustdeskSource;
-        hash = rustdeskCargoHash;
-      };
-      rustdeskPackage = pkgs.unstable.rustdesk.overrideAttrs (_finalAttrs: _previousAttrs: {
-        version = rustdeskVersion;
-        src = rustdeskSource;
-        cargoHash = rustdeskCargoHash;
-        cargoDeps = rustdeskCargoDeps;
-      });
+      rustdeskSourceHash = rustdesk.sourceHash;
+      rustdeskCargoHash = rustdesk.cargoHash;
+      rustdeskSource = rustdesk.source;
+      rustdeskCargoDeps = rustdesk.cargoDeps;
+      rustdeskPackage = rustdesk.package;
       rustdeskPortalPicker = pkgs.writeShellScript "axiom-rustdesk-portal-picker" ''
         printf '%s\n' '[SELECTION]/screen:DP-4'
       '';
@@ -1302,8 +1288,6 @@ let
     environment.systemPackages = [ rustdeskFinalize ];
 
     home.configFile."hypr/xdph.conf".source = rustdeskPortalConfig;
-
-    user.packages = [ rustdeskPackage ];
 
     networking.hosts.${acornPublicIp} = [ rustdeskHost ];
 

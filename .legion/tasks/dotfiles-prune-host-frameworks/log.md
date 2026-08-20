@@ -9,3 +9,6 @@
 - Added shared Auth Mini Gateway process mechanics and Cloudflare DNS-01 certificate expansion without abstracting Nginx/FRP topology.
 - Candidate Axiom, Acorn and Charlie configurations evaluate. Focused baseline/candidate comparisons are equal except for expected Git-source store paths on age files.
 - Acorn candidate explicitly disables the shared Hypridle default; this fixes the pre-existing server evaluation assertion without enabling or removing a runtime desktop service.
+- Rebased onto `origin/master` at `05ddebd8`; preserved the newly landed Qwen service in `hosts/axiom/modules/qwen.nix`, retained its wiki summary and pruned its closed raw task directory.
+- Focused comparison exposed package merge ordering introduced by the split. A private RustDesk package helper and manifest import ordering restore the exact Axiom user/system package order and Caelestia PATH semantics.
+- Re-ran verification against the latest baseline: Axiom, Acorn and Charlie evaluate; focused snapshots pass; Axiom dry-run plans 28 derivations; full flake check retains only the existing `apps.install` schema failure.

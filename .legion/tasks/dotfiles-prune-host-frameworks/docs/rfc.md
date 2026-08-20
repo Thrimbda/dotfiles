@@ -66,6 +66,11 @@
 
 - cloudflared connector、readiness healthcheck，以及现有 OpenCode/Gatus public ingress 组合。
 
+`hosts/axiom/modules/qwen.nix`
+
+- 机械承接在本任务进行期间落入主线的 Qwen package pin、模型路径、参数和 systemd unit。
+- Qwen 仍是 Axiom-only policy，不新增共享 inference service abstraction。
+
 `hosts/axiom/modules/autossh.nix`
 
 - reverse SSH endpoint、host-key pin、`c1ctl` autossh facts 和 CLI target。
@@ -79,6 +84,7 @@
 
 - 机械承接现有 RustDesk client package/provisioning/service 实现。
 - 不把一次性 provisioning 状态机泛化成公共 module API。
+- package recipe 放在相邻私有 helper 中，使 workstation package 清单保持原有顺序而不暴露公共 option。
 
 `hosts/axiom/modules/workstation.nix`
 
@@ -138,7 +144,7 @@ RustDesk provisioning、Axiom display/session 和 Acorn ingress 含大量单 hos
 
 - 路径白名单：`.legion/tasks` 只有本次 task，`.legion/wiki` 文件数量不减少，README 不存在。
 - 引用检查：新 host-local modules 被显式导入；默认文件不再包含长 shell script、Cloudflare/autossh/Caelestia service bodies。
-- Axiom focused eval：reverse SSH `ExecStart`、known-hosts pin、FRP proxies/direct route、gateway units、cloudflared config/unit/healthcheck、Caelestia settings/session、RustDesk service/provisioning assertions。
+- Axiom focused eval：reverse SSH `ExecStart`、known-hosts pin、FRP proxies/direct route、gateway units、cloudflared config/unit/healthcheck、Qwen unit、Caelestia settings/session、RustDesk service/provisioning assertions。
 - Acorn focused eval：network/firewall、ACME certs、RustDesk server services、auth-mini/vaultwarden/adapter enablement。
 - 对被移动的 Axiom workstation policy 生成基线与候选 JSON 并直接 diff，至少覆盖 audio、Clash、packages、LAN firewall 和 SSH service policy。
 - Axiom toplevel drvPath evaluation和可承受的 dry-run；Acorn 只做非构建 eval，绝不在 Acorn 本机 build/eval/switch，也不发起 live deployment。

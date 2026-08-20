@@ -12,7 +12,7 @@ PASS:
 test "$(git ls-files '.legion/tasks/*/plan.md')" = '.legion/tasks/dotfiles-prune-host-frameworks/plan.md'
 test ! -e README.md
 test -z "$(git diff --name-only --diff-filter=D -- .legion/wiki)"
-test "$(git ls-files '.legion/wiki/**' | wc -l)" -eq 138
+test "$(git ls-files '.legion/wiki/**' | wc -l)" -eq 139
 git diff --check
 git diff --quiet -- flake.lock
 git diff --quiet -- 'hosts/*/secrets/**' 'config/secrets/**'
@@ -25,7 +25,7 @@ This proves that only the current raw task remains, the root README is gone, the
 PASS: `nix-instantiate --parse` succeeded for every changed Nix file under:
 
 - `modules/services/{auth-mini-gateway,cloudflared,nginx,reverse-ssh}.nix`
-- `hosts/axiom/default.nix` and `hosts/axiom/modules/*.nix`
+- `hosts/axiom/default.nix` and `hosts/axiom/modules/*.nix`, including the rebased Qwen service
 - `hosts/acorn/default.nix` and all changed/new `hosts/acorn/modules/*.nix`
 - `hosts/charlie/default.nix`
 
@@ -41,15 +41,15 @@ env DOTFILES_HOME="$PWD" nix eval --impure --raw path:.#darwinConfigurations.cha
 
 Resulting derivations:
 
-- Axiom: `/nix/store/qnc3mh1mdhzqdw3c2ddhw3h1fdm44gln-nixos-system-axiom-26.05.7813.0dd31db7e6db.drv`
-- Acorn: `/nix/store/sbw0cxz3hchshsakr00i56bv56qilkxl-nixos-system-acorn-26.05.7813.0dd31db7e6db.drv`
-- Charlie: `/nix/store/xhi0yn5hv9klwhzs1a2kn6z2qq5pblq6-darwin-system-26.05.c3e90c8.drv`
+- Axiom: `/nix/store/qv9i4w4ganvdkxs8wvb6vndv3ghsz4ys-nixos-system-axiom-26.05.7813.0dd31db7e6db.drv`
+- Acorn: `/nix/store/3vbsw0d51yqnrv0p9lxscl2bp4sd064p-nixos-system-acorn-26.05.7813.0dd31db7e6db.drv`
+- Charlie: `/nix/store/jmqhap297mwk2p217qx1ddinvlj0yrrw-darwin-system-26.05.c3e90c8.drv`
 
 The Acorn candidate explicitly disables the shared Hypridle default for this server. The unchanged baseline cannot evaluate its toplevel because that default trips the desktop umbrella assertion; the candidate fixes that pre-existing inert desktop configuration and otherwise preserves the evaluated server policy.
 
 ## Behavior Snapshots
 
-PASS: baseline and candidate JSON snapshots were compared with `diff -u` using focused `nix eval --json ... --apply` expressions.
+PASS: the candidate was compared with a detached `origin/master` worktree at `05ddebd8` using `diff -u` over focused `nix eval --json ... --apply` snapshots.
 
 Axiom equal surfaces:
 
@@ -57,8 +57,9 @@ Axiom equal surfaces:
 - FRP proxies, direct-route ordering and gateway dependencies
 - all three Auth Mini Gateway environments and service hardening
 - cloudflared generated config and service policy
+- Qwen package pin, model paths, complete argument vector, loopback endpoint, condition paths and systemd policy
 - Caelestia seed/mutable settings, session path and package-data behavior
-- audio, Clash, LAN firewall, user packages and system packages
+- audio, Clash, LAN firewall, user packages and system package ordering
 - RustDesk runtime/provisioning unit fields and host mapping
 
 Acorn equal surfaces:
@@ -68,7 +69,9 @@ Acorn equal surfaces:
 - all eight DNS-01 certificates and Nginx TLS attachments
 - RustDesk server options, signal/relay units, key metadata and tmpfiles rules
 
-The only snapshot differences were `/nix/store/<hash>-source/...` paths for age ciphertext/restart-trigger sources because baseline and candidate are distinct Git source roots. Runtime secret paths, ownership and modes are unchanged.
+Charlie cloudflared config and launchd service snapshots were also equal.
+
+The direct Axiom comparison showed one expected generated-path difference: the Caelestia session command has a different store hash because its PATH contains the Git-backed `hey` and `c1ctl` outputs. Package paths and ordering were compared separately; only those two source-derived hashes differ. Acorn restart-trigger source paths were omitted from the focused unit snapshot for the same reason. Runtime commands, package ordering, secret paths, ownership and modes are unchanged.
 
 ## Build Planning
 
@@ -78,7 +81,7 @@ PASS on Axiom:
 env DOTFILES_HOME="$PWD" nix build --impure --dry-run path:.#nixosConfigurations.axiom.config.system.build.toplevel
 ```
 
-Nix produced a valid 29-derivation plan. No build or deployment was run for Acorn.
+Nix produced a valid 28-derivation plan. No build or deployment was run for Acorn.
 
 ## Full Flake Check
 

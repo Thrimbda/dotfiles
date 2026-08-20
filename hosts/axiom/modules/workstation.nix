@@ -1,6 +1,9 @@
 { lib, pkgs, ... }:
 
 with lib;
+let
+  rustdeskPackage = (import ./_rustdesk-package.nix { inherit pkgs; }).package;
+in
 {
   modules.desktop.audio.hdmi = {
     enable = true;
@@ -25,17 +28,18 @@ with lib;
   }];
 
   user.linger = true;
-  user.packages = with pkgs; [
-    unstable.antigravity-ide-fhs
-    aria2
-    feishu
-    git-lfs
-    htop
-    k9s
-    kubectl
-    nvtopPackages.nvidia
-    sops
-    uv
+  user.packages = [
+    pkgs.unstable.antigravity-ide-fhs
+    pkgs.aria2
+    pkgs.feishu
+    pkgs.git-lfs
+    pkgs.htop
+    pkgs.k9s
+    pkgs.kubectl
+    pkgs.nvtopPackages.nvidia
+    rustdeskPackage
+    pkgs.sops
+    pkgs.uv
   ];
 
   modules.desktop.apps.discord.package = pkgs.unstable.vesktop.override (
