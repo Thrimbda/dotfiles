@@ -12,6 +12,7 @@
     ./modules/autossh.nix
     ./modules/caelestia.nix
     ./modules/cloudflare.nix
+    ./modules/hyprland-hotplug-guard.nix
     ./modules/workstation.nix
   ];
 

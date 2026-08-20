@@ -1,0 +1,32 @@
+diff --git a/src/layout/algorithm/floating/default/DefaultFloatingAlgorithm.cpp b/src/layout/algorithm/floating/default/DefaultFloatingAlgorithm.cpp
+--- a/src/layout/algorithm/floating/default/DefaultFloatingAlgorithm.cpp
++++ b/src/layout/algorithm/floating/default/DefaultFloatingAlgorithm.cpp
+@@ -8,17 +8,23 @@
+ #include "../../../../Compositor.hpp"
++#include "../../../../debug/log/Logger.hpp"
+ #include "../../../../desktop/state/WindowState.hpp"
+ #include "../../../../output/Monitor.hpp"
+ #include "../../../../state/MonitorState.hpp"
+-
++
+ using namespace Layout;
+ using namespace Layout::Floating;
+-
++
+ constexpr const Vector2D DEFAULT_SIZE = {640, 400};
+-
++
+ //
+ void CDefaultFloatingAlgorithm::newTarget(SP<ITarget> target) {
+     const auto WORK_AREA    = m_parent->space()->workArea(true);
+     const auto DESIRED_GEOM = target->desiredGeometry();
+-    const auto MONITOR_POS  = m_parent->space()->workspace()->m_monitor->logicalBox().pos();
+-
++    const auto WORKSPACE    = m_parent->space()->workspace();
++    const auto PMONITOR     = WORKSPACE ? WORKSPACE->m_monitor.lock() : nullptr;
++    const auto MONITOR_POS  = PMONITOR ? PMONITOR->logicalBox().pos() : WORK_AREA.pos();
++
++    if (!PMONITOR)
++        Log::logger->log(Log::WARN, "Floating: no monitor for workspace while adding target; using last work area");
++
+     CBox       windowGeometry;
