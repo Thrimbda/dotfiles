@@ -10,11 +10,9 @@
 - generated unit contains `--ctx-size 131072`
 - review: PASS with no blocking findings
 
-## Post-Merge Checks
+## Deployment
 
-- switch from refreshed `origin/master`
-- verify 128K props/logs, health, chat, restart recovery, and GPU headroom
-- update the global OpenCode model context to 131072 and run model/tool-call smoke tests
+PR #173 merged and the NixOS switch succeeded. The persistent service reports 131072, health/chat/restart recovery pass, and the RTX 5090 retains 11,595 MiB free. OpenCode now declares 131072 and passes text plus tool-call smoke tests.
 
 ## Evidence
 
