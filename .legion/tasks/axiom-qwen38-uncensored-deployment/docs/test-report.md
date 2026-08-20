@@ -2,7 +2,7 @@
 
 ## Result
 
-PARTIAL PASS. The package, NixOS closure, model artifact, CUDA runtime, MTP setup, and OpenAI-compatible API were verified. Activating the system service remains blocked because this non-interactive session cannot answer the local sudo password prompt.
+PASS. The package, NixOS closure, model artifact, merged system activation, persistent systemd service, CUDA runtime, MTP setup, automatic restart, and OpenAI-compatible API were verified.
 
 ## Commands And Evidence
 
@@ -52,21 +52,27 @@ Passed.
 - GPU memory usage rose from about 3 GiB to 21,049 MiB while the model was loaded, consistent with CUDA model offload.
 - The transient test service was stopped after verification.
 
-## Blocked Check
+## Post-Merge Activation
 
 ```bash
-sudo --non-interactive nixos-rebuild switch --flake .#axiom -L
-```
-
-Blocked before activation with `sudo: 需要密码`. The non-interactive command was only used to establish the authentication blocker; no fallback activation method was used.
-
-After the PR is merged and the main workspace is refreshed, activate from `/home/c1/dotfiles` without the non-interactive flag:
-
-```bash
+cd /home/c1/dotfiles
 sudo nixos-rebuild switch --flake .#axiom -L
 ```
 
-Then verify `systemctl status qwen3-8-27b.service` and repeat the health request. No fallback activation method was used.
+Passed after PR #171 merged and the main workspace was refreshed to commit `593576f3`.
+
+- `qwen3-8-27b.service` is enabled and active.
+- The persistent unit loaded the model, created the MTP draft context, initialized one 65536-token slot, and listened on `127.0.0.1:8081`.
+- GPU memory usage was 18,691 MiB with the persistent service loaded.
+- The persistent API returned `persistent service works` with `finish_reason: stop` and a separate reasoning field.
+
+### Restart recovery
+
+```bash
+kill -KILL 923128
+```
+
+Passed. systemd incremented `NRestarts` from 0 to 1, replaced PID `923128` with PID `1957381`, reloaded the model after the configured five-second delay, and restored `/health`. A post-restart completion returned `restart works`; logs again confirmed MTP and the 65536-token slot.
 
 ## Known Warnings
 

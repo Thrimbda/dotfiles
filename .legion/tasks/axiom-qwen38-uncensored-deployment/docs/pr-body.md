@@ -15,7 +15,7 @@
 
 ## Deployment
 
-System activation is intentionally deferred until after merge because sudo requires interactive authentication. After merge, refresh `/home/c1/dotfiles` to `origin/master`, run `sudo nixos-rebuild switch --flake .#axiom -L`, and verify `qwen3-8-27b.service`.
+PR #171 merged and the NixOS switch from merged `origin/master` succeeded. `qwen3-8-27b.service` is enabled and active; health, chat, CUDA/MTP logs, GPU residency, and automatic restart recovery all pass.
 
 ## Evidence
 
