@@ -120,6 +120,7 @@
 - [Axiom Reverse SSH Known Host Pin](tasks/axiom-reverse-ssh-known-host-pin.md)
 - [Axiom Runtime Access And Session Fixes](tasks/axiom-runtime-access-session-fixes.md)
 - [Axiom RustDesk Fixed DP-4 Capture](tasks/axiom-rustdesk-fixed-dp4-capture.md)
+- [Axiom RustDesk Provision Recovery](tasks/axiom-rustdesk-provision-recovery.md)
 - [Axiom Cloudflared HTTP2 Transport Fix](tasks/axiom-cloudflared-http2-transport.md)
 - [Axiom SSH Autossh and Opencode Cloudflared Fix](tasks/axiom-ssh-opencode-cloudflared-fix.md)
 - [Charlie Autossh C1 User](tasks/charlie-autossh-c1-user.md)

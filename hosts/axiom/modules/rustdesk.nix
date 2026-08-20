@@ -312,6 +312,18 @@ let
           [ "$object_state" = current ]
         }
 
+        remove_revision_object() {
+          remove_object_path=$1
+          expected_object_state=$2
+          inspect_revision_object "$remove_object_path" || return 1
+          [ "$object_state" = "$expected_object_state" ] || return 1
+          ${pkgs.coreutils}/bin/rm -f -- "$remove_object_path" || return 1
+          ${pkgs.coreutils}/bin/timeout --signal=TERM --kill-after=5s 15s \
+            ${pkgs.coreutils}/bin/sync -f "$state" || return 1
+          inspect_revision_object "$remove_object_path" || return 1
+          [ "$object_state" = absent ]
+        }
+
         inspect_ready_object() {
           ready_path=$1
           ready_state=
@@ -755,11 +767,16 @@ let
         initial_ready_state=$ready_state
         if [ "$reservation_state" = current ]; then
           case "$initial_ready_state" in
-            absent|current) fail attempt-used ;;
+            current) exit 0 ;;
+            absent|stale)
+              remove_revision_object "$reservation" current \
+                || fail reservation-reset
+              reservation_state=$object_state
+              ;;
             *) fail ready-revision ;;
           esac
         fi
-        case "$object_state" in
+        case "$reservation_state" in
           absent|stale) ;;
           *) fail reservation ;;
         esac
@@ -1362,7 +1379,7 @@ let
       wantedBy = [ "multi-user.target" ];
       wants = [ "rustdesk.service" ];
       after = [ "rustdesk.service" ];
-      restartTriggers = [ ../secrets/rustdesk-password.age rustdeskRevision ];
+      restartTriggers = [ ../secrets/rustdesk-password.age rustdeskRevision rustdeskProvision ];
       serviceConfig = {
         Type = "oneshot";
         ExecStart = rustdeskProvision;
