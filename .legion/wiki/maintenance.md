@@ -133,3 +133,8 @@
 - `status-axiom.0xc1.space` has a verified Cloudflare Access app and proxied CNAME to `home-axiom`; after merging/deploying `gatus-axiom-cloudflare-access`, deploy `axiom` and confirm `systemctl status gatus cloudflared prometheus`, allowed/denied Google Access login behavior, and Prometheus scrape visibility.
 - Remove, relocate, or age-encrypt the local plaintext `/home/c1/dotfiles/API_TOKEN.env` after Cloudflare reconciliation; do not commit it.
 - Fix the baseline `nix flake check --no-build` app schema failure in unchanged `apps.install = mkApp ./install.zsh` / `lib/nixos.nix` if full-flake checking is required as a merge gate for future tasks.
+
+## Axiom Hyprland Monitor-Loss Guard
+
+- After the `axiom-hyprland-hotplug-crash` change is merged and explicitly deployed, use a controlled graphical-session restart and physical output-loss or DPMS smoke to verify the fallback warning, continued XWayland operation, and absence of a Hyprland coredump or UWSM safe-mode restart. Do not force that test while preserving a user session.
+- Keep the Axiom-only Hyprland patch tied to `0.56.1`. Before updating the unstable package, inspect upstream source for an equivalent missing-monitor guard, then remove or rework the local patch and repeat build plus live smoke; do not treat a version bump alone as remediation.
