@@ -1611,9 +1611,9 @@ with lib;
       enable = true;
       tunnelId = "9f33127c-3a10-47dc-9383-e27115780db8";
       credentialsFile = ./secrets/cloudflared-credentials.age;
+      tunnelName = "home-charlie";
       warpRouting.enabled = false;
       extraConfig = {
-        tunnelName = "home-charlie";
         ingress = [
           {
             hostname = "opencode-charlie.0xc1.space";

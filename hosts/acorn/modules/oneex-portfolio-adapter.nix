@@ -71,10 +71,5 @@ in
     };
   };
 
-  security.acme.certs.${hostName} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.age.secrets.cloudflare-dns-env.path;
-    group = "nginx";
-    reloadServices = [ "nginx.service" ];
-  };
+  modules.services.nginx.cloudflareDnsAcme.hosts = [ hostName ];
 }

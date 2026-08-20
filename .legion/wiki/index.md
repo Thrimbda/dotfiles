@@ -1,5 +1,9 @@
 # Legion Wiki
 
+> Raw task directories were pruned on 2026-08-20. References to
+> `.legion/tasks/<task-id>/` in historical summaries resolve through Git history;
+> this wiki is the checked-out current knowledge layer.
+
 ## Current Truth
 
 - [Decisions](decisions.md)

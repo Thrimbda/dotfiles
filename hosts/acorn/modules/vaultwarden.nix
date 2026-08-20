@@ -50,8 +50,13 @@ in
   };
 
   services.nginx.virtualHosts = {
-    "vault.0xc1.wang" = mkVaultwardenVhost "vault.0xc1.wang";
+    "vault.0xc1.wang" = mkVaultwardenVhost "vault.0xc1.wang" // {
+      onlySSL = true;
+      useACMEHost = "vault.0xc1.wang";
+    };
   };
+
+  modules.services.nginx.cloudflareDnsAcme.hosts = [ "vault.0xc1.wang" ];
 
   systemd.tmpfiles.rules = [
     "z ${config.services.vaultwarden.backupDir} 750 vaultwarden vaultwarden - -"

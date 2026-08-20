@@ -73,10 +73,7 @@
 #       enabled = true;
 #       cidrs = [ "192.168.50.0/24" ];
 #     };
-#     extraConfig = {
-#       # Optional: Set tunnel name for routing commands
-#       tunnelName = "home";
-#     };
+#     tunnelName = "home";
 #   };
 #
 # For charlie (macOS, IP: 192.168.50.143):
@@ -109,6 +106,7 @@ let
   configText = let
     baseConfig = {
       tunnel = cfg.tunnelId;
+      tunnelName = cfg.tunnelName;
       credentials-file = "${configDir}/${cfg.tunnelId}.json";
     };
     warpConfig = optionalAttrs cfg.warpRouting.enabled {
@@ -163,6 +161,10 @@ in {
         {
           assertion = cfg.credentialsFile != null;
           message = "modules.services.cloudflared.credentialsFile must be set (age-encrypted credentials)";
+        }
+        {
+          assertion = !(cfg.extraConfig ? tunnelName);
+          message = "Set modules.services.cloudflared.tunnelName directly, not through extraConfig";
         }
       ];
 

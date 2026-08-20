@@ -3,11 +3,19 @@
 with builtins;
 with lib;
 with hey.lib;
-let cfg = config.modules.services.nginx;
+let
+  cfg = config.modules.services.nginx;
+  acmeCfg = cfg.cloudflareDnsAcme;
 in {
-  options.modules.services.nginx = {
+  options.modules.services.nginx = with types; {
     enable = mkBoolOpt false;
     enableCloudflareSupport = mkBoolOpt false;
+    cloudflareDnsAcme = {
+      enable = mkBoolOpt false;
+      email = mkOpt str "";
+      credentialsFile = mkOpt (nullOr path) null;
+      hosts = mkOpt (listOf str) [];
+    };
   };
 
   config = mkMerge [
@@ -57,6 +65,28 @@ in {
             ''))}
         real_ip_header CF-Connecting-IP;
       '';
+    })
+
+    (mkIf acmeCfg.enable {
+      assertions = [{
+        assertion = acmeCfg.credentialsFile != null && acmeCfg.email != "";
+        message = "modules.services.nginx.cloudflareDnsAcme requires credentialsFile and email";
+      }];
+
+      age.secrets.cloudflare-dns-env = {
+        file = acmeCfg.credentialsFile;
+        owner = "acme";
+        group = "acme";
+        mode = "0400";
+      };
+
+      security.acme.defaults.email = acmeCfg.email;
+      security.acme.certs = genAttrs (unique acmeCfg.hosts) (_: {
+        dnsProvider = "cloudflare";
+        environmentFile = config.age.secrets.cloudflare-dns-env.path;
+        group = "nginx";
+        reloadServices = [ "nginx.service" ];
+      });
     })
   ];
 }
