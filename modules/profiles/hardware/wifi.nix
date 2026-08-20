@@ -60,7 +60,7 @@ in mkIf (elem "wifi" config.modules.profiles.hardware) {
 
   services.resolved = mkIf isWorkstation {
     enable = true;
-    dnssec = "false";
+    settings.Resolve.DNSSEC = "false";
   };
 
   systemd.services.NetworkManager-wait-online.enable = mkIf isWorkstation false;

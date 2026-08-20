@@ -1780,7 +1780,7 @@ with builtins;
     user.linger = true;
 
     user.packages = with pkgs; [
-      unstable.antigravity-fhs
+      unstable.antigravity-ide-fhs
       aria2
       feishu
       git-lfs

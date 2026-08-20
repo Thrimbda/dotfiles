@@ -86,7 +86,7 @@
       lib = import ./lib args;
     in
       with builtins; with lib; mkFlake inputs {
-        systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
+        systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
         inherit lib;
 
         hosts = mapHosts ./hosts;

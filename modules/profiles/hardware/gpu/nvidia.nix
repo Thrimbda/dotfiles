@@ -32,6 +32,8 @@ in mkIf (any (s: hasPrefix "gpu/nvidia" s) hardware) (mkMerge [
         # Save some idle watts.
         powerManagement.enable = true;  # see NixOS/nixos-hardware#348
         modesetting.enable = true;
+        # Keep the XDG-aware wrapper below as the only nvidia-settings owner.
+        nvidiaSettings = false;
         package = config.boot.kernelPackages.nvidiaPackages.beta;
       };
     };

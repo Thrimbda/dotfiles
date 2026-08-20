@@ -495,7 +495,7 @@ in {
 
       ## For Hyprland
       swaybg         # feh (as a wallpaper manager)
-      xorg.xrandr    # for XWayland windows
+      xrandr         # for XWayland windows
       grim
       slurp
       wf-recorder

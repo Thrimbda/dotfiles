@@ -89,6 +89,7 @@
 - [Axiom Input And Caelestia Config Hotfix](tasks/axiom-input-caelestia-config-hotfix.md)
 - [Axiom Keybinding Help Modal](tasks/axiom-keybinding-help-modal.md)
 - [Axiom No-Sleep Power Mode](tasks/axiom-no-sleep-power-mode.md)
+- [Axiom Nix Warning Migration](tasks/axiom-nix-warning-migration.md)
 - [Axiom Playwright CLI Runtime](tasks/axiom-playwright-cli-runtime.md)
 - [Axiom Playwright nix-ld Runtime Libraries](tasks/axiom-playwright-nix-ld-libs.md)
 - [Axiom Qwen3.8 128K Context](tasks/axiom-qwen38-128k-context.md)

@@ -8,14 +8,19 @@ in {
     enable = mkBoolOpt false;
   };
 
-  config = mkIf cfg.enable {
-    services.xserver = {
-      xkb = {
+  config = mkIf cfg.enable (mkMerge [
+    {
+      services.xserver.xkb = {
         layout = "us";
         variant = "colemak";
       };
-      enable = true;
-    };
-    console.useXkbConfig = true;
-  };
+      console.useXkbConfig = true;
+      # This used to inherit true from the unconditional Xorg service.
+      programs.ssh.enableAskPassword = mkDefault true;
+    }
+
+    (mkIf (config.modules.desktop.type == "x11") {
+      services.xserver.enable = true;
+    })
+  ]);
 }
