@@ -1,5 +1,6 @@
 # Wiki Log
 
+- Added active task summary and post-merge Q6/switching follow-up for `axiom-qwen38-q6-switcher`.
 - Marked `axiom-qwen38-128k-context` completed after merged runtime and OpenCode verification.
 - Added active task summary and post-merge runtime follow-up for `axiom-qwen38-128k-context`.
 - Marked `axiom-qwen38-uncensored-deployment` completed after merged activation and persistent service verification.
