@@ -2,7 +2,7 @@
 
 ## Decision
 
-PASS. No blocking correctness, scope, maintainability, or security findings were identified. The change is ready to merge; Q6 fit and switching remain explicit post-merge acceptance checks.
+PASS. No blocking correctness, scope, maintainability, or security findings remain. Merged runtime acceptance confirms Q6 fit, API behavior, lifecycle control, and Q4/Q6 switching.
 
 ## Blocking Findings
 
@@ -23,6 +23,6 @@ None.
 
 Applied because `qwen-model` invokes sudo. No remaining blocking issue was found: it accepts only fixed subcommands, fixed model targets, and one fixed systemd unit. It calls `/run/wrappers/bin/sudo`, does not interpolate user-controlled paths or shell fragments into privileged commands, and does not add a sudoers bypass.
 
-## Residual Verification Gap
+## Residual Risk
 
-The Q6 model must still prove full-GPU 128K operation and sufficient RTX 5090 headroom. Every lifecycle and quantization-switch command must also pass after merged activation.
+No acceptance gap remains. Verification proves the configured 128K slot and operational requests, but does not benchmark throughput or fill the complete context window; those are outside this deployment task.
