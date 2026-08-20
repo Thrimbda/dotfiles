@@ -2,7 +2,7 @@
 
 ## Result
 
-PARTIAL PASS. The Axiom closure and generated service validate at 131072 tokens. Runtime activation, GPU capacity, persistent-service checks, and the matching global OpenCode update remain post-merge checks.
+PASS. The Axiom closure, merged activation, persistent 131072-token service, GPU capacity, MTP, API, restart recovery, and matching global OpenCode configuration all pass.
 
 ## Model Capacity Evidence
 
@@ -20,9 +20,15 @@ Passed. The complete Axiom closure is `/nix/store/qz1a22msdqzxlnjm5fmf2rz7whvrih
 
 The built unit contains `--ctx-size 131072` while retaining full GPU offload, flash attention, one slot, Q4_0 K/V cache, MTP depth 2, loopback port 8081, and the existing model/template paths.
 
-## Pending Checks
+## Post-Merge Runtime
 
-- Merge and switch the configuration from refreshed `origin/master`.
-- Confirm `/props` reports `n_ctx = 131072` and logs report `n_ctx_slot = 131072` with MTP initialization.
-- Confirm health, chat completion, automatic restart recovery, and RTX 5090 memory headroom.
-- Change the global OpenCode model context from 65536 to 131072 and verify model and tool-call requests.
+- PR #173 merged at `62aa3c77`; the NixOS switch from refreshed `origin/master` succeeded.
+- `/props` reports `n_ctx = 131072` and one slot.
+- Logs report `n_ctx_slot = 131072`, MTP draft-context creation, and successful model load.
+- `/health` and chat completion pass with a separate reasoning field.
+- RTX 5090 usage is 20,483 MiB with 11,595 MiB free.
+- After `SIGKILL`, systemd changed PID `196767` to `327584`, incremented `NRestarts` to 1, and restored the healthy 131072-token service.
+
+## OpenCode
+
+The global `qwen-local/qwen3.8-27b-uncensored` declaration now reports context 131072 while retaining output 16384 and low/medium/xhigh reasoning variants. OpenCode model enumeration, a medium-effort text request, and a low-effort Bash tool call all passed.

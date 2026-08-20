@@ -12,7 +12,7 @@
 
 ## Outcome Summary
 
-Axiom now runs a loopback-only Qwen3.8 27B uncensored inference service from merged NixOS configuration. It pins CUDA-enabled llama.cpp b10472 because the previous nixpkgs build predates required MTP support. The selected model and template are stored outside the Nix store and passed checksum, CUDA, MTP, 64K context, persistent systemd, automatic restart, and OpenAI-compatible API checks.
+Axiom now runs a loopback-only Qwen3.8 27B uncensored inference service from merged NixOS configuration. It pins CUDA-enabled llama.cpp b10472 because the previous nixpkgs build predates required MTP support. The selected model and template are stored outside the Nix store and passed checksum, CUDA, MTP, 128K context, persistent systemd, automatic restart, and OpenAI-compatible API checks.
 
 ## Reusable Decisions
 

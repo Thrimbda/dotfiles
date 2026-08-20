@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-qwen38-128k-context`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -12,7 +12,7 @@
 
 ## Outcome Summary
 
-This task raises Axiom's deployed local Qwen context from 64K to 128K while retaining the existing one-slot CUDA, Q4 KV, flash-attention, and MTP configuration. The GGUF reports a native 256K training context, so 128K requires no RoPE override. The complete Axiom closure builds; merged runtime capacity and OpenCode alignment remain pending.
+This task raised Axiom's deployed local Qwen context from 64K to 128K while retaining the existing one-slot CUDA, Q4 KV, flash-attention, and MTP configuration. The persistent service and OpenCode now both report 131072; runtime API, restart recovery, and tool-call checks pass with 11,595 MiB of GPU headroom.
 
 ## Reusable Decisions
 
