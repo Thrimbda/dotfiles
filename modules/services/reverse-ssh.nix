@@ -11,7 +11,14 @@ let
   remote = "${cfg.remoteUser}@${cfg.remoteHost}";
   remoteForward = "${cfg.remoteBindHost}:${toString cfg.remotePort}:${cfg.localHost}:${toString cfg.localPort}";
   knownHostName = if cfg.knownHostName != "" then cfg.knownHostName else "reverse-ssh-${cfg.remoteHost}";
-  globalKnownHostsOption = optionalString (cfg.globalKnownHostsFile != null) "-o GlobalKnownHostsFile=${cfg.globalKnownHostsFile} ";
+  managedKnownHostsFile = pkgs.writeText "${knownHostName}-known-hosts" ''
+    ${cfg.remoteHost} ${cfg.serviceHostKey}
+  '';
+  globalKnownHostsFile =
+    if cfg.globalKnownHostsFile != null then cfg.globalKnownHostsFile
+    else if cfg.serviceHostKey != null then managedKnownHostsFile
+    else null;
+  globalKnownHostsOption = optionalString (globalKnownHostsFile != null) "-o GlobalKnownHostsFile=${globalKnownHostsFile} ";
   userKnownHostsOption = optionalString (cfg.userKnownHostsFile != null) "-o UserKnownHostsFile=${cfg.userKnownHostsFile} ";
 in {
   options.modules.services.reverse-ssh = with types; {
@@ -23,6 +30,7 @@ in {
     remoteHost = mkOpt str "";
     remoteUser = mkOpt str "root";
     remoteHostKey = mkOpt (nullOr str) null;
+    serviceHostKey = mkOpt (nullOr str) null;
     knownHostName = mkOpt str "";
     globalKnownHostsFile = mkOpt (nullOr str) null;
     userKnownHostsFile = mkOpt (nullOr str) null;

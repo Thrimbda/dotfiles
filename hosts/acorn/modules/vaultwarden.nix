@@ -5,7 +5,7 @@ let
     hey.inputs.nixpkgs-vaultwarden.legacyPackages.${pkgs.stdenv.hostPlatform.system}.vaultwarden;
 
   mkVaultwardenVhost = domain: {
-    # TLS listener ownership is staged from the host module.
+    # Keep TLS and proxy ownership with the service-local module.
     root = "/srv/www/${domain}";
     extraConfig = ''
       client_max_body_size 64M;
@@ -50,8 +50,13 @@ in
   };
 
   services.nginx.virtualHosts = {
-    "vault.0xc1.wang" = mkVaultwardenVhost "vault.0xc1.wang";
+    "vault.0xc1.wang" = mkVaultwardenVhost "vault.0xc1.wang" // {
+      onlySSL = true;
+      useACMEHost = "vault.0xc1.wang";
+    };
   };
+
+  modules.services.nginx.cloudflareDnsAcme.hosts = [ "vault.0xc1.wang" ];
 
   systemd.tmpfiles.rules = [
     "z ${config.services.vaultwarden.backupDir} 750 vaultwarden vaultwarden - -"
