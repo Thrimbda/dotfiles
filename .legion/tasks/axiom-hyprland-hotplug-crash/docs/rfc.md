@@ -1,6 +1,6 @@
 # RFC: Guard Floating XWayland Placement During Monitor Loss
 
-**Status:** Proposed
+**Status:** Implemented and merged in PR #180
 **Risk:** Medium
 
 ## Context
