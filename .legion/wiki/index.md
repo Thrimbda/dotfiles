@@ -91,6 +91,7 @@
 - [Axiom No-Sleep Power Mode](tasks/axiom-no-sleep-power-mode.md)
 - [Axiom Playwright CLI Runtime](tasks/axiom-playwright-cli-runtime.md)
 - [Axiom Playwright nix-ld Runtime Libraries](tasks/axiom-playwright-nix-ld-libs.md)
+- [Axiom Qwen3.8 Uncensored Deployment](tasks/axiom-qwen38-uncensored-deployment.md)
 - [Axiom Sidra Apple Music](tasks/axiom-sidra-apple-music.md)
 - [Axiom Steam DWProton](tasks/axiom-steam-dwproton.md)
 - [Axiom Thunar Caelestia Theme Contrast](tasks/axiom-thunar-caelestia-theme-contrast.md)

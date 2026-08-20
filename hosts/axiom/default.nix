@@ -161,6 +161,42 @@ with builtins;
   config = { config, pkgs, ... }:
     let
       userName = config.user.name;
+      llamaCppBase = pkgs.unstable.llama-cpp.override { cudaSupport = true; };
+      llamaCpp = llamaCppBase.overrideAttrs (_finalAttrs: previousAttrs: {
+        version = "10472";
+        src = pkgs.fetchFromGitHub {
+          owner = "ggml-org";
+          repo = "llama.cpp";
+          rev = "b10472";
+          hash = "sha256-Wm3Nnl3AUr0YMDGRjV3vK8qAcp4dCMyg1A7SMD4LJRg=";
+        };
+        npmDepsHash = "sha256-2Q7XhaLAArmviOLdQsNbYTfdyDE5pW9lR26cRHEVl9k=";
+        preConfigure = replaceStrings
+          [ "$(cat COMMIT)" ]
+          [ "60eeeb6" ]
+          previousAttrs.preConfigure;
+      });
+      qwenModelDir = "${config.user.home}/.local/share/models/qwen3.8-27b";
+      qwenModel = "${qwenModelDir}/RVN-Q4_K_M-mtp.gguf";
+      qwenChatTemplate = "${qwenModelDir}/chat_template.jinja";
+      qwenArgs = [
+        "--model" qwenModel
+        "--jinja"
+        "--chat-template-file" qwenChatTemplate
+        "--alias" "qwen3.8-27b-uncensored"
+        "--host" "127.0.0.1"
+        "--port" "8081"
+        "--no-ui"
+        "--ctx-size" "65536"
+        "--n-gpu-layers" "all"
+        "--flash-attn" "on"
+        "--parallel" "1"
+        "--cache-type-k" "q4_0"
+        "--cache-type-v" "q4_0"
+        "--spec-type" "draft-mtp"
+        "--spec-draft-n-max" "2"
+        "--chat-template-kwargs" ''{"reasoning_effort":"medium"}''
+      ];
       opencodeDir = config.modules.services.opencode-server.dir;
       reverseSsh = config.modules.services.reverse-ssh;
       legionPiProfile = "${config.home.dataDir}/legion-pi/profile";
@@ -1726,6 +1762,21 @@ with builtins;
         LimitNOFILE = 100000;
         LimitCORE = 0;
         TimeoutStopSec = "30s";
+        Restart = "on-failure";
+        RestartSec = "5s";
+      };
+    };
+
+    systemd.services.qwen3-8-27b = {
+      description = "Qwen3.8 27B uncensored inference server";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
+      unitConfig.ConditionPathExists = [ qwenModel qwenChatTemplate ];
+      serviceConfig = {
+        Type = "simple";
+        User = userName;
+        WorkingDirectory = qwenModelDir;
+        ExecStart = "${llamaCpp}/bin/llama-server ${escapeShellArgs qwenArgs}";
         Restart = "on-failure";
         RestartSec = "5s";
       };
