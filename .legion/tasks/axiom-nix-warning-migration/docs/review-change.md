@@ -28,7 +28,7 @@ Applied because `modules/xdg.nix` changes OpenSSH client package ownership. No s
 
 - Targeted Bluetooth VM regression: PASS.
 - Rendered Axiom, Atlas, Azar, Darwin-platform, and host-metadata assertions: PASS.
-- `nixos-rebuild build --flake .#axiom --show-trace -L`: PASS with no warning output.
+- Rebased integrated tree at `origin/master` commit `532b9aa8`: targeted Bluetooth VM and `nixos-rebuild build --flake .#axiom --show-trace -L` both PASS with no warning output.
 - `git diff --check`: PASS.
 
 ## Residual Test Gaps

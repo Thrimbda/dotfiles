@@ -12,7 +12,7 @@ Validation covers the Axiom NixOS configuration only. No `switch`, activation, A
 | Rendered configuration assertions | PASS | `gtk4Theme = null`, `documentation.info.enable = false`, `services.xserver.enable = false`, `services.resolved.settings.Resolve.DNSSEC = "false"`, `hardware.nvidia.nvidiaSettings = false`, and SSH askpass remains enabled. A separate query confirms `charles` and `charlie` are both `aarch64-darwin`. |
 | Shared Colemak consumers | PASS | Atlas and Azar both render as Wayland hosts with `services.xserver.enable = false`, retained `us`/`colemak` XKB values, and SSH askpass enabled. |
 | Declared host platforms | PASS | `hostMetadata` lists eight `x86_64-linux` NixOS hosts and only the two intentional `aarch64-darwin` Darwin hosts; no declared host consumes the removed root `x86_64-darwin` platform. |
-| Full Axiom build | PASS | After rebasing and correcting the VM assertion, `nixos-rebuild build --flake .#axiom --show-trace -L` completed successfully with no warning output. The system path was generated without collision or Gawk Info-dir warnings. |
+| Rebased Bluetooth VM and Axiom build | PASS | After rebasing onto `origin/master` at `532b9aa8`, the targeted VM build and `nixos-rebuild build --flake .#axiom --show-trace -L` both completed successfully. The system path was generated without collision or Gawk Info-dir warnings. |
 | Diff hygiene | PASS | `git diff --check` completed without output. |
 
 ## Commands

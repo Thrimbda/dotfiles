@@ -18,7 +18,7 @@ The Axiom NixOS build no longer emits the deterministic repository-owned warning
 - The targeted Bluetooth VM regression passed with the boot marker checked on the `tlp` node.
 - Axiom, Atlas, and Azar rendered values retain the intended Wayland, XKB, and SSH askpass behavior.
 - Declared Darwin hosts evaluate as `aarch64-darwin` only.
-- `nixos-rebuild build --flake .#axiom --show-trace -L` passed without warning output.
+- After rebasing onto `origin/master` at `532b9aa8`, the targeted VM regression and `nixos-rebuild build --flake .#axiom --show-trace -L` passed without warning output.
 
 ## Review Result
 

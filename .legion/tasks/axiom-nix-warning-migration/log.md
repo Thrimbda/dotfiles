@@ -61,6 +61,12 @@
 - Independent change review returned PASS with no blocking findings.
 - The security lens covered the OpenSSH client wrapper ownership change and found no authentication, key, firewall, tunnel, secret, or server-policy change.
 - Accepted non-deployment gaps: no live activation/suspend-resume and no command-level XDG OpenSSH wrapper smoke. The required pre-push rebase and integrated-tree revalidation remain outstanding.
+
+## Integration Update (2026-08-20)
+
+- Rebasing onto `origin/master` completed cleanly at `532b9aa8`, incorporating the current Qwen control commits without touching this task's warning migration.
+- The rebased targeted Bluetooth VM regression and `nixos-rebuild build --flake .#axiom --show-trace -L` both passed. The full build emitted no warning output.
+- Next: perform the final pre-push fetch/rebase check, then create, merge, and clean up the PR.
 ---
 
 *最后更新: 2026-08-20 07:07 by Legion CLI*
