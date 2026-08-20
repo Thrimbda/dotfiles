@@ -177,8 +177,143 @@ with builtins;
           previousAttrs.preConfigure;
       });
       qwenModelDir = "${config.user.home}/.local/share/models/qwen3.8-27b";
-      qwenModel = "${qwenModelDir}/RVN-Q4_K_M-mtp.gguf";
+      qwenQ4Model = "${qwenModelDir}/RVN-Q4_K_M-mtp.gguf";
+      qwenQ6Model = "${qwenModelDir}/RVN-Q6_K-mtp.gguf";
+      qwenModel = "${qwenModelDir}/active.gguf";
       qwenChatTemplate = "${qwenModelDir}/chat_template.jinja";
+      qwenService = "qwen3-8-27b.service";
+      qwenEnsureModel = pkgs.writeShellScript "qwen-ensure-model" ''
+        set -eu
+        if [ ! -e ${escapeShellArg qwenModel} ] && [ ! -L ${escapeShellArg qwenModel} ]; then
+          ${pkgs.coreutils}/bin/ln -s ${escapeShellArg qwenQ6Model} ${escapeShellArg qwenModel}
+        fi
+        if [ ! -L ${escapeShellArg qwenModel} ]; then
+          echo "${qwenModel} must be a symbolic link" >&2
+          exit 1
+        fi
+        if [ ! -f ${escapeShellArg qwenModel} ]; then
+          echo "selected Qwen model is unavailable: ${qwenModel}" >&2
+          exit 1
+        fi
+      '';
+      qwenModelControl = pkgs.writeShellApplication {
+        name = "qwen-model";
+        runtimeInputs = with pkgs; [ coreutils curl sudo systemd ];
+        text = ''
+          service=${escapeShellArg qwenService}
+          active=${escapeShellArg qwenModel}
+          q4=${escapeShellArg qwenQ4Model}
+          q6=${escapeShellArg qwenQ6Model}
+          health=http://127.0.0.1:8081/health
+
+          wait_healthy() {
+            attempt=0
+            while [ "$attempt" -lt 90 ]; do
+              if systemctl is-active --quiet "$service" && curl --fail --silent --max-time 2 "$health" >/dev/null; then
+                return 0
+              fi
+              if systemctl is-failed --quiet "$service"; then
+                return 1
+              fi
+              sleep 2
+              attempt=$((attempt + 1))
+            done
+            return 1
+          }
+
+          print_status() {
+            resolved=$(readlink -f "$active" 2>/dev/null || true)
+            case "$resolved" in
+              "$q4") selected=q4 ;;
+              "$q6") selected=q6 ;;
+              "") selected=none ;;
+              *) selected=invalid ;;
+            esac
+            printf 'selected: %s\n' "$selected"
+            printf 'target: %s\n' "''${resolved:-unavailable}"
+            printf 'service: %s\n' "$(systemctl is-active "$service" 2>/dev/null || true)"
+            if curl --fail --silent --max-time 2 "$health" >/dev/null; then
+              printf 'health: ok\n'
+            else
+              printf 'health: unavailable\n'
+            fi
+          }
+
+          atomic_link() {
+            target=$1
+            temporary="$active.new.$$"
+            rm -f -- "$temporary"
+            ln -s -- "$target" "$temporary"
+            mv -Tf -- "$temporary" "$active"
+          }
+
+          restart_selected() {
+            sudo systemctl restart "$service"
+            if ! wait_healthy; then
+              systemctl status "$service" --no-pager >&2 || true
+              return 1
+            fi
+          }
+
+          select_model() {
+            target=$1
+            label=$2
+            if [ ! -f "$target" ]; then
+              printf 'model is unavailable: %s\n' "$target" >&2
+              return 1
+            fi
+
+            previous=$(readlink -f "$active" 2>/dev/null || true)
+            if [ "$previous" = "$target" ] && systemctl is-active --quiet "$service" && curl --fail --silent --max-time 2 "$health" >/dev/null; then
+              printf '%s is already selected and healthy\n' "$label"
+              print_status
+              return 0
+            fi
+
+            sudo -v
+            atomic_link "$target"
+            if restart_selected; then
+              printf 'switched to %s\n' "$label"
+              print_status
+              return 0
+            fi
+
+            printf 'failed to start %s; restoring previous selection\n' "$label" >&2
+            if [ -n "$previous" ] && [ -f "$previous" ]; then
+              atomic_link "$previous"
+              if restart_selected; then
+                printf 'restored previous model: %s\n' "$previous" >&2
+              else
+                printf 'failed to restore previous model: %s\n' "$previous" >&2
+              fi
+            fi
+            return 1
+          }
+
+          case "''${1:-}" in
+            q4) select_model "$q4" q4 ;;
+            q6) select_model "$q6" q6 ;;
+            start)
+              sudo systemctl start "$service"
+              wait_healthy
+              print_status
+              ;;
+            stop)
+              sudo systemctl stop "$service"
+              print_status
+              ;;
+            restart)
+              restart_selected
+              print_status
+              ;;
+            status) print_status ;;
+            *)
+              printf 'usage: qwen-model {q4|q6|start|stop|restart|status}\n' >&2
+              exit 2
+              ;;
+          esac
+        '';
+      };
       qwenArgs = [
         "--model" qwenModel
         "--jinja"
@@ -1637,7 +1772,7 @@ with builtins;
       comment = "Allow the local research workbench only from the home LAN.";
     }];
 
-    environment.systemPackages = [ c1ctl rustdeskFinalize ];
+    environment.systemPackages = [ c1ctl qwenModelControl rustdeskFinalize ];
 
     home.configFile."hypr/xdph.conf".source = rustdeskPortalConfig;
 
@@ -1771,11 +1906,12 @@ with builtins;
       description = "Qwen3.8 27B uncensored inference server";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      unitConfig.ConditionPathExists = [ qwenModel qwenChatTemplate ];
+      unitConfig.ConditionPathExists = qwenChatTemplate;
       serviceConfig = {
         Type = "simple";
         User = userName;
         WorkingDirectory = qwenModelDir;
+        ExecStartPre = qwenEnsureModel;
         ExecStart = "${llamaCpp}/bin/llama-server ${escapeShellArgs qwenArgs}";
         Restart = "on-failure";
         RestartSec = "5s";
