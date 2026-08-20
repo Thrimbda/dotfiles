@@ -5,7 +5,7 @@ let
     hey.inputs.nixpkgs-vaultwarden.legacyPackages.${pkgs.stdenv.hostPlatform.system}.vaultwarden;
 
   mkVaultwardenVhost = domain: {
-    # TLS listener ownership is staged from the host module.
+    # Keep TLS and proxy ownership with the service-local module.
     root = "/srv/www/${domain}";
     extraConfig = ''
       client_max_body_size 64M;

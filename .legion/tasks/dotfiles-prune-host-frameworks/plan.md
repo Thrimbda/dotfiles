@@ -2,18 +2,18 @@
 
 ## 目标
 
-通过纯删除和边界收敛降低仓库认知负担：只保留本次 Legion task 与仍 active 的 Qwen task，删除过时 README，列出一次性 package modules，并把 Axiom/Acorn 的 Cloudflare、autossh、Caelestia 与跨主机服务机制从臃肿的 host default 中移到清晰模块边界。
+通过纯删除和边界收敛降低仓库认知负担：只保留本次 Legion task，删除过时 README，列出一次性 package modules，并把 Axiom/Acorn 的 Cloudflare、autossh、Caelestia 与跨主机服务机制从臃肿的 host default 中移到清晰模块边界。
 
 ## 问题
 
-- `.legion/tasks` 长期保存大量已闭环 raw evidence，压过配置源码；用户要求清理 closed tasks，同时保留本次任务和仍在执行的 Qwen task。
+- `.legion/tasks` 长期保存大量已闭环 raw evidence，压过配置源码；用户要求清理 closed tasks，只保留本次任务。
 - 根 `README.md` 已过时，且不再承担有效入口职责。
 - 一些 option module 可能只有单 host、单 package 用途，增加无意义的 option surface。
 - `hosts/axiom/default.nix` 接近 2000 行，混合 host facts、长脚本、桌面策略、远程连接和公共入口拓扑；`hosts/acorn/default.nix` 也混合云主机事实与服务 mechanics。
 
 ## 验收标准
 
-- `.legion/tasks/` 最终只包含 `dotfiles-prune-host-frameworks` 与 active 的 `axiom-qwen38-q6-switcher`；`.legion/wiki/**` 保留。
+- `.legion/tasks/` 最终只包含 `dotfiles-prune-host-frameworks`；`.legion/wiki/**` 保留。
 - 根 `README.md` 删除，仓库运行入口不依赖它。
 - 产出一次性 package module 清单，按“可内联 / 待确认 / 应保留”分类，并给出实际 host 使用证据；本任务不顺带批量删除这些模块。
 - `hosts/axiom/default.nix` 收敛为主机清单、关键 facts、imports 与 hardware，不再内嵌 Cloudflare、autossh、Caelestia、Axiom-to-Acorn 拓扑的长 service/script 实现。
@@ -42,14 +42,14 @@
 
 ## 假设与约束
 
-- 初始确认是删除全部旧 task、只保留本次新 task；主线后来新增 active 的 `axiom-qwen38-q6-switcher` 后，用户进一步确认该 active task 也要保留。
+- 初始确认是删除全部旧 task、只保留本次新 task。主线后来新增 active 的 `axiom-qwen38-q6-switcher` 时用户要求暂时保留；该任务在 `07816e00` 完成后重新适用 closed-task prune 规则。
 - “抽成框架”解释为：共享模块拥有可复用 mechanics，host-local modules 组合具体拓扑，host default 只表达意图和 facts。
 - Git 历史和 `.legion/wiki` 足以承担旧 task 的追溯与当前知识层。
 - 所有修改在隔离 worktree 中通过 PR 交付；不在主工作区实现。
 
 ## 风险
 
-- 大量 task 删除容易误删本次任务、active Qwen task 或 wiki，必须用路径白名单验证。
+- 大量 task 删除容易误删本次任务或 wiki，必须用路径白名单验证。
 - 移动 Nix module 代码可能改变 import 顺序、option merge 或 Git-backed flake 可见性。
 - Cloudflare、FRP、autossh 和 Auth Mini gateway 共同形成远程访问链，行为等价必须以生成配置、unit 和关键 option 为证据。
 - Axiom 文件的主要体积还包含 RustDesk；只抽用户点名的边界可能仍不够小，因此允许机械移动 host-local RustDesk 实现，但不泛化其 API。

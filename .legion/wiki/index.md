@@ -1,6 +1,6 @@
 # Legion Wiki
 
-> Closed raw task directories were pruned on 2026-08-20; active task evidence
+> Closed raw task directories were pruned on 2026-08-20; this task's evidence
 > remains until closeout. References to pruned `.legion/tasks/<task-id>/` paths
 > in historical summaries resolve through Git history; this wiki is the
 > checked-out current knowledge layer.
@@ -129,6 +129,7 @@
 - [Dotfiles Quickshell Product Desktop](tasks/dotfiles-quickshell-product-desktop.md)
 - [Dotfiles Fcitx5 Wayland GTK IM Module](tasks/dotfiles-fcitx5-wayland-gtk-im-module.md)
 - [Dotfiles Caelestia-only Bluetooth Control](tasks/dotfiles-caelestia-only-bluetooth.md)
+- [Dotfiles Prune and Host Framework Extraction](tasks/dotfiles-prune-host-frameworks.md)
 - [Dots Hyprland Desktop Complete End4 Import](tasks/dots-hyprland-desktop-rfc.md)
 - [Dotfiles Hyprland Conf to Lua Migration](tasks/dotfiles-hyprland-lua-migration.md)
 - [Gatus Status Page Blackbox Monitoring](tasks/gatus-status-page-blackbox-monitoring.md)

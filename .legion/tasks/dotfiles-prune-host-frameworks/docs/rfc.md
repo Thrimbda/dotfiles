@@ -13,7 +13,7 @@
 - `hosts/*/default.nix` 只保留主机清单、关键 facts、imports 和 hardware。
 - 不新增 service graph DSL、Acorn framework namespace 或新的 profile 系统。
 
-同时执行两项直接删除：删除所有 closed `.legion/tasks/*`，只保留本次 task 与仍 active 的 Qwen task；删除根 `README.md`。
+同时执行两项直接删除：删除所有 closed `.legion/tasks/*`，只保留本次 task；删除根 `README.md`。
 
 ## Evidence
 
@@ -95,14 +95,14 @@
 保留现有 `auth-mini.nix`、`oneex-portfolio-adapter.nix`、`vaultwarden.nix`，新增：
 
 - `platform.nix`: Aliyun guest、boot、network、resource limits、cloud-init 和 console。
-- `ingress.nix`: 只承接当前 Acorn default 中的 Cloudflare DNS secret metadata、共享 ACME cert inventory 和 Vaultwarden nginx TLS attachment；不移动 `auth-mini.nix`、`oneex-portfolio-adapter.nix` 等 service-local TLS 配置。
+- `ingress.nix`: 只承接当前 Acorn default 中的 Cloudflare DNS secret metadata、共享 ACME cert inventory 和 status-page secret metadata；Vaultwarden、Auth Mini、1Ex adapter 等 service-local modules 继续拥有各自的 TLS attachment。
 - `rustdesk.nix`: RustDesk server key preflight、service hardening 和 assertions。
 
 `hosts/acorn/default.nix` 只表达 system、module enablement 与这些 imports。
 
 ## Prune Semantics
 
-- 删除所有 closed `.legion/tasks/**` 后重新加入本次 `dotfiles-prune-host-frameworks` 目录；保留主线仍为 active 的 `axiom-qwen38-q6-switcher`。
+- 删除所有 closed `.legion/tasks/**` 后重新加入本次 `dotfiles-prune-host-frameworks` 目录。Qwen switcher 在执行期间曾因 active 而保留，主线完成该任务后随其他 closed raw tasks 一并删除。
 - `.legion/wiki/**` 不删除；其中指向旧 raw task 的路径视为 Git-history references，不逐文件重写。
 - 在 wiki index 增加一次全局说明，避免把旧 raw-task path 当作当前 checkout 中的有效链接。
 - 不创建新的 archive 目录，因为这会用另一套目录保留同一批噪音。
@@ -142,7 +142,7 @@ RustDesk provisioning、Axiom display/session 和 Acorn ingress 含大量单 hos
 
 ## Verification
 
-- 路径白名单：`.legion/tasks` 只有本次 task 与 active Qwen task，`.legion/wiki` 文件数量不减少，README 不存在。
+- 路径白名单：`.legion/tasks` 只有本次 task，`.legion/wiki` 文件数量不减少，README 不存在。
 - 引用检查：新 host-local modules 被显式导入；默认文件不再包含长 shell script、Cloudflare/autossh/Caelestia service bodies。
 - Axiom focused eval：reverse SSH `ExecStart`、known-hosts pin、FRP proxies/direct route、gateway units、cloudflared config/unit/healthcheck、Qwen unit、Caelestia settings/session、RustDesk service/provisioning assertions。
 - Acorn focused eval：network/firewall、ACME certs、RustDesk server services、auth-mini/vaultwarden/adapter enablement。

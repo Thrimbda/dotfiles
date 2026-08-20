@@ -10,22 +10,22 @@ PASS:
 
 ```sh
 base=origin/master
-test "$(git ls-files '.legion/tasks/*/plan.md')" = "$(printf '%s\n' \
-  '.legion/tasks/axiom-qwen38-q6-switcher/plan.md' \
-  '.legion/tasks/dotfiles-prune-host-frameworks/plan.md')"
+test "$(git ls-files '.legion/tasks/*/plan.md')" = \
+  '.legion/tasks/dotfiles-prune-host-frameworks/plan.md'
 test ! -e README.md
-test -z "$(git diff --name-only --diff-filter=D "$base"...HEAD -- .legion/wiki)"
-test "$(git ls-tree -r --name-only HEAD .legion/wiki | wc -l)" -eq 141
-git diff --check "$base"...HEAD
-git diff --quiet "$base"...HEAD -- flake.lock
-git diff --quiet "$base"...HEAD -- 'hosts/*/secrets/**' 'config/secrets/**'
+test -z "$(git diff --name-only --diff-filter=D "$base" -- .legion/wiki)"
+test "$(git ls-files '.legion/wiki/**' | wc -l)" -ge \
+  "$(git ls-tree -r --name-only "$base" .legion/wiki | wc -l)"
+git diff --check "$base"
+git diff --quiet "$base" -- flake.lock
+git diff --quiet "$base" -- 'hosts/*/secrets/**' 'config/secrets/**'
 ```
 
-This proves that only the current task and active Qwen task remain, the root README is gone, the wiki layer was not pruned, and neither the lock file nor encrypted secret inventory changed.
+This proves that only the current task remains, the root README is gone, all 142 baseline wiki files were retained, and neither the lock file nor encrypted secret inventory changed. The closing writeback adds this task's wiki summary as file 143.
 
 ## Syntax
 
-PASS: `nix-instantiate --parse` succeeded for every changed Nix file under:
+PASS: `nix-instantiate --parse` succeeded for all 22 changed Nix files under:
 
 - `modules/services/{auth-mini-gateway,cloudflared,nginx,reverse-ssh}.nix`
 - `hosts/axiom/default.nix` and `hosts/axiom/modules/*.nix`, including the rebased Qwen service
@@ -48,7 +48,7 @@ The Acorn candidate explicitly disables the shared Hypridle default for this ser
 
 ## Behavior Snapshots
 
-PASS: the candidate was compared with a detached `origin/master` worktree at `dc87546e` using `diff -u` over focused `nix eval --json ... --apply` snapshots.
+PASS: the candidate was compared with a detached `origin/master` worktree at `07816e00` using `diff -u` over focused `nix eval --json ... --apply` snapshots. Git-source store hashes were normalized, package lists were compared by name, and raw credential-source paths were omitted.
 
 Axiom equal surfaces:
 
@@ -56,7 +56,7 @@ Axiom equal surfaces:
 - FRP proxies, direct-route ordering and gateway dependencies
 - all three Auth Mini Gateway environments and service hardening
 - cloudflared generated config and service policy
-- Qwen package pin, Q4/Q6 paths, mutable selection link, bounded controller, 128K argument vector, loopback endpoint, preflight and systemd policy
+- Qwen package pin, Q4/Q6 paths, mutable selection link, bounded controller, sudo-wrapper path, 128K argument vector, loopback endpoint, preflight and systemd policy
 - Caelestia seed/mutable settings, session path and package-data behavior
 - audio, Clash, LAN firewall, user packages and system package ordering
 - RustDesk runtime/provisioning unit fields and host mapping
@@ -70,7 +70,7 @@ Acorn equal surfaces:
 
 Charlie cloudflared config and launchd service snapshots were also equal.
 
-The direct Axiom comparison showed one expected generated-path difference: the Caelestia session command has a different store hash because its PATH contains the Git-backed `hey` and `c1ctl` outputs. Package paths and ordering were compared separately; only those two source-derived hashes differ. Acorn restart-trigger source paths were omitted from the focused unit snapshot for the same reason. Runtime commands, package ordering, secret paths, ownership and modes are unchanged.
+A separate Acorn desktop-option snapshot showed the one intentional delta: `modules.desktop.hyprland.hypridle.enable` changes from `true` to `false`, while Hyprland remains disabled and no Hypridle unit exists in either configuration. This removes the pre-existing desktop assertion without changing runtime service behavior. All normalized service snapshots were otherwise empty diffs.
 
 ## Build Planning
 
@@ -80,7 +80,7 @@ PASS on Axiom:
 env DOTFILES_HOME="$PWD" nix build --impure --dry-run path:.#nixosConfigurations.axiom.config.system.build.toplevel
 ```
 
-Nix produced a valid 28-derivation plan. No build or deployment was run for Acorn.
+Both baseline and candidate produced valid 28-derivation plans. No build or deployment was run for Acorn.
 
 ## Full Flake Check
 
