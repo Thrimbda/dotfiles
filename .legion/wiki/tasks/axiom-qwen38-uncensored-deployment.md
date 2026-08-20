@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-qwen38-uncensored-deployment`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -12,7 +12,7 @@
 
 ## Outcome Summary
 
-Axiom now has a merge-ready NixOS configuration for a loopback-only Qwen3.8 27B uncensored inference service. It pins CUDA-enabled llama.cpp b10472 because the previous nixpkgs build predates required MTP support. The selected model and template are stored outside the Nix store and passed checksum, CUDA, MTP, 64K context, and OpenAI-compatible API runtime checks. The task remains active until the merged configuration is switched interactively and the persistent system service is verified.
+Axiom now runs a loopback-only Qwen3.8 27B uncensored inference service from merged NixOS configuration. It pins CUDA-enabled llama.cpp b10472 because the previous nixpkgs build predates required MTP support. The selected model and template are stored outside the Nix store and passed checksum, CUDA, MTP, 64K context, persistent systemd, automatic restart, and OpenAI-compatible API checks.
 
 ## Reusable Decisions
 
@@ -29,7 +29,3 @@ Axiom now has a merge-ready NixOS configuration for a loopback-only Qwen3.8 27B 
 - `reviews`: `.legion/tasks/axiom-qwen38-uncensored-deployment/docs/review-rfc.md`, `.legion/tasks/axiom-qwen38-uncensored-deployment/docs/review-change.md`
 - `verification`: `.legion/tasks/axiom-qwen38-uncensored-deployment/docs/test-report.md`
 - `report`: `.legion/tasks/axiom-qwen38-uncensored-deployment/docs/report-walkthrough.md`
-
-## Notes
-
-- Post-merge activation is tracked in `.legion/wiki/maintenance.md`.

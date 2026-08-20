@@ -124,10 +124,6 @@
 
 - `modules/desktop/hyprland.nix` still contains broader Axiom-flavored desktop policy. Split a future desktop/keybinding cleanup if those rules should become host-owned facts or generic module options; do not mix that larger desktop rewrite into service/host modularization tasks.
 
-## Axiom Local LLM Follow-Up
-
-- After merging `axiom-qwen38-uncensored-deployment`, refresh `/home/c1/dotfiles` to merged `origin/master` and run `sudo nixos-rebuild switch --flake .#axiom -L` interactively. Confirm `qwen3-8-27b.service` is enabled and active, `/health` and `/v1/chat/completions` pass, logs report the MTP draft context and 65536-token slot, and `nvidia-smi` shows CUDA residency. The exact server command already passed as a transient user service; this follow-up proves persistent systemd activation and restart behavior.
-
 ## Cloudflare Credentials Follow-Up
 
 - Rotate the Cloudflare API token stored in `hosts/charlie/secrets/cloudflare-api-token.age`, because the pre-existing token appeared in earlier tool output before being moved into age management. The user explicitly declined rotation during `axiom-charlie-opencode-access-google-oidc`; keep this as a separate accepted maintenance risk, not as a blocker for the already verified Access app/policy state.

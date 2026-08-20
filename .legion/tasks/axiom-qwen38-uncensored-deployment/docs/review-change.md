@@ -2,7 +2,7 @@
 
 ## Decision
 
-PASS. No blocking correctness, scope, maintainability, or security findings were identified. The change is ready to merge; deployment acceptance remains open until the merged configuration is activated and the persistent system service is verified.
+PASS. No blocking correctness, scope, maintainability, or security findings were identified. The merged configuration is activated and all deployment acceptance checks pass.
 
 ## Blocking Findings
 
@@ -13,6 +13,7 @@ None.
 - `hosts/axiom/default.nix` contains the approved minimal change: a pinned CUDA llama.cpp b10472 package override and one Axiom-only systemd service.
 - The generated unit contains both artifact conditions, runs as `c1`, binds to `127.0.0.1:8081`, disables the UI, and carries the approved 64K context, one-slot, full GPU offload, flash attention, Q4 KV cache, MTP depth 2, and medium reasoning parameters.
 - The complete Axiom closure built successfully. The exact generated command also passed model load, health, model listing, chat completion, CUDA device, and MTP initialization checks as a transient user service.
+- After merge, the persistent system unit was enabled and active, passed health and chat checks, and recovered automatically from a forced process failure.
 - No unrelated production files were changed.
 
 ## Security Lens
@@ -26,4 +27,4 @@ Applied because the change adds an unauthenticated HTTP service running under th
 
 ## Residual Verification Gap
 
-The persistent system unit has not been activated because sudo requires interactive authentication. Per the requested delivery order, merge the PR first, refresh `/home/c1/dotfiles` to merged `origin/master`, run `sudo nixos-rebuild switch --flake .#axiom -L`, and then repeat the systemd, health, chat, log, and GPU checks.
+None within the approved contract. Reboot persistence is supported by the enabled unit but was not tested through a disruptive host reboot.
