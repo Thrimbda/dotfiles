@@ -1,5 +1,6 @@
 # Wiki Log
 
+- Marked `axiom-qwen38-q6-switcher` completed after Q6 GPU/API verification and full lifecycle/model-switch testing; removed its resolved maintenance follow-up.
 - Added active task summary and post-merge Q6/switching follow-up for `axiom-qwen38-q6-switcher`.
 - Marked `axiom-qwen38-128k-context` completed after merged runtime and OpenCode verification.
 - Added active task summary and post-merge runtime follow-up for `axiom-qwen38-128k-context`.

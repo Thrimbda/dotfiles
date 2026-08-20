@@ -2,7 +2,7 @@
 
 ## Result
 
-PARTIAL PASS. The complete Axiom closure, generated command/unit, bounded control command, and Q6 artifact integrity pass. Merged activation, Q6 GPU capacity, lifecycle controls, and Q6-Q4-Q6 switching remain runtime checks.
+FULL PASS. Q6 is the active 128K MTP model, fits fully on the RTX 5090, serves direct and OpenCode requests, and retains 6629 MiB of GPU headroom. Every `qwen-model` lifecycle command and the Q6-to-Q4-to-Q6 round trip passed.
 
 ## Closure
 
@@ -10,7 +10,7 @@ PARTIAL PASS. The complete Axiom closure, generated command/unit, bounded contro
 nix build --no-link .#nixosConfigurations.axiom.config.system.build.toplevel -L
 ```
 
-Passed. The closure is `/nix/store/wk0yxm78x3bzx5lbmm9jb88gy4x8ay5j-nixos-system-axiom-26.05.7813.0dd31db7e6db`. The generated `qwen-model` also passed `writeShellApplication` ShellCheck.
+Passed before both deployment PRs. The corrected closure is `/nix/store/rf1fg3cnzpqbp6jn22836kbzmpzns025-nixos-system-axiom-26.05.7813.0dd31db7e6db`; the activated system is `/nix/store/r227d59d11hhp8q7vq4aa186nyfy7jbd-nixos-system-axiom-26.05.7813.0dd31db7e6db`. The generated `qwen-model` also passed `writeShellApplication` ShellCheck.
 
 ## Generated Service And Command
 
@@ -30,13 +30,32 @@ sha256: 4e47a0e41992de4bed56a3395f6c7e1adb760a1875ed84f836f67d65b2f646ef
 
 Passed. Size and SHA-256 match the Hugging Face LFS metadata.
 
-## Pending Checks
+## Q6 Runtime
 
-- Merge and switch the configuration from refreshed `origin/master`.
-- Confirm the default selection is Q6 and it loads at 128K with MTP and full CUDA offload.
-- Record Q6 GPU usage/headroom and run health, chat, reasoning, and OpenCode tool-call checks.
-- Exercise status, stop, start, restart, Q6-to-Q4, and Q4-to-Q6 paths.
+- `active.gguf` resolves to `RVN-Q6_K-mtp.gguf`; `qwen-model status` reports `selected: q6`, active service, and healthy endpoint.
+- `/props` reports one slot with `n_ctx=131072`; the journal records MTP draft initialization and `n_ctx_slot=131072`.
+- The service runs with `--n-gpu-layers all`. Q6 uses 25449 MiB of 32607 MiB total GPU memory, leaving 6629 MiB free.
+- `nvidia-smi` reports one compute process: the single `llama-server`, using 25256 MiB excluding display overhead.
+- Direct chat returned the exact requested response and non-empty reasoning content.
+- OpenCode `medium` invoked the Bash tool and returned `/home/c1/dotfiles`.
+
+## Model And Lifecycle Control
+
+Passed interactively:
+
+```bash
+qwen-model q4
+qwen-model status
+qwen-model q6
+qwen-model status
+qwen-model stop
+qwen-model start
+qwen-model restart
+qwen-model status
+```
+
+The command ended on healthy Q6. The system journal records successful loads for both quantizations and distinct stop/start/restart process lifecycles; only one `llama-server` is resident.
 
 ## Runtime Correction
 
-The first post-merge `qwen-model q4` attempt exposed that adding `pkgs.sudo` to `runtimeInputs` selected the non-setuid Nix store binary. The command failed safely before changing `active.gguf`. The implementation now removes store sudo and invokes the NixOS setuid wrapper at `/run/wrappers/bin/sudo`; the corrected complete closure and ShellCheck pass. Lifecycle/switch verification remains pending activation of this hotfix.
+The first post-merge `qwen-model q4` attempt exposed that adding `pkgs.sudo` to `runtimeInputs` selected the non-setuid Nix store binary. The command failed safely before changing `active.gguf`. PR #176 removed store sudo and changed the command to `/run/wrappers/bin/sudo`; activation and the complete runtime sequence then passed.

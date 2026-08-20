@@ -11,12 +11,9 @@
 - Q6 artifact size and SHA-256 match Hugging Face LFS metadata
 - RFC review: PASS
 - change review: PASS, including the fixed-target sudo boundary
-
-## Post-Merge Checks
-
-- verify Q6 128K, MTP, full CUDA offload, API/tool calls, and GPU headroom
-- verify status/start/stop/restart
-- verify Q6-to-Q4-to-Q6 switching with one resident model
+- Q6 128K, MTP, full CUDA offload, direct API, reasoning, and OpenCode tool calls pass
+- Q6 uses 25449 MiB GPU memory and leaves 6629 MiB free
+- status/start/stop/restart and Q6-to-Q4-to-Q6 pass with one resident server
 
 ## Evidence
 

@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-qwen38-q6-switcher`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -12,7 +12,7 @@
 
 ## Outcome Summary
 
-This task makes the standard Q6_K MTP artifact the default 128K Axiom Qwen model while keeping Q4 as an operator-selectable rollback. One service reads `active.gguf`; `qwen-model` provides fixed Q4/Q6 selection plus start, stop, restart, and status. Closure, ShellCheck, artifact integrity, and reviews pass; merged Q6 GPU fit and switching remain pending.
+The standard Q6_K MTP artifact is now Axiom's default 128K Qwen model, with Q4 retained as an operator-selectable rollback. One service reads `active.gguf`; `qwen-model` provides fixed Q4/Q6 selection plus start, stop, restart, and status. Q6, API/tool calls, GPU fit, lifecycle control, and Q6-to-Q4-to-Q6 switching all pass. The final state is healthy Q6 using 25449 MiB GPU memory with 6629 MiB free.
 
 ## Reusable Decisions
 

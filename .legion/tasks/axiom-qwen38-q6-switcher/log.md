@@ -9,15 +9,16 @@
 - Built the complete Axiom closure and passed ShellCheck
 - Downloaded and checksum-verified the standard Q6 MTP artifact
 - Recorded partial verification, change review PASS, walkthrough, PR body, and active wiki writeback
+- Merged and activated Q6 model selection in PR #175
+- Found the non-setuid store-sudo failure safely and corrected it in PR #176
+- Verified Q6 128K MTP runtime with 6629 MiB GPU headroom
+- Verified direct reasoning, OpenCode Bash tool use, lifecycle controls, and Q6-Q4-Q6 switching
+- Finalized FULL PASS verification, review, walkthrough, PR body, and completed wiki truth
 
-(暂无)
 ### 🟡 进行中
 
-- 初始化任务日志。
-- Merge, activate, and verify Q6 plus lifecycle/model switching
-### ⚠️ 阻塞/待定
-
 (暂无)
+### ⚠️ 阻塞/待定
 
 (暂无)
 ---
@@ -26,7 +27,7 @@
 
 - **`hosts/axiom/default.nix`** [completed]
   - 作用: Add active model selection, Q6 defaulting, and bounded qwen-model control
-  - 备注: Complete closure and ShellCheck pass
+  - 备注: Merged, activated, and runtime-verified
 ---
 
 ## 关键决策
@@ -40,15 +41,11 @@
 
 **下次继续从这里开始：**
 
-1. Commit, rebase, push, and merge the Q6 control change
-2. Switch Axiom from merged origin/master
-3. Verify Q6 128K full-GPU runtime and qwen-model lifecycle/switching
-4. Complete closeout evidence
+1. No task-local implementation or verification work remains
 
 **注意事项：**
 
-- Q6 artifact is present and matches upstream SHA-256
-- Q4 remains running until merged activation
+- Final deployment is healthy Q6; use qwen-model q4 for rollback and qwen-model q6 to restore the preferred model
 ---
 
-*最后更新: 2026-08-20 07:10 by Legion CLI*
+*最后更新: 2026-08-20 08:03 by Legion CLI*
