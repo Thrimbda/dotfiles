@@ -182,6 +182,7 @@ with builtins;
       qwenModel = "${qwenModelDir}/active.gguf";
       qwenChatTemplate = "${qwenModelDir}/chat_template.jinja";
       qwenService = "qwen3-8-27b.service";
+      qwenSudo = "/run/wrappers/bin/sudo";
       qwenEnsureModel = pkgs.writeShellScript "qwen-ensure-model" ''
         set -eu
         if [ ! -e ${escapeShellArg qwenModel} ] && [ ! -L ${escapeShellArg qwenModel} ]; then
@@ -198,7 +199,7 @@ with builtins;
       '';
       qwenModelControl = pkgs.writeShellApplication {
         name = "qwen-model";
-        runtimeInputs = with pkgs; [ coreutils curl sudo systemd ];
+        runtimeInputs = with pkgs; [ coreutils curl systemd ];
         text = ''
           service=${escapeShellArg qwenService}
           active=${escapeShellArg qwenModel}
@@ -248,7 +249,7 @@ with builtins;
           }
 
           restart_selected() {
-            sudo systemctl restart "$service"
+            ${qwenSudo} systemctl restart "$service"
             if ! wait_healthy; then
               systemctl status "$service" --no-pager >&2 || true
               return 1
@@ -270,7 +271,7 @@ with builtins;
               return 0
             fi
 
-            sudo -v
+            ${qwenSudo} -v
             atomic_link "$target"
             if restart_selected; then
               printf 'switched to %s\n' "$label"
@@ -294,12 +295,12 @@ with builtins;
             q4) select_model "$q4" q4 ;;
             q6) select_model "$q6" q6 ;;
             start)
-              sudo systemctl start "$service"
+              ${qwenSudo} systemctl start "$service"
               wait_healthy
               print_status
               ;;
             stop)
-              sudo systemctl stop "$service"
+              ${qwenSudo} systemctl stop "$service"
               print_status
               ;;
             restart)
