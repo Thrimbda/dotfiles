@@ -14,3 +14,5 @@
 - Re-ran verification against the latest baseline: Axiom, Acorn and Charlie evaluate; focused snapshots pass; Axiom dry-run plans 28 derivations; full flake check retains only the existing `apps.install` schema failure.
 - Rebased again onto `origin/master` at `7945b0bd` after the Qwen 128K update landed; preserved `--ctx-size 131072` and the new wiki current-truth while pruning the newly closed raw task.
 - Tightened verification commands to use the explicit `origin/master...HEAD` range so the committed branch delta, rather than only the worktree, proves scope invariants.
+- When `axiom-qwen38-q6-switcher` landed as an active task, the user chose to preserve that raw task until closeout rather than applying the closed-task prune rule to in-flight evidence.
+- Rebased onto `origin/master` at `dc87546e`; moved the Q4/Q6 selection link, bounded `qwen-model` controller and service preflight into `hosts/axiom/modules/qwen.nix` while preserving 128K context and system package order.

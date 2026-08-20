@@ -8,10 +8,10 @@
   imports = [
     ./modules/acorn.nix
     ./modules/rustdesk.nix
+    ./modules/qwen.nix
     ./modules/autossh.nix
     ./modules/caelestia.nix
     ./modules/cloudflare.nix
-    ./modules/qwen.nix
     ./modules/workstation.nix
   ];
 

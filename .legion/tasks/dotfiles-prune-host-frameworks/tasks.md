@@ -2,7 +2,7 @@
 
 ## Phase 1 - Contract and Design
 
-- [x] 确认旧 task 全删，仅保留本次新 task
+- [x] 确认 closed task 全删，保留本次任务与 active Qwen task
 - [x] 物化任务契约
 - [x] 产出最小 RFC
 - [x] 完成 RFC review
@@ -10,7 +10,7 @@
 ## Phase 2 - Isolated Implementation
 
 - [x] 进入 git-worktree-pr envelope
-- [x] 删除旧 `.legion/tasks/*`，保留本次 task 与 wiki
+- [x] 删除 closed `.legion/tasks/*`，保留本次 task、active Qwen task 与 wiki
 - [x] 删除根 `README.md`
 - [x] 产出一次性 package module inventory
 - [x] 抽取 Axiom/Acorn 的 Cloudflare、autossh、Caelestia 与跨主机 mechanics
