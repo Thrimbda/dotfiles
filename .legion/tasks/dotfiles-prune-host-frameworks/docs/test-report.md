@@ -9,13 +9,14 @@
 PASS:
 
 ```sh
+base=origin/master
 test "$(git ls-files '.legion/tasks/*/plan.md')" = '.legion/tasks/dotfiles-prune-host-frameworks/plan.md'
 test ! -e README.md
-test -z "$(git diff --name-only --diff-filter=D -- .legion/wiki)"
-test "$(git ls-files '.legion/wiki/**' | wc -l)" -eq 139
-git diff --check
-git diff --quiet -- flake.lock
-git diff --quiet -- 'hosts/*/secrets/**' 'config/secrets/**'
+test -z "$(git diff --name-only --diff-filter=D "$base"...HEAD -- .legion/wiki)"
+test "$(git ls-tree -r --name-only HEAD .legion/wiki | wc -l)" -eq 140
+git diff --check "$base"...HEAD
+git diff --quiet "$base"...HEAD -- flake.lock
+git diff --quiet "$base"...HEAD -- 'hosts/*/secrets/**' 'config/secrets/**'
 ```
 
 This proves that only the current raw task remains, the root README is gone, the wiki layer was not pruned, and neither the lock file nor encrypted secret inventory changed.
@@ -45,7 +46,7 @@ The Acorn candidate explicitly disables the shared Hypridle default for this ser
 
 ## Behavior Snapshots
 
-PASS: the candidate was compared with a detached `origin/master` worktree at `05ddebd8` using `diff -u` over focused `nix eval --json ... --apply` snapshots.
+PASS: the candidate was compared with a detached `origin/master` worktree at `7945b0bd` using `diff -u` over focused `nix eval --json ... --apply` snapshots.
 
 Axiom equal surfaces:
 
@@ -53,7 +54,7 @@ Axiom equal surfaces:
 - FRP proxies, direct-route ordering and gateway dependencies
 - all three Auth Mini Gateway environments and service hardening
 - cloudflared generated config and service policy
-- Qwen package pin, model paths, complete argument vector, loopback endpoint, condition paths and systemd policy
+- Qwen package pin, model paths, 128K argument vector, loopback endpoint, condition paths and systemd policy
 - Caelestia seed/mutable settings, session path and package-data behavior
 - audio, Clash, LAN firewall, user packages and system package ordering
 - RustDesk runtime/provisioning unit fields and host mapping

@@ -12,3 +12,5 @@
 - Rebased onto `origin/master` at `05ddebd8`; preserved the newly landed Qwen service in `hosts/axiom/modules/qwen.nix`, retained its wiki summary and pruned its closed raw task directory.
 - Focused comparison exposed package merge ordering introduced by the split. A private RustDesk package helper and manifest import ordering restore the exact Axiom user/system package order and Caelestia PATH semantics.
 - Re-ran verification against the latest baseline: Axiom, Acorn and Charlie evaluate; focused snapshots pass; Axiom dry-run plans 28 derivations; full flake check retains only the existing `apps.install` schema failure.
+- Rebased again onto `origin/master` at `7945b0bd` after the Qwen 128K update landed; preserved `--ctx-size 131072` and the new wiki current-truth while pruning the newly closed raw task.
+- Tightened verification commands to use the explicit `origin/master...HEAD` range so the committed branch delta, rather than only the worktree, proves scope invariants.
