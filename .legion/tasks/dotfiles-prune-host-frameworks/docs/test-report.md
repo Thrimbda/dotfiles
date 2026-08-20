@@ -39,11 +39,7 @@ env DOTFILES_HOME="$PWD" nix eval --impure --raw path:.#nixosConfigurations.acor
 env DOTFILES_HOME="$PWD" nix eval --impure --raw path:.#darwinConfigurations.charlie.system.drvPath
 ```
 
-Resulting derivations:
-
-- Axiom: `/nix/store/qv9i4w4ganvdkxs8wvb6vndv3ghsz4ys-nixos-system-axiom-26.05.7813.0dd31db7e6db.drv`
-- Acorn: `/nix/store/3vbsw0d51yqnrv0p9lxscl2bp4sd064p-nixos-system-acorn-26.05.7813.0dd31db7e6db.drv`
-- Charlie: `/nix/store/jmqhap297mwk2p217qx1ddinvlj0yrrw-darwin-system-26.05.c3e90c8.drv`
+All three commands returned concrete derivation paths. They are intentionally not copied here: this repository packages its Git source, so writing a path into this report changes the next source and derivation hashes recursively.
 
 The Acorn candidate explicitly disables the shared Hypridle default for this server. The unchanged baseline cannot evaluate its toplevel because that default trips the desktop umbrella assertion; the candidate fixes that pre-existing inert desktop configuration and otherwise preserves the evaluated server policy.
 
