@@ -44,6 +44,12 @@ Because `readOnlyPkgs` makes module `pkgs` config-provided rather than externall
 
 Validate warning-cleanup changes with a representative host toplevel evaluation and dry-run build. For this repository, `nix eval --impure --raw .#nixosConfigurations.axiom.config.system.build.toplevel.drvPath` plus `nix build --impure --dry-run .#nixosConfigurations.axiom.config.system.build.toplevel` directly exercises Hyprland, audio, agenix, and desktop platform paths without requiring a privileged switch.
 
+## Nix Warning Migration Pattern
+
+For host-scoped warning cleanup, distinguish repository-owned evaluation and system-path diagnostics from upstream package output and transient cache transport errors. Replace repository-owned sources with supported options or package names, retain application behavior, and avoid global warning suppression, cache removal, or blanket package-priority overrides.
+
+When a deprecated test hook must be replaced, model each required execution point as an explicit systemd fixture with observable ordering. A VM assertion must inspect the node that enables the fixture, not a sibling test node.
+
 ## Aliyun ECS Custom Image Deployment Pattern
 
 For NixOS QCOW2 images intended for Alibaba Cloud ECS custom-image import, validate the repository-owned image target before any cloud writes. At minimum, evaluate the image flake system, run a build dry-run, and prefer `nix build --no-link` for full artifact proof so no `result` symlink or QCOW2 artifact is accidentally added to the repository.

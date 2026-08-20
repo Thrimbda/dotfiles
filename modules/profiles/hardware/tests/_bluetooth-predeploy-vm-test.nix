@@ -518,10 +518,10 @@ pkgs.testers.runNixOSTest {
     rfroot = root + "/rfkill"
     system_address = "unix:path=" + root + "/system-bus"
     session_address = "unix:path=" + root + "/session-bus"
-    machine.wait_until_succeeds(
+    tlp.wait_until_succeeds(
         "test $(find " + root + " -maxdepth 1 -name 'post-boot-ran-*' | wc -l) -eq 1"
     )
-    boot_probe_id = machine.succeed(
+    boot_probe_id = tlp.succeed(
         "basename " + root + "/post-boot-ran-* | sed 's/^post-boot-ran-//'"
     ).strip()
     assert re.fullmatch(r"[0-9a-f]{32}", boot_probe_id) is not None

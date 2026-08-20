@@ -3,7 +3,7 @@
 ## 快速恢复
 
 **当前阶段**: 阶段 3 - Validation and delivery
-**当前检查项**: Rebuild Axiom, review the change, and deliver it through the PR lifecycle.
+**当前检查项**: Rebase the reviewed branch on the latest origin/master, revalidate the integrated tree, and complete PR delivery.
 **进度**: 2/3 任务完成
 ---
 
@@ -17,9 +17,11 @@
 - [x] Apply the smallest source-level deprecation and alias migrations. | 验收: All changed references use supported NixOS, Home Manager, and Nixpkgs forms.
 ---
 
-## 阶段 3: Validation and delivery ⏳ NOT STARTED
+## 阶段 3: Validation and delivery ⏳ IN PROGRESS
 
-- [ ] Rebuild Axiom, review the change, and deliver it through the PR lifecycle. | 验收: The exact build output is warning-free and all review and delivery evidence is complete. ← CURRENT
+- [x] Rebuild and validate Axiom. | 验收: The exact build output is warning-free, the Bluetooth VM regression passes, and shared Colemak consumers retain XKB and SSH askpass behavior.
+- [x] Complete independent change review. | 验收: `docs/review-change.md` records a PASS decision with no blocking findings.
+- [ ] Rebase, revalidate, and deliver through the PR lifecycle. | 验收: Walkthrough, wiki, PR, merge, cleanup, and main-worktree refresh evidence is complete. ← CURRENT
 ---
 
 ## 发现的新任务

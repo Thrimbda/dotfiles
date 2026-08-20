@@ -146,6 +146,10 @@ Under read-only pkgs, module `pkgs` is provided through configuration, so import
 
 When NixOS uses a prebuilt pkgs set, local modules should not set `nixpkgs.overlays` or `nixpkgs.config`. Put durable package-set customization in the flake's package construction path instead, or keep it explicitly Darwin-only if it is only intended for nix-darwin.
 
+## Linux System Documentation
+
+Linux system Info documentation defaults to disabled. This is an explicit repository policy that avoids the deterministic upstream Gawk Info-direntry warning; a host may override `documentation.info.enable` when Info pages are required. Do not alter cache settings or globally suppress diagnostics to hide transport or upstream build output.
+
 ## Reverse SSH Tunnels
 
 Current autossh reverse tunnels to `8.159.128.125` bind remote loopback explicitly and forward back to each host's local SSH daemon on `127.0.0.1:22`. For Axiom, the remote host is mutable/reinstallable, but the system service pins the current remote ED25519 key in a service-specific known-hosts file and sets `UserKnownHostsFile=/dev/null` so strict host-key checking does not depend on stale user-level known-hosts state or global `/etc/ssh/ssh_known_hosts` state. Keep endpoint identity checks focused on proving the reverse port reaches the expected local host key.

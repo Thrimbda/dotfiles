@@ -10,12 +10,12 @@ The Axiom system build emits deprecated Home Manager defaults, renamed packages 
 
 ## 验收标准
 
-- [ ] nixos-rebuild build --flake .#axiom succeeds with no evaluation warnings from the supplied baseline.
-- [ ] GTK4 uses the explicitly selected null theme default while GTK3 Thunar styling, GTK icon/cursor configuration, and dark preference remain intact.
-- [ ] Every package and option warning is migrated to its supported equivalent without global warning suppression.
-- [ ] The flake only evaluates platforms that remain intentionally supported, and no existing host loses support unintentionally.
-- [ ] The generated system path has no repository-owned binary or data-path collision warnings.
-- [ ] Linux system Info documentation is disabled by explicit user choice, so the Gawk Info direntry warning is absent.
+- [x] nixos-rebuild build --flake .#axiom succeeds with no evaluation warnings from the supplied baseline.
+- [x] GTK4 uses the explicitly selected null theme default while GTK3 Thunar styling, GTK icon/cursor configuration, and dark preference remain intact.
+- [x] Every package and option warning is migrated to its supported equivalent without global warning suppression.
+- [x] The flake only evaluates platforms that remain intentionally supported, and no existing host loses support unintentionally.
+- [x] The generated system path has no repository-owned binary or data-path collision warnings.
+- [x] Linux system Info documentation is disabled by explicit user choice, so the Gawk Info direntry warning is absent.
 
 ## 假设 / 约束 / 风险
 
