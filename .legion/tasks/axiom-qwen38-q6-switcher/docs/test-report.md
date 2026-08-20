@@ -36,3 +36,7 @@ Passed. Size and SHA-256 match the Hugging Face LFS metadata.
 - Confirm the default selection is Q6 and it loads at 128K with MTP and full CUDA offload.
 - Record Q6 GPU usage/headroom and run health, chat, reasoning, and OpenCode tool-call checks.
 - Exercise status, stop, start, restart, Q6-to-Q4, and Q4-to-Q6 paths.
+
+## Runtime Correction
+
+The first post-merge `qwen-model q4` attempt exposed that adding `pkgs.sudo` to `runtimeInputs` selected the non-setuid Nix store binary. The command failed safely before changing `active.gguf`. The implementation now removes store sudo and invokes the NixOS setuid wrapper at `/run/wrappers/bin/sudo`; the corrected complete closure and ShellCheck pass. Lifecycle/switch verification remains pending activation of this hotfix.
