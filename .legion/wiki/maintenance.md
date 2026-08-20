@@ -124,6 +124,10 @@
 
 - `modules/desktop/hyprland.nix` still contains broader Axiom-flavored desktop policy. Split a future desktop/keybinding cleanup if those rules should become host-owned facts or generic module options; do not mix that larger desktop rewrite into service/host modularization tasks.
 
+## Axiom Local LLM Follow-Up
+
+- After merging `axiom-qwen38-128k-context`, switch Axiom from refreshed `origin/master`. Confirm the persistent service reports a 131072-token slot, MTP remains active, health/chat/restart recovery pass, and RTX 5090 memory retains safe headroom. Then set the global OpenCode model context to 131072 and verify text plus tool-call requests.
+
 ## Cloudflare Credentials Follow-Up
 
 - Rotate the Cloudflare API token stored in `hosts/charlie/secrets/cloudflare-api-token.age`, because the pre-existing token appeared in earlier tool output before being moved into age management. The user explicitly declined rotation during `axiom-charlie-opencode-access-google-oidc`; keep this as a separate accepted maintenance risk, not as a blocker for the already verified Access app/policy state.

@@ -1,5 +1,6 @@
 # Wiki Log
 
+- Added active task summary and post-merge runtime follow-up for `axiom-qwen38-128k-context`.
 - Marked `axiom-qwen38-uncensored-deployment` completed after merged activation and persistent service verification.
 - Added active task summary and post-merge activation follow-up for `axiom-qwen38-uncensored-deployment`.
 - Added active task summary and deployment follow-up for `axiom-rustdesk-fixed-dp4-capture`.

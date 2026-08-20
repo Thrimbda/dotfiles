@@ -187,7 +187,7 @@ with builtins;
         "--host" "127.0.0.1"
         "--port" "8081"
         "--no-ui"
-        "--ctx-size" "65536"
+        "--ctx-size" "131072"
         "--n-gpu-layers" "all"
         "--flash-attn" "on"
         "--parallel" "1"
