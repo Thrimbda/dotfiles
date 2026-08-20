@@ -151,7 +151,10 @@ in {
           configLocation = "${config.user.home}/.config/gtk-2.0/gtkrc";
         };
         gtk3.extraConfig.gtk-application-prefer-dark-theme = true;
-        gtk4.extraConfig.gtk-application-prefer-dark-theme = true;
+        gtk4 = {
+          theme = null;
+          extraConfig.gtk-application-prefer-dark-theme = true;
+        };
       };
 
       environment.sessionVariables.GTK2_RC_FILES = [ "$HOME/.config/gtk-2.0/gtkrc" ];

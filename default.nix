@@ -35,6 +35,7 @@ in
     # Doc outputs are rarely wanted and can break builds when uncached (e.g.
     # python docs failing to build from sphinx on some nixpkgs revs).
     documentation.doc.enable = mkIf (!isDarwin) (mkDefault false);
+    documentation.info.enable = mkIf (!isDarwin) (mkDefault false);
 
     assertions = [{
       assertion = config.user ? name;
@@ -88,13 +89,13 @@ in
       # from https://github.com/NixOS/nixpkgs/blob/nixos-23.05/pkgs/games/steam/fhsenv.nix#L124-L136
       fontconfig
       freetype
-      xorg.libXt
-      xorg.libXmu
+      libXt
+      libXmu
       libogg
       libvorbis
       SDL
       SDL2_image
-      glew110
+      glew_1_10
       libdrm
       libidn
       tbb

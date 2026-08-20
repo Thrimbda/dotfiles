@@ -131,7 +131,7 @@ in {
     modules.xdg.ssh.enable = true;
 
     # See systemd/systemd#10579
-    services.resolved.dnssec = "false";
+    services.resolved.settings.Resolve.DNSSEC = "false";
     }
 
     (mkIf cfg.logrotate.disableConfigCheck {

@@ -48,7 +48,6 @@ in {
 
     environment.systemPackages = with pkgs; [
       unstable.umu-launcher
-      gamescope
       # Stop Steam from polluting $HOME, and fix symlink/filename issues for a
       # Steam library that lives on an NTFS drive.
       (let pkg = config.programs.steam.package;
@@ -74,7 +73,7 @@ in {
                fi
              fi
            '';
-        in mkWrapper [
+        in lib.hiPrio (mkWrapper [
           pkg
           pkg.run   # for GOG and humble bundle games
         ] ''
@@ -83,7 +82,7 @@ in {
             --run 'export HOME="$XDG_FAKE_HOME"' \
             --run '${libFix}/bin/libfix'
           wrapProgram "$out/bin/steam-run" --run 'export HOME="$XDG_FAKE_HOME"'
-        '')
+        ''))
     ] ++ (if cfg.mangohud.enable then [ pkgs.mangohud ] else []);
 
     # Better for steam proton games

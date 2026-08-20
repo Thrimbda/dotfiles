@@ -150,6 +150,12 @@ let
       done
     fi
   '';
+  postBootProbe = pkgs.writeShellScript "vm-post-boot-probe" ''
+    set -eu
+    root=/run/bluetooth-predeploy
+    printf 'post-boot-fixture phase=triggered\n'
+    : > "$root/post-boot-ran-''${INVOCATION_ID:?}"
+  '';
   stopPost = pkgs.writeShellScript "vm-systemd-rfkill-stop-post" ''
     set -u
     root=/run/bluetooth-predeploy/rfkill
@@ -293,7 +299,7 @@ pkgs.testers.runNixOSTest {
     systemd.services.vm-xvfb = {
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.xorg.xorgserver}/bin/Xvfb :99 -ac -screen 0 1024x768x24 -nolisten tcp";
+        ExecStart = "${pkgs.xorg-server}/bin/Xvfb :99 -ac -screen 0 1024x768x24 -nolisten tcp";
         Restart = "on-failure";
       };
     };
@@ -346,7 +352,7 @@ pkgs.testers.runNixOSTest {
           pkgs.pango
           pkgs.atk
           pkgs.cairo
-          pkgs.xorg.libX11
+          pkgs.libx11
         ];
         NO_AT_BRIDGE = "1";
       };
@@ -465,11 +471,25 @@ pkgs.testers.runNixOSTest {
 
     services.udev.extraRules = tlpProjection.udevRule;
     powerManagement.resumeCommands = tlpProjection.resumeCommands;
-    # Runs after the production resume command and only keeps the real
-    # post-resume invocation observable to the test driver.
-    powerManagement.powerUpCommands = "${postResumeProbe}";
-    # 26.05: resumeCommands/powerUpCommands live in sleep-actions.preStop,
-    # which must not race `tlp resume`. Mirror the production ordering edge
+    systemd.services.bluetooth-post-boot-probe = {
+      wantedBy = [ "multi-user.target" ];
+      script = "${postBootProbe}";
+      serviceConfig.Type = "oneshot";
+    };
+    # Start before sleep and observe resume only after both production resume
+    # actions have stopped. This replaces the deprecated dual-purpose hook.
+    systemd.services.bluetooth-post-resume-probe = {
+      wantedBy = [ "sleep.target" ];
+      before = [ "sleep.target" "sleep-actions.service" "tlp-sleep.service" ];
+      unitConfig.StopWhenUnneeded = true;
+      preStop = "${postResumeProbe}";
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+    };
+    # 26.05: resumeCommands live in sleep-actions.preStop, which must not
+    # race `tlp resume`. Mirror the production ordering edge
     # and bind tlp-sleep's stop to sleep.target (StopWhenUnneeded alone does
     # not deterministically stop it, cf. nixpkgs#507185).
     systemd.services.sleep-actions.after = [ "tlp-sleep.service" ];
@@ -498,6 +518,13 @@ pkgs.testers.runNixOSTest {
     rfroot = root + "/rfkill"
     system_address = "unix:path=" + root + "/system-bus"
     session_address = "unix:path=" + root + "/session-bus"
+    machine.wait_until_succeeds(
+        "test $(find " + root + " -maxdepth 1 -name 'post-boot-ran-*' | wc -l) -eq 1"
+    )
+    boot_probe_id = machine.succeed(
+        "basename " + root + "/post-boot-ran-* | sed 's/^post-boot-ran-//'"
+    ).strip()
+    assert re.fullmatch(r"[0-9a-f]{32}", boot_probe_id) is not None
 
     def userctl(command):
         return machine.succeed(
@@ -929,24 +956,31 @@ pkgs.testers.runNixOSTest {
     )
     assert udev_rule.count("bluetooth-rfkill-unblock@%k.service") == 1
 
-    post_resume_unit = tlp.succeed("systemctl cat sleep-actions.service")
     resume_command = "${pkgs.systemd}/bin/systemctl --no-block restart bluetooth-rfkill-unblock.service"
-    post_resume_exec = tlp_show("sleep-actions.service", ["ExecStop"])
+    sleep_actions_exec = tlp_show("sleep-actions.service", ["ExecStop"])
+    sleep_actions_path_match = re.search(r"path=([^ ;]+)", sleep_actions_exec)
+    assert sleep_actions_path_match is not None
+    sleep_actions_script = tlp.succeed("cat " + sleep_actions_path_match.group(1))
+    assert sleep_actions_script.count(resume_command) == 1
+    post_resume_unit = tlp.succeed("systemctl cat bluetooth-post-resume-probe.service")
+    post_resume_exec = tlp_show("bluetooth-post-resume-probe.service", ["ExecStop"])
     post_resume_path_match = re.search(r"path=([^ ;]+)", post_resume_exec)
     assert post_resume_path_match is not None
     post_resume_script = tlp.succeed("cat " + post_resume_path_match.group(1))
-    assert post_resume_script.count(resume_command) == 1
-    assert post_resume_script.index(resume_command) < post_resume_script.index("${postResumeProbe}")
+    assert post_resume_script.count("${postResumeProbe}") == 1
+    post_resume_before = tlp_show("bluetooth-post-resume-probe.service", ["Before"])
+    for unit in ("sleep.target", "sleep-actions.service", "tlp-sleep.service"):
+        assert unit in post_resume_before
     sleep_actions_after = tlp_show("sleep-actions.service", ["After"])
     assert "tlp-sleep.service" in sleep_actions_after
     tlp_sleep_partof = tlp_show("tlp-sleep.service", ["PartOf"])
     assert "sleep.target" in tlp_sleep_partof
-    boot_unit = tlp.succeed("systemctl cat post-boot.service")
-    boot_exec = tlp_show("post-boot.service", ["ExecStart"])
+    boot_unit = tlp.succeed("systemctl cat bluetooth-post-boot-probe.service")
+    boot_exec = tlp_show("bluetooth-post-boot-probe.service", ["ExecStart"])
     boot_path_match = re.search(r"path=([^ ;]+)", boot_exec)
     assert boot_path_match is not None
     boot_script = tlp.succeed("cat " + boot_path_match.group(1))
-    assert boot_script.count("${postResumeProbe}") == 1
+    assert boot_script.count("${postBootProbe}") == 1
     assert boot_script.count(resume_command) == 0
     tlp_sleep_unit = tlp.succeed("systemctl cat tlp-sleep.service")
     assert "ExecStop=${fakeTlpPackage}/sbin/tlp resume" in tlp_sleep_unit
@@ -1250,7 +1284,7 @@ pkgs.testers.runNixOSTest {
     def run_resume_variant(mode, expected_tlp_result, phase, previous_helper):
         tlp.succeed(
             "systemctl reset-failed bluetooth-rfkill-unblock.service; "
-            "for unit in tlp-sleep.service systemd-suspend.service sleep-actions.service "
+            "for unit in tlp-sleep.service systemd-suspend.service sleep-actions.service bluetooth-post-resume-probe.service "
             "suspend.target sleep.target; do "
             "systemctl reset-failed $unit 2>/dev/null || :; done; "
             "rm -f " + tlp_root + "/post-resume-held-* " + tlp_root + "/release-post-resume; "
@@ -1277,7 +1311,7 @@ pkgs.testers.runNixOSTest {
         ).strip()
         assert re.fullmatch(r"[0-9a-f]{32}", post_id) is not None
         post_show = tlp_show(
-            "sleep-actions.service",
+            "bluetooth-post-resume-probe.service",
             [
                 "Result",
                 "ActiveState",
@@ -1297,7 +1331,7 @@ pkgs.testers.runNixOSTest {
         )
         probe_timestamp = journal_timestamp(
             "post-resume-fixture phase=trigger-held",
-            "sleep-actions.service",
+            "bluetooth-post-resume-probe.service",
             post_id,
         )
         assert resume_end < helper_start, (resume_end, helper_start)
@@ -1306,7 +1340,7 @@ pkgs.testers.runNixOSTest {
         tlp.succeed("touch " + tlp_root + "/release-post-resume")
         tlp.wait_until_succeeds(
             "test \"$(systemctl show -P ActiveState suspend.target)\" = inactive "
-            "&& test \"$(systemctl show -P ActiveState sleep-actions.service)\" = inactive"
+            "&& test \"$(systemctl show -P ActiveState bluetooth-post-resume-probe.service)\" = inactive"
         )
         tlp.succeed(
             "rm -f " + tlp_root + "/hold-post-resume "

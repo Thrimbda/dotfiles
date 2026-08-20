@@ -94,61 +94,58 @@ in {
 
         services.dbus.implementation = "broker";
         services.xserver.displayManager.lightdm.extraConfig = "user-authority-in-system-dir = true\n";
-        services.displayManager.environment.XAUTHORITY = "$XDG_RUNTIME_DIR/xauthority";
-        services.displayManager.environment.XCOMPOSECACHE =
+        services.displayManager.generic.environment.XAUTHORITY = "$XDG_RUNTIME_DIR/xauthority";
+        services.displayManager.generic.environment.XCOMPOSECACHE =
           config.environment.sessionVariables.XCOMPOSECACHE;
       }
 
       (let
          keyFiles = [ "id_ed25519" "id_ed25519_sk" "id_ecdsa" "id_ecdsa_sk" "id_rsa" "id_dsa" ];
          keyFilesStr = concatStringsSep " " keyFiles;
-         sshConfigDir = "$XDG_CONFIG_HOME/ssh";
-        in mkIf cfg.ssh.enable {
-          programs.ssh.extraConfig = ''
-            Host *
-              IdentityFile ~/.ssh/id_ed25519
-              ${concatMapStringsSep "\n" (key: "IdentityFile ~/.config/ssh/${key}") keyFiles}
-              AddKeysToAgent yes
-              UserKnownHostsFile ~/.config/ssh/known_hosts
-          '';
-
-          environment.systemPackages = with pkgs; with hey.lib.pkgs; [
-            # Remote hosts often lack Foot's terminfo; keep SSH ptys portable.
-            (mkWrapper openssh ''
-              wrapProgram "$out/bin/ssh" \
-                --set TERM xterm-256color \
-                --run 'dir="$XDG_CONFIG_HOME/ssh"' \
-                --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
-                --run 'cfg="$dir/config"' \
-                --run 'opts=()' \
-                --run '[ -s "$cfg" ] && opts=(-F "$cfg")' \
-                --add-flags '"''${opts[@]}"'
-              wrapProgram "$out/bin/scp" \
-                --run 'dir="$XDG_CONFIG_HOME/ssh"' \
-                --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
-                --run 'cfg="$dir/config"' \
-                --run 'opts=()' \
-                --run '[ -s "$cfg" ] && opts=(-F "$cfg")' \
-                --add-flags '"''${opts[@]}"'
-               wrapProgram "$out/bin/ssh-add" \
-                 --run 'dir="$XDG_CONFIG_HOME/ssh"' \
-                 --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
-                 --run 'args=()' \
-                 --run '[ $# -eq 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && args+=("$HOME/.ssh/id_ed25519")' \
-                 --run '[ $# -eq 0 ] && for f in ${keyFilesStr}; do [ -f "$dir/$f" ] && args+=("$dir/$f"); done' \
-                --add-flags '-H "$dir/known_hosts"' \
-                --add-flags '-H "/etc/ssh/ssh_known_hosts"' \
-                --add-flags '"''${args[@]}"'
-            '')
-            (mkWrapper ssh-copy-id ''
-              wrapProgram "$out/bin/ssh-copy-id" \
-                --run 'dir="$XDG_CONFIG_HOME/ssh"' \
-                --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
-                --run 'opts=(); for f in ${keyFilesStr}; do [ -f "$dir/$f" ] && opts+="-i '$dir/$f'"; done' \
-                --append-flags '"''${opts[@]}"'
-            '')
-         ];
-       })
+         wrappedOpenSsh = hey.lib.pkgs.mkWrapper pkgs.openssh ''
+           # Remote hosts often lack Foot's terminfo; keep SSH ptys portable.
+           wrapProgram "$out/bin/ssh" \
+             --set TERM xterm-256color \
+             --run 'dir="$XDG_CONFIG_HOME/ssh"' \
+             --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
+             --run 'cfg="$dir/config"' \
+             --run 'opts=()' \
+             --run '[ -s "$cfg" ] && opts=(-F "$cfg")' \
+             --add-flags '"''${opts[@]}"'
+           wrapProgram "$out/bin/scp" \
+             --run 'dir="$XDG_CONFIG_HOME/ssh"' \
+             --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
+             --run 'cfg="$dir/config"' \
+             --run 'opts=()' \
+             --run '[ -s "$cfg" ] && opts=(-F "$cfg")' \
+             --add-flags '"''${opts[@]}"'
+           wrapProgram "$out/bin/ssh-add" \
+             --run 'dir="$XDG_CONFIG_HOME/ssh"' \
+             --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
+             --run 'args=()' \
+             --run '[ $# -eq 0 ] && [ -f "$HOME/.ssh/id_ed25519" ] && args+=("$HOME/.ssh/id_ed25519")' \
+             --run '[ $# -eq 0 ] && for f in ${keyFilesStr}; do [ -f "$dir/$f" ] && args+=("$dir/$f"); done' \
+             --add-flags '-H "$dir/known_hosts"' \
+             --add-flags '-H "/etc/ssh/ssh_known_hosts"' \
+             --add-flags '"''${args[@]}"'
+           wrapProgram "$out/bin/ssh-copy-id" \
+             --run 'dir="$XDG_CONFIG_HOME/ssh"' \
+             --run '[ -n "$XDG_CONFIG_HOME" ] || dir="$HOME/.config/ssh"' \
+             --run 'opts=(); for f in ${keyFilesStr}; do [ -f "$dir/$f" ] && opts+=("-i" "$dir/$f"); done' \
+             --append-flags '"''${opts[@]}"'
+         '';
+         in mkIf cfg.ssh.enable {
+           programs.ssh = {
+             package = wrappedOpenSsh;
+             extraConfig = ''
+               Host *
+                 IdentityFile ~/.ssh/id_ed25519
+                 ${concatMapStringsSep "\n" (key: "IdentityFile ~/.config/ssh/${key}") keyFiles}
+                 AddKeysToAgent yes
+                 UserKnownHostsFile ~/.config/ssh/known_hosts
+             '';
+           };
+         })
     ] else {})
 
     (mkIf (isDarwin) (mkMerge [
