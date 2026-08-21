@@ -34,24 +34,46 @@ let cfg = config.modules.desktop.caelestia;
       sans = "Rubik";
     };
     caelestiaBluetoothPolicy = ./caelestia-bluetooth-policy.js;
-    caelestiaLockDpmsPatch = ./caelestia-lock-dpms-timeout.patch;
+    caelestiaLockDpmsConfigPatch = ./caelestia-lock-dpms-config.patch;
+    caelestiaLockDpmsShellPatch = ./caelestia-lock-dpms-shell.patch;
     upstreamShellPackage =
       if isLinux
       then hey.inputs.caelestia-shell.packages.${system}.with-cli
       else pkgs.runCommand "caelestia-shell-unavailable" {} "mkdir -p $out";
+    upstreamCaelestiaPlugin = upstreamShellPackage.plugin;
+    patchedCaelestiaPlugin =
+      if isLinux then upstreamCaelestiaPlugin.overrideAttrs (old: {
+        patches = (old.patches or []) ++ [ caelestiaLockDpmsConfigPatch ];
+      }) else null;
     defaultShellPackage =
-      if isLinux then upstreamShellPackage.overrideAttrs (old: {
-        patches = (old.patches or []) ++ [
-          ./caelestia-bluetooth-primary.patch
-          caelestiaLockDpmsPatch
-        ];
-        postPatch = (old.postPatch or "") + ''
-          install -m 0644 ${caelestiaBluetoothPolicy} modules/bar/popouts/BluetoothPolicy.js
-        '';
-        postInstall = (old.postInstall or "") + ''
-          cmp ${caelestiaBluetoothPolicy} "$out/share/caelestia-shell/modules/bar/popouts/BluetoothPolicy.js"
-        '';
-      }) else upstreamShellPackage;
+      if isLinux then upstreamShellPackage.overrideAttrs (old:
+        let
+          originalPluginMatches = builtins.filter (input:
+            builtins.toString input == builtins.toString upstreamCaelestiaPlugin
+          ) old.buildInputs;
+        in
+        assert builtins.length originalPluginMatches == 1;
+        {
+          patches = (old.patches or []) ++ [
+            ./caelestia-bluetooth-primary.patch
+            caelestiaLockDpmsShellPatch
+          ];
+          buildInputs = builtins.map (input:
+            if builtins.toString input == builtins.toString upstreamCaelestiaPlugin
+            then patchedCaelestiaPlugin
+            else input
+          ) old.buildInputs;
+          passthru = (old.passthru or {}) // {
+            plugin = patchedCaelestiaPlugin;
+          };
+          postPatch = (old.postPatch or "") + ''
+            install -m 0644 ${caelestiaBluetoothPolicy} modules/bar/popouts/BluetoothPolicy.js
+          '';
+          postInstall = (old.postInstall or "") + ''
+            cmp ${caelestiaBluetoothPolicy} "$out/share/caelestia-shell/modules/bar/popouts/BluetoothPolicy.js"
+          '';
+        }
+      ) else upstreamShellPackage;
     caelestiaBluetoothPolicyTest = pkgs.runCommand "caelestia-bluetooth-policy-test" {
       nativeBuildInputs = [ pkgs.nodejs pkgs.diffutils pkgs.gnugrep ];
     } ''
@@ -72,8 +94,11 @@ let cfg = config.modules.desktop.caelestia;
       source="$TMPDIR/caelestia-shell"
       cp -R ${hey.inputs.caelestia-shell} "$source"
       chmod -R u+w "$source"
-      patch --batch --fuzz=0 -p1 -d "$source" < ${caelestiaLockDpmsPatch}
-      node ${./tests/caelestia-lock-dpms-patch-test.js} "$source"
+      patch --batch --fuzz=0 -p1 -d "$source" < ${caelestiaLockDpmsConfigPatch}
+      patch --batch --fuzz=0 -p1 -d "$source" < ${caelestiaLockDpmsShellPatch}
+      node ${./tests/caelestia-lock-dpms-patch-test.js} \
+        "$source" \
+        ${patchedCaelestiaPlugin}/lib/qt-6/qml/Caelestia/Config/caelestia-config.qmltypes
       mkdir -p "$out"
       touch "$out/passed"
     '';
