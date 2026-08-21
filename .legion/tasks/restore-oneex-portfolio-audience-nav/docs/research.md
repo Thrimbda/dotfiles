@@ -43,10 +43,15 @@
 
 ## Remaining Verification
 
-- [ ] Confirm the current closure activates and its running binary contains `redirect_uri`.
-- [ ] Confirm the Custom Account Source returns positions successfully after rollout.
-- [ ] Confirm an immediate Fund sample succeeds before issuing the initial owner units.
-- [ ] Confirm the rebuilt adapter executable has a fresh store path rather than the missing prior output.
+- [x] The merged Acorn deployment activated a fresh `audience-rebuild1` adapter output.
+- [x] The Custom Account Source returned HTTP `200` with six positions and no self-Fund row.
+- [x] The pre-write sample was positive and fully priced; one owner profile plus one initial cash-flow event were created.
+- [x] The post-write sample initially returned `502`; after source recovery and explicit user approval, one corrective sample restored `total_assets / total_share = unit_price`.
+
+## Outcome
+
+- The earlier missing-store-path residual was not a source-code dependency. The user command had run from a main worktree that predated merged PR #184. Refreshing that worktree to `af799348` selected the fresh output and allowed the prescribed deployment to complete.
+- `My Portfolio` now has one active owner investor and positive units. Its latest corrected equity, total assets, and total shares are all `28977.0677876943`; its unit price is `1.0` at that baseline and will move with future enabled Fund samples.
 
 ## References
 

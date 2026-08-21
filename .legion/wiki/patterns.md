@@ -106,6 +106,12 @@ When a private Rust adapter must be built by a pure Nix flake, track a source sn
 
 For a personal 1Ex portfolio projection, preflight the Custom Account Source list, readable Funds, and an already configured adapter exclusion ID. If that ID is unused, reuse it as the private Trading Fund ID instead of re-encrypting and redeploying an otherwise unchanged environment. Register the source with the runtime-derived bearer, prove unified discovery returns the adapter AccountID, sample the Fund while it is disabled if a safer first-read boundary is needed, then enable it only after USD pricing and direct self-exclusion are verified. Treat independent direct and unified reads as separate live snapshots: stable product and position IDs prove mapping, while Fund sampling proves pricing completeness.
 
+## 1Ex Adapter Audience Recovery
+
+When a live 1Ex Custom Account Source fails after device authentication, inspect the audience minted by the live request rather than assuming the tracked vendor snapshot matches the active binary. The request must send `redirect_uri` equal to the 1Exchange base URL so its token audience is `1ex.ntnl.io`. If the tracked source is already correct but the Axiom Nix database references a missing old adapter output, do not alter credentials, authentication policy, or source registration: change only the package version/output identity, merge it, and run the mandated Axiom-to-Acorn switch from refreshed `origin/master`.
+
+Prove recovery with the active service/output path, a `200` source read with complete positions, and absence of the self-Fund row. For a one-time owner baseline, require a same-run fully priced pre-write sample, create exactly one investor/cash-flow event, and stop on a failed post-write sample. Any corrective sample requires explicit approval and must not create another investor, cash flow, or share issuance.
+
 For healthchecks, prefer typed predicates over host-owned shell bodies when the predicate shape is reusable. Current reusable shapes are HTTP readiness, autossh endpoint-key comparison, and service-core/interface health. Keep raw `check` script support for genuinely one-off predicates, but do not use it as the default for common daemon checks.
 
 For permission policy moved out of hosts, default the module option to disabled and require explicit host enablement. Preserve fixed action allowlists and local subject/user checks; do not turn a host-local polkit rule into group membership, prefix grants, sudo wrappers, or broader default module behavior.
