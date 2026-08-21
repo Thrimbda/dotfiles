@@ -309,3 +309,4 @@
 - Added the required post-deployment monitor reconcile smoke to Axiom maintenance; the source task did not activate the new generation.
 - Added `repair-oneex-portfolio-zero-investors` summary and corrected current My Portfolio truth to a private zero-investor NAV-only Fund.
 - Updated 1Ex maintenance and repair patterns with exact event deletion, read-only retry, and no-op-upsert boundaries.
+- Marked `repair-oneex-portfolio-zero-investors` completed after documentation closeout PR #192 merged.

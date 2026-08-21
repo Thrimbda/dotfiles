@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `repair-oneex-portfolio-zero-investors`
-- `status`: `in_progress`
+- `status`: `completed`
 - `risk`: `high`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -48,9 +48,9 @@
 
 ## Notes
 
-- The production repair is complete; repository closeout remains pending until
-  its PR is merged, the task checklist is finalized, and the worktree lifecycle
-  is complete.
+- Documentation closeout PR [#192](https://github.com/Thrimbda/dotfiles/pull/192)
+  merged after GitHub reported no required checks or pending review decision.
+  The terminal task-state record completes the remaining repository lifecycle.
 - The public Fund detail may need a normal browser refresh to fetch the repaired
   server projection. Runtime credentials, bearer values, seed material, and
   source headers were not recorded.

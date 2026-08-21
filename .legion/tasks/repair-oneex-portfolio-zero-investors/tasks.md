@@ -2,9 +2,9 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 4 - Verify and close
-**当前检查项**: Verify the repaired Fund, perform security/change review, publish walkthrough and wiki evidence, and complete PR lifecycle cleanup.
-**进度**: 3/4 任务完成
+**当前阶段**: 完成
+**当前检查项**: (无)
+**进度**: 4/4 任务完成
 ---
 
 ## 阶段 1: Design and review ✅ COMPLETE
@@ -22,9 +22,9 @@
 - [x] Delete only the approved initial cash-flow and owner-profile events, preserve Fund configuration with subscriptions closed, and take one fresh sample. | 验收: The event stream stays reducible, no new accounting event is created, and the Fund has one-source assets with no investor or share.
 ---
 
-## 阶段 4: Verify and close ⏳ IN PROGRESS
+## 阶段 4: Verify and close ✅ COMPLETE
 
-- [ ] Verify the repaired Fund, perform security/change review, publish walkthrough and wiki evidence, and complete PR lifecycle cleanup. | 验收: Evidence proves zero investors, zero shares, closed subscriptions, single-count assets, terminal PR state, worktree removal, and refreshed main baseline. ← CURRENT
+- [x] Verify the repaired Fund, perform security/change review, publish walkthrough and wiki evidence, and complete PR lifecycle cleanup. | 验收: Evidence proves zero investors, zero shares, closed subscriptions, single-count assets, terminal PR state, worktree removal, and refreshed main baseline.
 ---
 
 ## 发现的新任务
@@ -32,4 +32,4 @@
 (暂无)
 ---
 
-*最后更新: 2026-08-21 15:30*
+*最后更新: 2026-08-21 15:41*
