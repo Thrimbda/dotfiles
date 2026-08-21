@@ -11,7 +11,7 @@ Validate that the monitor hotplug reconciler renders a Lua-compatible `hl.monito
 | Nix evaluation | `nix eval --raw --option eval-cache false .#nixosConfigurations.axiom.config.system.build.toplevel.drvPath` | PASS | Produced `/nix/store/11n5mn1lgz56y05hf14dyiassbdjcj1d-nixos-system-axiom-26.05.7813.0dd31db7e6db.drv`. |
 | Lua expression generation | Exact command below | PASS | Produced `hl.monitor({ output = "DP-4", mode = "3840x2160@240", position = "0x0", scale = 1.5 })`. |
 | Lua syntax | Generated expression piped to `/nix/store/ghb3xqzqs015c1y15bvnaiwzs3vkaw1z-lua-5.2.4/bin/luac -p -` | PASS | Exit status 0. Host `luac` was absent, so the evaluated Nix Lua package supplied the parser. |
-| Full Axiom closure | `nix build --no-link --print-out-paths --option eval-cache false .#nixosConfigurations.axiom.config.system.build.toplevel -L` | PASS | Produced `/nix/store/k4y537wjdnrpmd7kpr2ps43rkrc0yljq-nixos-system-axiom-26.05.7813.0dd31db7e6db`. |
+| Full Axiom closure on final rebased base | `nix build --no-link --print-out-paths --option eval-cache false .#nixosConfigurations.axiom.config.system.build.toplevel -L` | PASS | After rebase onto `origin/master` `ed6a0e04`, produced `/nix/store/3rhcwjc4l2bq1gw0rkf8kkp92d1kk6fm-nixos-system-axiom-26.05.7813.0dd31db7e6db`. |
 | Generated helper inspection | Read `/nix/store/ihhzcdm6xxq4n2rbsx93b1y4lwmzqk10-hyprland-reconcile-monitors/bin/hyprland-reconcile-monitors` | PASS | The helper emits `hl.monitor(...)` at line 72 and calls `hyprctl eval` at line 83; no `keyword monitor` call remains. |
 | Patch hygiene | `git diff --check` | PASS | No whitespace errors. |
 
@@ -40,3 +40,5 @@ No `nixos-rebuild switch`, Hyprland restart, monitor power-cycle, or live `hyprc
 ## Failure Notes
 
 `luac` is not on the host PATH. This is an environment limitation, not a source failure; syntax validation used the Lua interpreter evaluated from the Axiom configuration.
+
+The final closure build retried one transient Cachix TLS download failure and then completed successfully. No source or evaluation failure occurred.
