@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-rustdesk-provision-recovery`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `high`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -14,13 +14,14 @@
 
 - Axiom's provisioner previously treated a valid current `attempt` as a
   permanent `attempt-used` failure after an interrupted run.
-- The candidate source safely clears a validated incomplete attempt and retries,
+- The deployed source safely clears a validated incomplete attempt and retries,
   while a valid current ready record exits successfully and retains the explicit
   remote-auth finalization boundary.
 - Axiom evaluation, a full no-link closure build, generated-script syntax, and
   generated-unit verification passed.
-- The current effective status is source-ready only: a merged privileged Axiom
-  switch must still prove that the live service no longer reports `attempt-used`.
+- PR #182 merged and the user-authorized Axiom switch ran the candidate script
+  at `2026-08-21 11:45:25 CST` with `0/SUCCESS`; its new journal invocation has
+  no `attempt-used` entry.
 
 ## Reusable Decisions
 
@@ -47,5 +48,5 @@
 
 - Do not manually finalize a pending ready record without a real remote-auth
   confirmation.
-- Keep the task active until a merged privileged Axiom switch records service
-  success and no new `attempt-used` failure.
+- Mutable state contents were not read or exposed; service success is the
+  recorded runtime acceptance signal.

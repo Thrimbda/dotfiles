@@ -10,10 +10,10 @@ The provisioner writes a revision-matched attempt marker before setting the pass
 
 ## 验收标准
 
-- [ ] A valid current attempt marker with no ready-to-finalize marker is safely cleared and provisioning retries on a later activation.
-- [ ] A valid current attempt marker paired with a valid current ready-to-finalize marker exits successfully without resetting the password or bypassing manual remote-auth finalization.
-- [ ] Malformed, symlinked, or ownership-invalid attempt or ready state reached by recovery remains a hard failure; the current stamp fast path remains unchanged.
-- [ ] The generated Axiom configuration and focused static checks verify the recovery branches and no longer contain the terminal attempt-used path.
+- [x] A valid current attempt marker with no ready-to-finalize marker is safely cleared and provisioning retries on a later activation.
+- [x] A valid current attempt marker paired with a valid current ready-to-finalize marker exits successfully without resetting the password or bypassing manual remote-auth finalization.
+- [x] Malformed, symlinked, or ownership-invalid attempt or ready state reached by recovery remains a hard failure; the current stamp fast path remains unchanged.
+- [x] The generated Axiom configuration and focused static checks verify the recovery branches and no longer contain the terminal attempt-used path.
 
 ## 假设 / 约束 / 风险
 

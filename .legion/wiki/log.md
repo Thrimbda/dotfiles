@@ -1,5 +1,6 @@
 # Wiki Log
 
+- Marked `axiom-rustdesk-provision-recovery` complete after PR #182 merged and the deployed candidate provision unit exited successfully without `attempt-used`.
 - Added the active `axiom-rustdesk-provision-recovery` summary and its required post-merge switch check.
 - Added the `dotfiles-prune-host-frameworks` summary and recorded the ordered Nix-list preservation pattern after pruning closed raw task evidence.
 - Marked `axiom-qwen38-q6-switcher` completed after Q6 GPU/API verification and full lifecycle/model-switch testing; removed its resolved maintenance follow-up.

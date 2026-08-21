@@ -1,8 +1,8 @@
 # Delivery Walkthrough: Axiom RustDesk Provision Recovery
 
 > **Mode**: implementation
-> **Source status**: Ready for merge
-> **Operational status**: Post-merge switch required
+> **Source status**: Merged in PR #182
+> **Operational status**: PASS
 
 ## What Changed
 
@@ -33,17 +33,18 @@
 - Generated provision script: `bash -n` PASS and recovery branches inspected.
 - Generated systemd unit: `systemd-analyze verify` PASS.
 - Generated restart-trigger artifact includes the candidate provision script.
+- Post-merge Axiom switch: deployed unit ran the candidate script and exited
+  `0/SUCCESS` with no new `attempt-used` journal entry.
 
 Full commands, paths, and evidence limits are in `test-report.md`.
 
-## Required After Merge
+## Runtime Outcome
 
-1. Refresh Axiom to merged `origin/master`.
-2. Run the normal privileged `nixos-rebuild switch --flake .#axiom` flow.
-3. Confirm `rustdesk-provision.service` no longer reports `attempt-used` and the
-   overall switch does not fail because of that unit.
-4. Do not run the finalizer unless a real remote authentication confirmation has
-   occurred.
+The user-authorized Axiom switch deployed merged `origin/master`. The provision
+unit executed `/nix/store/6f8i8gqizkw2v7nx9v36h75qi9z2l3b6-axiom-rustdesk-provision`
+and completed `0/SUCCESS` at `2026-08-21 11:45:25 CST`; the bounded journal has
+no `attempt-used` record for that invocation. The finalizer was not run and
+continues to require real remote-auth confirmation.
 
 ## Rollback
 
