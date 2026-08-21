@@ -1,9 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 
-const [source] = process.argv.slice(2);
-if (!source)
-    throw new Error("usage: caelestia-lock-dpms-patch-test CAELESTIA_SOURCE");
+const [source, pluginQmltypesPath] = process.argv.slice(2);
+if (!source || !pluginQmltypesPath)
+    throw new Error("usage: caelestia-lock-dpms-patch-test CAELESTIA_SOURCE PLUGIN_QMLTYPES");
 
 function assert(condition, message) {
     if (!condition)
@@ -20,9 +20,13 @@ function assertMatch(contents, expression, message) {
 
 const config = read("plugin/src/Caelestia/Config/generalconfig.hpp");
 const idleMonitors = read("modules/IdleMonitors.qml");
+const pluginQmltypes = fs.readFileSync(pluginQmltypesPath, "utf8");
 
 assert(config.includes("CONFIG_GLOBAL_PROPERTY(int, lockDpmsTimeout, 0)"),
     "lock DPMS timeout config property is missing");
+assertMatch(pluginQmltypes,
+    /name: "caelestia::config::GeneralIdle"[\s\S]*?Property \{\s*name: "lockDpmsTimeout"\s*type: "int"/,
+    "lock DPMS timeout is not registered by the plugin");
 assertMatch(idleMonitors, /property int lockEpoch:\s*0/, "lock epoch state is missing");
 assertMatch(idleMonitors, /property Timer activeLockDpmsTimer:\s*null/, "active timer state is missing");
 assertMatch(idleMonitors, /property int dpmsOffEpoch:\s*-1/, "DPMS-off epoch state is missing");
