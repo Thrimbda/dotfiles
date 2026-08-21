@@ -1,7 +1,7 @@
 # Change Review: Axiom RustDesk Provision Recovery
 
 > **Review type**: Correctness, scope, and security
-> **Status**: PASS for merge; post-merge runtime gate remains required
+> **Status**: PASS
 > **Date**: 2026-08-20
 
 ## Blocking Findings
@@ -48,17 +48,15 @@ permanent password and persistent state.
 - The explicit `rustdesk-provision-finalize --confirm-remote-auth` gate remains
   unchanged. A ready record is not converted into a stamp automatically.
 
-## Residual Risk And Required Gate
+## Resolved Runtime Gate
 
-- Static/build evidence cannot observe the mutable state combination present on
-  the live host. After merge, an interactive privileged Axiom switch must prove
-  that `rustdesk-provision.service` no longer fails with `attempt-used`.
-- This residual is an operational acceptance gate, not a source-review blocker:
-  the exact generated transition and restart trigger have already been built
-  and inspected.
+- After PR #182 merged, the user-authorized Axiom switch deployed the candidate
+  unit. `rustdesk-provision.service` is active/exited with `status=0/SUCCESS`,
+  and the bounded journal for the new invocation has no `attempt-used` entry.
+- Mutable state contents remain intentionally undisclosed; the live result
+  proves recovery success without treating a secret or state dump as evidence.
 
 ## Decision
 
-**PASS for merge.** Proceed through PR delivery, then complete the documented
-post-merge Axiom switch and service-status check before declaring the incident
-fully resolved.
+**PASS.** Source, review, merge, and the post-merge runtime recovery gate are
+complete.

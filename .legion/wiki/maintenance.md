@@ -39,10 +39,6 @@
 
 - After `axiom-rustdesk-fixed-dp4-capture` merges, switch Axiom from refreshed `origin/master`. Confirm `RustDesk.toml` remains root-owned, `RustDesk2.toml` is c1-owned, and c1 cannot read the password file. Then make a new remote connection and another after restarting RustDesk; both must capture `DP-4` with no Axiom-side chooser. If the live portal behavior differs, preserve the logs and open a scoped follow-up rather than adding a virtual output.
 
-## Axiom RustDesk Provision Recovery Follow-Up
-
-- After `axiom-rustdesk-provision-recovery` merges, refresh Axiom to merged `origin/master` and run the normal privileged `nixos-rebuild switch --flake .#axiom` flow. Confirm `rustdesk-provision.service` is successful and its new journal invocation contains no `attempt-used`. If a ready record remains, do not run the finalizer until a real remote authentication confirmation has completed.
-
 ## Terminal Follow-Up
 
 - Foot terminal notification behavior was disabled by removing unsupported `[main].notify` from the global config. If terminal notification behavior is still desired, restore it only through a Foot 1.25-supported option or an explicit external wrapper design validated with `foot --check-config`.

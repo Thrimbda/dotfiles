@@ -2,8 +2,8 @@
 
 > **Date**: 2026-08-20
 > **Worktree**: `.worktrees/axiom-rustdesk-provision-recovery`
-> **Scope**: Static, generated-artifact, and closure verification before merge
-> **Verdict**: PASS for source/build evidence; live switch pending merged source and interactive sudo
+> **Scope**: Static, generated-artifact, closure, and merged runtime verification
+> **Verdict**: PASS
 
 ## Why These Checks
 
@@ -29,30 +29,27 @@ exact generated unit without invoking RustDesk or opening the encrypted secret.
 | Generated recovery path | Built script lines 127-137 and 576-599 | PASS: helper validates before and after removal; `ready=current` exits 0; `ready=absent|stale` removes only a current reservation and continues. |
 | Generated systemd unit | `systemd-analyze verify /nix/store/7xjfbbx9hln9vnni3jyc8qr3ndd7g9zj-unit-rustdesk-provision.service/rustdesk-provision.service` | PASS: no diagnostics. |
 | Trigger materialization | Built `X-Restart-Triggers-rustdesk-provision` artifact | PASS: it contains `/nix/store/6f8i8gqizkw2v7nx9v36h75qi9z2l3b6-axiom-rustdesk-provision`. |
+| Merged runtime recovery | PR #182 was merged; after the user-authorized Axiom switch, `systemctl status`, `show`, `cat`, and bounded journal inspection | PASS: the deployed unit runs the candidate script, invocation `1a5033aec6404572af962c7fa2e7ab1a` exited `0/SUCCESS` at `2026-08-21 11:45:25 CST`, and the new journal invocation contains only start/finish records. |
 
 ## Evidence Boundary
 
-- No RustDesk command, agenix secret read, mutable provision state read, state
-  deletion, finalizer, or system switch was executed during static validation.
-- `sudo -n` requires an interactive password, so live state metadata cannot be
-  inspected from this session. The observed `attempt-used` log is enough to
-  establish a valid current reservation but cannot distinguish absent from
-  current ready state.
-- A live switch after merge is the decisive regression test: either current
-  ready exits successfully without reapplying the password, or absent/stale
-  ready consumes the reservation and retries the existing protected flow.
+- Static validation did not run RustDesk, open the agenix secret, read mutable
+  state, delete state, or invoke the finalizer.
+- The later user-authorized switch supplied the live service result without
+  exposing mutable state or secret material. The successful invocation proves
+  the incident no longer fails with `attempt-used`, but intentionally does not
+  reveal whether it took the current-ready no-op or incomplete-attempt retry
+  branch.
 - An exploratory `nix path-info` invocation was not applicable to the already
   realized toplevel path and is not used as evidence; it did not affect the
   successful evaluation or build gates above.
 
-## Required Post-Merge Runtime Check
+## Completed Post-Merge Runtime Check
 
-1. Refresh Axiom to merged `origin/master` and run the normal privileged
-   `nixos-rebuild switch --flake .#axiom` flow.
-2. Confirm the command no longer returns nonzero because of
-   `rustdesk-provision.service`.
-3. Inspect `systemctl status rustdesk-provision.service` and bounded journal
-   output. There must be no `attempt-used` entry from the new invocation.
-4. If a current ready record remains, retain the explicit
-   `rustdesk-provision-finalize --confirm-remote-auth` process; do not finalize
-   without a real remote authentication confirmation.
+- Axiom was refreshed to merged `origin/master` at `57fc910d`.
+- The user executed the normal privileged `nixos-rebuild switch --flake .#axiom`
+  flow.
+- The deployed `rustdesk-provision.service` is `active (exited)` with
+  `Result=success`, `ExecMainStatus=0`, and the expected candidate `ExecStart`.
+- The new journal invocation has no `attempt-used` entry. The finalizer remains
+  intentionally uninvoked without a real remote-auth confirmation.
