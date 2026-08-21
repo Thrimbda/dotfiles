@@ -16,3 +16,13 @@
 ### ⚠️ 阻塞
 
 - (none)
+
+## 2026-08-21 Closeout
+- PR #191 squash-merged (8b16c8e8) to origin/master; branch deleted
+- main worktree updated to 8b16c8e8; worktree axiom-caelestia-restart removed
+- axiom deploy: all 30 drvs built OK (incl. caelestia-session, caelestia-session-control-test); activation blocked on sudo, handed to user (sudo nixos-rebuild switch --flake .#axiom --use-substitutes -L)
+- pending user: post-deploy smoke (caelestia-session restart; caelestia-shell list --all -> single instance)
+- verified: /nix/var/nix/profiles/system -> nixos-system-axiom-26.05.7813.0dd31db7e6db (new gen)
+- verified: deployed caelestia-session script contains list_shell_pids, no coreutils/while bug
+- smoke: caelestia-shell list --all -> 1 instance (pid 2674271, config gen 41531in4z...); ps -> 1 runner + 1 quickshell, both started 23:10:14; no orphans
+- status: DONE

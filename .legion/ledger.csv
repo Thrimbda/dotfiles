@@ -112,3 +112,4 @@
 2026-08-19T06:40:00.000Z,legion_update_tasks,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"implementation PR #167 merged; worktree removed; main worktree refreshed",success
 2026-08-19T06:45:00.000Z,legion_wiki_writeback,dotfiles-hyprland-lua-migration,Dotfiles Hyprland Conf to Lua Migration,OpenCode,"added task summary, decisions, maintenance; closeout PR",success
 2026-08-21T15:26:53.000Z,legion_create_task,axiom-caelestia-restart-orphan,Axiom Caelestia Restart Orphan Shell,OpenCode,"generation-agnostic stop/instance_pid via shared list_shell_pids; test drv built locally; PR via worktree",success
+2026-08-21T15:45:00.000Z,legion_close_task,axiom-caelestia-restart-orphan,Axiom Caelestia Restart Orphan Shell,OpenCode,PR #191 merged 8b16c8e8; deployed to axiom; single shell instance verified post-restart, no orphans,success
