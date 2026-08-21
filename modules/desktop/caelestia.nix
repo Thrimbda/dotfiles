@@ -77,6 +77,47 @@ let cfg = config.modules.desktop.caelestia;
       mkdir -p "$out"
       touch "$out/passed"
     '';
+    caelestiaSessionControlTest = pkgs.runCommand "caelestia-session-control-test" {
+      nativeBuildInputs = [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnused ];
+    } ''
+      set -eu
+      script=${caelestiaSessionControl}/bin/caelestia-session
+      bash -n "$script"
+      sed -n '/^ *list_shell_pids()/,/^ *}$/p' "$script" > list_shell_pids.sh
+      grep -q 'list_shell_pids() {' list_shell_pids.sh
+      . ./list_shell_pids.sh
+
+      cat > fixtures.list <<'FIXTURE'
+      Instance oldgen:
+        Process ID: 11111
+        Shell ID: 00000000000000000000000000000001
+        Config path: /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-caelestia-shell-1.0.0/share/caelestia-shell/shell.qml
+        Display connection: wayland/wayland-1
+        Launch time: 2026-08-21 20:00:00 (running for 2 hours)
+      Instance current:
+        Process ID: 22222
+        Shell ID: 00000000000000000000000000000002
+        Config path: /nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-caelestia-shell-1.0.0/share/caelestia-shell/shell.qml
+        Display connection: wayland/wayland-1
+        Launch time: 2026-08-21 23:00:00 (running for 0 hours)
+      FIXTURE
+      list_shell_pids < fixtures.list > pids.txt
+      printf '11111\n22222\n' > expected.txt
+      cmp pids.txt expected.txt
+
+      cat > fixtures.other <<'FIXTURE'
+      Instance other:
+        Process ID: 33333
+        Shell ID: 00000000000000000000000000000003
+        Config path: /home/c1/.config/quickshell/shell.qml
+        Display connection: wayland/wayland-1
+        Launch time: 2026-08-21 21:00:00 (running for 1 hour)
+      FIXTURE
+      [ -z "$(list_shell_pids < fixtures.other)" ]
+
+      mkdir -p "$out"
+      touch "$out/passed"
+    '';
     defaultCliPackage =
       if isLinux
       then hey.inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.default
@@ -241,7 +282,6 @@ let cfg = config.modules.desktop.caelestia;
       runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
       runner_pid_file="$runtime_dir/caelestia-session-runner.pid"
       stop_file="$runtime_dir/caelestia-session.stop"
-      shell_config=${escapeShellArg "${cfg.package}/share/caelestia-shell/shell.qml"}
 
       require_session() {
         if [ -z "''${WAYLAND_DISPLAY:-}" ] || [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
@@ -282,13 +322,22 @@ let cfg = config.modules.desktop.caelestia;
         export QT_AUTO_SCREEN_SCALE_FACTOR=1
       }
 
+      list_shell_pids() {
+        ${pkgs.gawk}/bin/awk '
+          /^Instance / { pid = "" }
+          /Process ID:/ { pid = $3 }
+          pid != "" && /^  Config path: .*\/share\/caelestia-shell\/shell\.qml$/ { print pid }
+        '
+      }
+
       instance_pid() {
-        (${cfg.package}/bin/caelestia-shell list --all 2>/dev/null || true) \
-          | ${pkgs.gawk}/bin/awk -v config="$shell_config" '
-              /^Instance / { pid = "" }
-              /Process ID:/ { pid = $3 }
-              $0 == "  Config path: " config { print pid; exit }
-            '
+        pid=""
+        while IFS= read -r candidate; do
+          [ -n "$candidate" ] || continue
+          pid="$candidate"
+          break
+        done < <(${cfg.package}/bin/caelestia-shell list --all 2>/dev/null | list_shell_pids || true)
+        printf '%s\n' "$pid"
       }
 
       pid_alive() {
@@ -365,6 +414,11 @@ let cfg = config.modules.desktop.caelestia;
         ${pkgs.coreutils}/bin/install -d -m 0700 "$runtime_dir"
         : > "$stop_file"
         ${cfg.package}/bin/caelestia-shell kill --any-display >/dev/null 2>&1 || true
+        ${cfg.package}/bin/caelestia-shell list --all 2>/dev/null \
+          | list_shell_pids \
+          | while read -r pid; do
+            ${cfg.package}/bin/caelestia-shell kill --pid "$pid" --any-display >/dev/null 2>&1 || true
+          done || true
 
         pid="$(runner_pid)"
         if pid_alive "$pid"; then
@@ -470,6 +524,7 @@ in {
       system.extraDependencies = [
         caelestiaBluetoothPolicyTest
         caelestiaLockDpmsPatchTest
+        caelestiaSessionControlTest
       ];
 
       user.packages = with pkgs; [
