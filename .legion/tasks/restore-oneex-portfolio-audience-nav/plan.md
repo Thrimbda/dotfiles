@@ -18,6 +18,7 @@ The active adapter mints device tokens for auth.ntnl.io while 1Exchange requires
 ## 假设 / 约束 / 风险
 
 - **假设**: origin/master already contains the required adapter source fix; the active Acorn closure is stale.
+- **假设**: Axiom's missing prior adapter output remains live in its local Nix database and cannot be safely deregistered, so a fresh derivation identity is required.
 - **假设**: The Fund remains owner-readable, has positive assets, and has zero current units until initialization.
 - **假设**: The user has authorized a current-baseline initialization rather than historical performance backfill.
 - **约束**: Never build or evaluate the NixOS closure on Acorn. Deploy only from Axiom with the prescribed remote nixos-rebuild command.
@@ -29,7 +30,7 @@ The active adapter mints device tokens for auth.ntnl.io while 1Exchange requires
 
 ## 要点
 
-- Deployment-only remediation: the tracked vendor already sends redirect_uri, but the active binary does not.
+- Deployment-only remediation: the tracked vendor already sends redirect_uri, but the active binary does not. A version-only derivation identity bump forces Axiom to build a fresh output from that vendor source instead of requiring its missing prior output.
 - The Fund unit price is total assets divided by total issued units; zero units intentionally project as 1.
 - The investor initialization is a controlled financial event, not a source or Fund configuration change.
 
@@ -45,7 +46,7 @@ The active adapter mints device tokens for auth.ntnl.io while 1Exchange requires
 > **Design Source of Truth**: docs/rfc.md
 
 **摘要**:
-- Use the existing redirect_uri implementation and perform no source-code modification unless verification proves the tracked vendor is insufficient.
+- Use the existing redirect_uri implementation and a version-only Nix derivation identity bump; do not modify adapter runtime source unless verification proves the tracked vendor is insufficient.
 - Treat a successful live source read and immediate Fund sample as hard prerequisites for the one accounting mutation.
 - Rollback the deployment through the prior NixOS generation if source verification fails; do not compensate a financial event without an explicit accounting-repair decision.
 

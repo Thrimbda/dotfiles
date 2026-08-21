@@ -9,7 +9,7 @@
 ## Relevant Entry Points
 
 - `packages/oneex-portfolio-adapter/vendor/src/main.rs:328-383` creates the device session and fetches 1Exchange funds and balances. The tracked source already sends `redirect_uri` in the verify request at lines 353-357.
-- `hosts/acorn/modules/oneex-portfolio-adapter.nix:6-18,35-60` builds the vendored adapter and defines the hardened Acorn service. The active executable is an earlier closure despite the tracked source containing the fix.
+- `hosts/acorn/modules/oneex-portfolio-adapter.nix:6-19,36-61` builds the vendored adapter and defines the hardened Acorn service. The active executable is an earlier closure despite the tracked source containing the fix.
 - `.legion/tasks/register-oneex-portfolio-fund/docs/test-report.md` records the original source/Fund binding, first sample, and recursion exclusion.
 - `https://github.com/No-Trade-No-Life/1Exchange/blob/9416adfed9d5f221aa2a581bcb4f5328b5eb0a23/src/auth.rs` requires the `1ex.ntnl.io` audience.
 - `https://github.com/zccz14/auth-mini/blob/22ac651e2c3340f4a0f925af048fe9a6b5c7918d/rust-backend/src/ed25519.rs` accepts `redirect_uri` on device-session verification and mints the corresponding audience.
@@ -38,6 +38,7 @@
 - A rollout that does not activate the current binary leaves the source at `502`; the accounting step must not start.
 - A duplicate initial-investment request mints duplicate units. Require zero investors and zero shares immediately before the single write.
 - The initial investment temporarily adds the baseline to the reducer state. A successful immediate trading NAV sample is required immediately afterward to replace that interim total with the actual account value.
+- Axiom's Nix database marks the prior adapter output as live although its store directory is missing. Both supported repair commands are unavailable through its daemon, and normal deletion correctly refuses a live path. The old output must not be faked or force-deleted.
 - Account values are live. The only valid baseline is the equity returned by the same-run pre-write Fund sample, not an earlier displayed amount.
 
 ## Remaining Verification
@@ -45,6 +46,7 @@
 - [ ] Confirm the current closure activates and its running binary contains `redirect_uri`.
 - [ ] Confirm the Custom Account Source returns positions successfully after rollout.
 - [ ] Confirm an immediate Fund sample succeeds before issuing the initial owner units.
+- [ ] Confirm the rebuilt adapter executable has a fresh store path rather than the missing prior output.
 
 ## References
 

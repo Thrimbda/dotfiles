@@ -5,7 +5,8 @@ let
   hostName = "1ex-portfolio.0xc1.wang";
   adapterPackage = pkgs.unstable.rustPlatform.buildRustPackage {
     pname = "oneex-portfolio-adapter";
-    version = "0.1.0-8dcf21f";
+    # Force a fresh source build; Axiom's prior output is registered but missing.
+    version = "0.1.0-8dcf21f-audience-rebuild1";
 
     src = ../../../packages/oneex-portfolio-adapter/vendor;
     cargoLock.lockFile = ../../../packages/oneex-portfolio-adapter/vendor/Cargo.lock;

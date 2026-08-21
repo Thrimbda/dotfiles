@@ -9,11 +9,11 @@
 ## Executive Summary
 
 - **Problem**: The active Acorn adapter closure predates the tracked `redirect_uri` audience fix and returns `502` when 1Exchange reads the source.
-- **Decision**: Redeploy the current, already-merged vendor from a clean dotfiles worktree. Only after live source and immediate Fund-sample preflight pass, create one owner initial-investment event using that sample's equity and immediately sample again.
+- **Decision**: Build the current, already-merged vendor under a fresh package derivation identity from a clean dotfiles worktree, then deploy it. Only after live source and immediate Fund-sample preflight pass, create one owner initial-investment event using that sample's equity and immediately sample again.
 - **Why now**: The Fund has positive assets but zero units, so its unit price remains `1` and cannot represent portfolio performance.
 - **Impact**: Restores source sampling and establishes personal Fund units without changing credentials, source/Fund binding, or upstream services.
 - **Risks**: Authentication audience mismatch, deployment failure, live-value drift, and a non-idempotent accounting event.
-- **Rollout**: Deploy first, verify the running binary and source, preflight a fresh Fund sample, then perform one guarded accounting write and one immediate sample.
+- **Rollout**: Change only the Nix package version identity to force a fresh source output, deploy it, verify the running binary and source, preflight a fresh Fund sample, then perform one guarded accounting write and one immediate sample.
 - **Rollback**: Before the accounting write, stop on any failed deployment or source validation and retain the prior Acorn generation. After a successful accounting write, do not delete or retry events automatically; record the state and require an explicit accounting-repair decision if the immediate sample fails.
 
 ## Background And Goals
@@ -45,11 +45,11 @@ nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host
 
 ### Deployment Boundary
 
-Deploy the existing vendor source unchanged from a clean worktree at `origin/master`. The Nix package recompiles the vendor and restarts `oneex-portfolio-adapter.service`. This is a deployment reconciliation, not a source-code change.
+Deploy the existing vendor source unchanged from a clean worktree at `origin/master`. Axiom has an invalid local-store state: the prior adapter output is registered and live but absent on disk, so the daemon refuses both repair and safe deregistration. Change only the Nix package `version` suffix to force a new derivation output path. The Nix package then recompiles the same vendor source and restarts `oneex-portfolio-adapter.service`. This is a deployment reconciliation, not an adapter source-code change.
 
 Validate the rollout in this order:
 
-1. Confirm systemd is active and its executable contains the `redirect_uri` literal.
+1. Confirm systemd is active, its executable path differs from the missing prior output, and it contains the `redirect_uri` literal.
 2. Authenticate to 1Exchange with a short-lived device session whose verify request includes `redirect_uri=https://1ex.ntnl.io`.
 3. Confirm the registered source's account positions return HTTP `200`, expected non-empty positions, finite valuations, and no Fund self-row.
 4. Immediately sample `My Portfolio`; require positive USD equity, no unpriced positions, and a position count consistent with the source.
@@ -76,6 +76,11 @@ The endpoint appends the owner profile and positive cash-flow event atomically. 
 - **Pros**: Uses the already-reviewed audience fix, retains fail-closed behavior, proves source health before accounting, and keeps the financial baseline tied to a fresh observable value.
 - **Cons**: Requires a production switch and a guarded accounting operation.
 
+### Option D: Force a fresh Nix package derivation from the same vendor source, then use Option A
+
+- **Pros**: Removes the missing local-store output from the new closure without faking a store path, deleting a live path, or changing adapter behavior. The normal Axiom build verifies and produces the new output.
+- **Cons**: Changes package derivation identity and requires renewed RFC review before deployment.
+
 ### Option B: Write owner units while the source remains `502`
 
 - **Pros**: Avoids deployment work.
@@ -88,13 +93,13 @@ The endpoint appends the owner profile and positive cash-flow event atomically. 
 
 ### Decision
 
-Choose Option A. It is the smallest path that keeps the intended audience boundary, validates the live source before financial mutation, and has a clear pre-write rollback boundary.
+Choose Option D followed by Option A. It is the smallest safe response to Axiom's invalid store state: it retains the intended audience boundary, builds the current vendor from source into a new output, validates the live source before financial mutation, and has a clear pre-write rollback boundary.
 
 ## Rollout And Rollback
 
 ### Rollout
 
-1. Build and activate the current clean dotfiles worktree from Axiom with the prescribed command.
+1. Change only the adapter package version suffix, then build and activate the current clean dotfiles worktree from Axiom with the prescribed command.
 2. Verify active binary, systemd health, authenticated source positions, and a fresh immediate Fund sample.
 3. Read Fund statement preconditions and create the single owner baseline event.
 4. Immediately sample again and verify positive issued units, fully priced valuation, and a non-fallback unit price calculation.
@@ -107,14 +112,14 @@ Choose Option A. It is the smallest path that keeps the intended audience bounda
 
 ## Observability And Security
 
-- Use systemd active state, binary literal check, adapter `positions` status, source position count, Fund sample diagnostics, and Fund statement totals as evidence.
+- Use systemd active state, fresh executable store path plus binary literal check, adapter `positions` status, source position count, Fund sample diagnostics, and Fund statement totals as evidence.
 - Do not log payloads that contain seeds, bearer values, opaque headers, full session tokens, or decrypted environment content.
 - A mismatched audience remains fail-closed. No fallback audience, static access token, or bypass of 1Exchange authorization is introduced.
 - The source remains loopback-only behind its existing nginx/TLS boundary and carries no new management endpoint.
 
 ## Testing Strategy
 
-- Nix build and activation through the prescribed Axiom-to-Acorn command.
+- Nix build and activation through the prescribed Axiom-to-Acorn command, requiring a fresh adapter output path rather than the missing old one.
 - Runtime check that the active executable includes `redirect_uri`.
 - Authenticated 1Exchange source read with the intended audience.
 - Immediate pre-write and post-write Fund samples with `unpriced_positions=0`.

@@ -2,19 +2,20 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 2 - Deploy and verify source
-**当前检查项**: Redeploy the current adapter closure from Axiom and verify the active binary plus custom-source positions path.
-**进度**: 1/4 任务完成
+**当前阶段**: 阶段 1 - Design and review
+**当前检查项**: Re-review the fresh adapter derivation strategy after Axiom store-state discovery.
+**进度**: 1/5 任务完成
 ---
 
-## 阶段 1: Design and review ✅ COMPLETE
+## 阶段 1: Design and review 🟡 IN PROGRESS
 
 - [x] Document the deployment and accounting safety design, then complete RFC review. | 验收: RFC identifies audience, deployment, accounting, rollback, and verification boundaries; review passes before operations.
+- [ ] Re-review the fresh adapter derivation strategy after Axiom store-state discovery. | 验收: Review confirms the version-only derivation identity change is safe, source-preserving, rollbackable, and required before deployment. ← CURRENT
 ---
 
 ## 阶段 2: Deploy and verify source ⏳ NOT STARTED
 
-- [ ] Redeploy the current adapter closure from Axiom and verify the active binary plus custom-source positions path. | 验收: Live binary contains redirect_uri and the source returns complete positions without 502. ← CURRENT
+- [ ] Redeploy the current adapter closure from Axiom and verify the active binary plus custom-source positions path. | 验收: Live binary contains redirect_uri and the source returns complete positions without 502.
 ---
 
 ## 阶段 3: Initialize Fund units ⏳ NOT STARTED
@@ -32,4 +33,4 @@
 (暂无)
 ---
 
-*最后更新: 2026-08-20 06:00*
+*最后更新: 2026-08-21 05:13*

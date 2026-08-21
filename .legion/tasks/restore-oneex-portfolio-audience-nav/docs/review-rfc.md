@@ -25,3 +25,13 @@ None.
 ## Implementation Gate
 
 The design is ready for the deployment and guarded Fund-initialization implementation phase.
+
+## Re-review: Fresh Derivation Identity
+
+PASS.
+
+- Evidence now shows that the missing adapter output is a live, registered Axiom store path. The daemon does not support repair, and normal deletion refuses the live path. The design must not force-delete or fabricate it.
+- The package version suffix changes only the Nix derivation/output identity. `src`, `Cargo.lock`, adapter runtime behavior, source authentication header, Fund binding, and all secret material remain unchanged.
+- The new system closure will refer to the newly built adapter output rather than the missing old output. The prescribed Axiom build remains the sole mechanism that can create and activate it.
+- The previous Acorn generation remains the rollback boundary until the accounting event. No Fund mutation is permitted until the fresh output passes live source and immediate-sample verification.
+- No new authentication bypass, credential, API contract, data migration, or accounting behavior is introduced.
