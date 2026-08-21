@@ -24,6 +24,9 @@
 - The post-write `502` was contained without retrying or creating a duplicate
   financial event. Future upstream failures remain fail-closed operational
   incidents, not prompts to create more cash flows or shares.
+- Documentation closeout PR [#185](https://github.com/Thrimbda/dotfiles/pull/185)
+  merged after the deployment, verification, review, walkthrough, and wiki
+  evidence were complete.
 
 ## Reusable Decisions
 

@@ -303,3 +303,4 @@
 - Added task summary for `axiom-nix-warning-migration` and recorded the source-level warning migration, system-path ownership, and explicit test-fixture ordering pattern.
 - Added `restore-oneex-portfolio-audience-nav` summary after PR #184 merged, its fresh Axiom-to-Acorn deployment succeeded, and the private Fund received its verified owner-unit baseline.
 - Updated Acorn 1Ex current truth, recovery pattern, and maintenance with the required token audience, fresh-output recovery, and non-retry accounting boundary.
+- Marked `restore-oneex-portfolio-audience-nav` completed after documentation closeout PR #185 merged.
