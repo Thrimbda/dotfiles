@@ -143,7 +143,7 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
         | (targetMode($output; $config)) as $mode
         | select($mode != null)
         | select(needsApply($output; $mode; $config.position; $config.scale))
-        | "\($output.name),\($mode),\($config.position),\($config.scale)"
+        | "hl.monitor({ output = \($output.name | @json), mode = \($mode | @json), position = \($config.position | @json), scale = \($config.scale | tonumber) })"
       ' <<EOF
       $live
       EOF
@@ -154,7 +154,7 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       status=0
       while IFS= read -r command; do
         [ -n "$command" ] || continue
-        if ! "$hyprctl" keyword monitor "$command"; then
+        if ! "$hyprctl" eval "$command"; then
           status=1
         fi
       done <<EOF
