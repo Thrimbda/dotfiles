@@ -304,6 +304,8 @@ For Caelestia device lists, distinguish BlueZ `Name`/Quickshell `deviceName` fro
 
 For Caelestia lock/session regressions, treat `loginctl lock-session` as a separate integration path from Caelestia's direct lock IPC. Ordinary idle/keybind locks should call `caelestia shell lock lock`, which sets the shell's `WlSessionLock.locked` state. If that path regresses, investigate the session-owned shell runner, Quickshell IPC, PAM configs embedded in the Caelestia package, and Hyprland session-lock restore behavior before reintroducing an external lock client.
 
+For the Axiom lock-scoped DPMS delay, observe `WlSessionLock.locked` rather than a lock command or global last-input deadline. Add a typed setting with a default of `0` in a narrow pinned-source patch, enable it only in both Axiom config paths, and make every lock epoch own a new timer. On unlock, invalidate and destroy the timer; timer expiry must check lock state, immutable epoch, and active-timer identity. Enable an input monitor only after timer-owned DPMS-off; it may issue the existing fixed `dpms on` action without unlocking or re-arming. Preserve the separate 900/1800-second policy and never add a second idle daemon, suspend, or hibernate. Verify the source patch against the pinned revision, focused static state assertions, effective settings, and the configured package build; classify the deployed graphical lock/DPMS/wake matrix separately until run.
+
 ## Historical End4 Desktop Import Pattern
 
 When adopting end4 desktop phases in Axiom, treat the upstream `ii` source tree as product source once substrate-only is rejected. Import required upstream files through a manifest, record upstream commits and submodules, and keep omitted installer/generated/secret/state paths explicit.

@@ -1,0 +1,112 @@
+diff --git a/plugin/src/Caelestia/Config/generalconfig.hpp b/plugin/src/Caelestia/Config/generalconfig.hpp
+--- a/plugin/src/Caelestia/Config/generalconfig.hpp
++++ b/plugin/src/Caelestia/Config/generalconfig.hpp
+@@ -31,6 +31,7 @@ class GeneralIdle : public ConfigObject {
+     CONFIG_GLOBAL_PROPERTY(bool, lockBeforeSleep, true)
+     CONFIG_GLOBAL_PROPERTY(bool, inhibitWhenAudio, true)
+     CONFIG_GLOBAL_PROPERTY(bool, inhibitWhenCharging, false)
++    CONFIG_GLOBAL_PROPERTY(int, lockDpmsTimeout, 0)
+     CONFIG_GLOBAL_PROPERTY(QVariantList, timeouts,
+         {
+             vmap({
+diff --git a/modules/IdleMonitors.qml b/modules/IdleMonitors.qml
+--- a/modules/IdleMonitors.qml
++++ b/modules/IdleMonitors.qml
+@@ -23,6 +23,48 @@ Scope {
+         return true;
+     }
+
++    property int lockEpoch: 0
++    property Timer activeLockDpmsTimer: null
++    property int dpmsOffEpoch: -1
++
++    function clearActiveLockDpmsTimer(): void {
++        const timer = activeLockDpmsTimer;
++        activeLockDpmsTimer = null;
++        if (timer) {
++            timer.stop();
++            timer.destroy();
++        }
++    }
++
++    function handleLockStateChanged(): void {
++        if (lock.lock.locked) {
++            if (activeLockDpmsTimer || dpmsOffEpoch === lockEpoch)
++                return;
++
++            lockEpoch += 1;
++            if (GlobalConfig.general.idle.lockDpmsTimeout <= 0)
++                return;
++
++            const timer = lockDpmsTimerComponent.createObject(root, {
++                epoch: lockEpoch,
++                interval: GlobalConfig.general.idle.lockDpmsTimeout * 1000,
++            });
++            if (timer) {
++                activeLockDpmsTimer = timer;
++                timer.start();
++            }
++            return;
++        }
++
++        const previousLockEpoch = lockEpoch;
++        lockEpoch += 1;
++        const dpmsWasOff = dpmsOffEpoch === previousLockEpoch;
++        clearActiveLockDpmsTimer();
++        dpmsOffEpoch = -1;
++        if (dpmsWasOff)
++            handleIdleAction("dpms on");
++    }
++
+     function handleIdleAction(action: var): void {
+         if (!action)
+             return;
+@@ -57,2 +99,48 @@ Scope {
++    Connections {
++        target: root.lock.lock
++
++        function onLockedChanged(): void {
++            root.handleLockStateChanged();
++        }
++    }
++
++    Component {
++        id: lockDpmsTimerComponent
++
++        Timer {
++            id: timer
++
++            required property int epoch
++            repeat: false
++            onTriggered: {
++                if (root.lock.lock.locked
++                        && epoch === root.lockEpoch
++                        && timer === root.activeLockDpmsTimer) {
++                    root.handleIdleAction("dpms off");
++                    root.dpmsOffEpoch = epoch;
++                }
++                if (timer === root.activeLockDpmsTimer)
++                    root.activeLockDpmsTimer = null;
++                timer.destroy();
++            }
++        }
++    }
++
++    IdleMonitor {
++        id: lockDpmsWakeMonitor
++
++        enabled: root.lock.lock.locked && root.dpmsOffEpoch === root.lockEpoch
++        timeout: 0
++        respectInhibitors: false
++        onIsIdleChanged: {
++            if (!isIdle
++                    && root.lock.lock.locked
++                    && root.dpmsOffEpoch === root.lockEpoch) {
++                root.handleIdleAction("dpms on");
++                root.dpmsOffEpoch = -1;
++            }
++        }
++    }
++
+     Variants {
+         model: GlobalConfig.general.idle.timeouts

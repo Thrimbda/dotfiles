@@ -7,6 +7,7 @@ let
   idleSettings = {
     lockBeforeSleep = true;
     inhibitWhenAudio = true;
+    lockDpmsTimeout = 60;
     timeouts = [
       {
         timeout = 900;

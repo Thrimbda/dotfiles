@@ -80,6 +80,8 @@
 - After deploying `axiom-hyprland-dpms-safe-mode-fix`, restart the Axiom graphical session, trigger DPMS off/on or suspend/resume, and confirm no new Hyprland coredump, no `Hyprland --safe-mode` restart, and no Caelestia broken-Wayland exit. After a future Hyprland update contains the upstream color-management hotplug fix, remove the Axiom `render.cm_enabled = false` override and repeat the same live smoke.
 - After deploying `axiom-hyprland-xwayland-idle-crash-fix`, stop any surviving `hypridle.service`, start a fresh Axiom graphical session, and confirm only Caelestia owns the 900 second lock and 1800 second DPMS actions. Leave the session idle through DPMS off and wake the display; collect `journalctl --user -u hyprland-monitor-hotplug.service`, `coredumpctl`, and any Hyprland crash report. If the XWayland/DRM coredump recurs, preserve the evidence and open an upstream-focused task rather than restoring dual idle ownership.
 
+- `axiom-lock-dpms-delay` has source/static/configuration/package-build evidence only. After deployment, verify direct Caelestia IPC, the 900-second idle path, and `loginctl lock-session`; early unlock and rapid unlock/relock; and physical-input DPMS wake while `WlSessionLock` remains locked. Confirm the active session still has no extra idle daemon or automatic suspend/hibernate.
+
 ## Axiom Input Follow-Up
 
 - After deploying the session-owned Caelestia runner, confirm Caelestia Wi-Fi/network and power/session controls no longer report authorization failures. If they still fail, inspect the actual polkit subject classification and `/proc/<caelestia-pid>/cgroup` before widening the allowlist.
