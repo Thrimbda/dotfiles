@@ -140,3 +140,7 @@
 
 - After the `axiom-hyprland-hotplug-crash` change is merged and explicitly deployed, use a controlled graphical-session restart and physical output-loss or DPMS smoke to verify the fallback warning, continued XWayland operation, and absence of a Hyprland coredump or UWSM safe-mode restart. Do not force that test while preserving a user session.
 - Keep the Axiom-only Hyprland patch tied to `0.56.1`. Before updating the unstable package, inspect upstream source for an equivalent missing-monitor guard, then remove or rework the local patch and repeat build plus live smoke; do not treat a version bump alone as remediation.
+
+## Axiom Hyprland Lua Monitor Reconciliation
+
+- After deploying PR #189, trigger a controlled monitor reconcile or power-cycle. Confirm `hyprland-monitor-hotplug.service` no longer logs `keyword can't work with non-legacy parsers. Use eval.`, DP-4/DP-5 retain their configured mode/position/scale, and Hyprland does not crash or enter safe mode. Do not treat the earlier pre-fix session observation as proof for this deployed change.

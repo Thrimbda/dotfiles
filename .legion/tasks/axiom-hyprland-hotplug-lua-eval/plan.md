@@ -10,10 +10,10 @@ The monitor hotplug reconciler calls hyprctl keyword monitor even though Axiom u
 
 ## 验收标准
 
-- [ ] The generated reconciler invokes hyprctl eval with a valid hl.monitor call instead of hyprctl keyword monitor.
-- [ ] The runtime expression preserves the existing output, mode, position, and scale selected by reconciliation logic.
-- [ ] Targeted static and Nix build validation pass without changing keyboard, Fcitx, monitor inventory, or the XWayland crash guard.
-- [ ] Delivery records rollback and a post-deployment monitor hotplug smoke test.
+- [x] The generated reconciler invokes hyprctl eval with a valid hl.monitor call instead of hyprctl keyword monitor.
+- [x] The runtime expression preserves the existing output, mode, position, and scale selected by reconciliation logic.
+- [x] Targeted static and Nix build validation pass without changing keyboard, Fcitx, monitor inventory, or the XWayland crash guard.
+- [x] Delivery records rollback and a post-deployment monitor hotplug smoke test.
 
 ## 假设 / 约束 / 风险
 

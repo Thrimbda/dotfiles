@@ -305,3 +305,5 @@
 - Updated Acorn 1Ex current truth, recovery pattern, and maintenance with the required token audience, fresh-output recovery, and non-retry accounting boundary.
 - Marked `restore-oneex-portfolio-audience-nav` completed after documentation closeout PR #185 merged.
 - Added the `axiom-lock-dpms-delay` summary and current Axiom lock-scoped DPMS decision/pattern with source/build evidence and a separate deployed-session smoke follow-up.
+- Added the `axiom-hyprland-hotplug-lua-eval` summary and current Lua runtime monitor reconciliation decision after PR #189 merged.
+- Added the required post-deployment monitor reconcile smoke to Axiom maintenance; the source task did not activate the new generation.

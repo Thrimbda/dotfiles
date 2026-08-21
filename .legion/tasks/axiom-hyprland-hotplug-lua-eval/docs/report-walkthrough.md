@@ -20,6 +20,10 @@ The Axiom monitor hotplug reconciler issued `hyprctl keyword monitor` even thoug
 - Verification: `docs/test-report.md` records successful Nix evaluation, generated-expression Lua parsing, full Axiom closure build, and inspection of the Nix-built helper.
 - Review: `docs/review-change.md` is PASS with no blocking findings; it confirms the dynamic values are safely serialized and scope stayed bounded.
 
+## Delivery Status
+
+Source delivery merged through PR #189 at `f0db40cf7aee4435345088f66279d71f0eb53459`. GitHub reported no required checks for the branch. This task did not activate the resulting NixOS generation.
+
 ## Scope Boundaries
 
 - The existing Axiom-only XWayland monitor-loss package guard is unchanged.
