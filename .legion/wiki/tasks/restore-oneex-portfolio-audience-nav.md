@@ -17,10 +17,10 @@
   [#184](https://github.com/Thrimbda/dotfiles/pull/184) forced a fresh output
   from the unchanged vendor source, then the merged Axiom-to-Acorn deployment
   restored the source to HTTP `200` with six positions and no recursive Fund row.
-- `My Portfolio` now has one owner investor and issued units. A single approved
-  corrective NAV sample restored total assets and total shares to the same
-  fully priced trading value, so unit price is derived from assets divided by
-  shares instead of the zero-share fallback.
+- The temporary owner investor and issued-unit baseline from this recovery were
+  later explicitly removed by `repair-oneex-portfolio-zero-investors`. The
+  current Fund is a zero-investor NAV-only viewer, while this task's adapter
+  audience recovery remains current.
 - The post-write `502` was contained without retrying or creating a duplicate
   financial event. Future upstream failures remain fail-closed operational
   incidents, not prompts to create more cash flows or shares.
@@ -35,9 +35,9 @@
 - When a correct vendor source is blocked by a registered-but-missing Nix
   output, use a version-only fresh derivation identity and deploy from merged
   Axiom state; do not delete a live registered store path or change secrets.
-- A failed post-write NAV sample stops the accounting operation. A corrective
-  sample needs explicit approval and must not issue another investor, cash
-  flow, or share position.
+- A failed post-write NAV sample stops the accounting operation. The former
+  owner-baseline decision is superseded for this Fund: do not issue another
+  investor, cash flow, or share position.
 
 ## Related Raw Sources
 

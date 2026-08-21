@@ -1,24 +1,24 @@
 # Summary
 
-- Record the user-approved zero-investor NAV-only repair design for `My Portfolio`.
-- Capture the exact live owner-profile and positive cash-flow candidates without
+- Remove the erroneous owner profile and initial positive cash-flow records from
+  `My Portfolio` after a fresh live event preflight.
+- Preserve its private, enabled, subscription-closed NAV-only configuration.
+- Record the source retry boundary and final zero-investor verification without
   exposing credentials or opaque source values.
-- Record the source `502` gate that prevented any destructive accounting repair.
 
 # Validation
 
 - RFC and high-risk RFC review passed.
-- A read-only owner preflight found one owner profile, one positive cash flow,
-  27 Trading NAV events, a private enabled Fund, closed subscriptions, and a
-  six-position source.
-- A fresh mutation gate and its one authorized retry both stopped on source
-  `502` before DELETE, Fund upsert, or sample.
-- Adapter service remained active and showed successful reads immediately before
-  the failed source reads.
+- The fresh event gate found one owner profile, one positive cash flow, and no
+  adjacent financial event; each DELETE returned `204` and was followed by a
+  reducer-state read before the next operation.
+- Bounded source retries reached a healthy six-position response. The new
+  Trading NAV sample equals total assets `28950.930192336928`.
+- Final state: zero investors, zero shares, zero deposit/funding balance,
+  private enabled Fund, closed subscriptions, and only Trading NAV events.
 
 # Blocker And Resume Condition
 
-- No production accounting state changed in this delivery.
-- Resume only after new user authorization and a fresh healthy source preflight.
-  Re-read the event stream and use only then-current event indexes before any
-  destructive request.
+- No further investor, cash-flow, share, settlement, source, or credential
+  mutation is required. Future source outages should retry reads only; never
+  recreate the removed owner investment.

@@ -41,3 +41,12 @@ None.
 The design is approved for redacted live preflight. Any live mismatch returns
 the task to a blocked decision state and does not authorize adjacent event
 repair.
+
+## Retry Amendment Review
+
+PASS. The user-authorized retry change is limited to idempotent source-position
+reads and has a bounded execution window. It does not weaken the exact
+event-selection rule or permit repeated DELETE, Fund-upsert, or sample writes.
+A healthy response still requires fresh event-index selection before mutation,
+so transient source recovery cannot turn stale evidence into a destructive
+operation.

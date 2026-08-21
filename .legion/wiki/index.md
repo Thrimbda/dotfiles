@@ -28,6 +28,7 @@
 - [Deploy Legion Pi Web via Acorn FRP](tasks/deploy-legion-pi-web-frp.md)
 - [Register Private 1Ex Portfolio Fund](tasks/register-oneex-portfolio-fund.md)
 - [Restore 1Ex Portfolio NAV Sampling](tasks/restore-oneex-portfolio-audience-nav.md)
+- [Repair My Portfolio Zero-Investor NAV](tasks/repair-oneex-portfolio-zero-investors.md)
 - [Aliyun NixOS Image Host](tasks/aliyun-nixos-image-host.md)
 - [Aliyun Acorn ECS Deploy](tasks/aliyun-acorn-ecs-deploy.md)
 - [Aliyun Acorn Nix Cache Mirror](tasks/aliyun-acorn-nix-cache-mirror.md)

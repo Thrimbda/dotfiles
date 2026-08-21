@@ -76,3 +76,32 @@ fail-closed adapter boundary.
 - Resume condition: obtain new user authorization for another fresh source
   preflight after the adapter returns a healthy position read. Then repeat the
   full event gate before any DELETE; never reuse the historical event indexes.
+
+## Completed Repair
+
+The user later authorized bounded read-only source retries. A healthy response
+arrived within that execution window, so the operation re-read the live event
+stream rather than reusing any stored index. It then deleted the positive cash
+flow first (`204`), re-read and selected the remaining owner profile, and
+deleted that profile (`204`).
+
+The Fund was already private, enabled, and closed to subscriptions, so no Fund
+upsert was necessary. One new Trading NAV sample completed successfully. Its
+post-action invariant was:
+
+```text
+source_positions=6
+active_investors=0
+total_assets=28950.930192336928
+total_share=0
+total_deposit=0
+funding_balance=0
+unit_price=1
+subscription_open=false
+sample_equity=28950.930192336928
+non_trading_nav_events=0
+```
+
+An immediately subsequent independent read encountered an upstream timeout;
+it performed no write and does not invalidate the completed in-action source,
+event, and sample verification above.
