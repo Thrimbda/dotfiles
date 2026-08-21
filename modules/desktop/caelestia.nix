@@ -34,13 +34,17 @@ let cfg = config.modules.desktop.caelestia;
       sans = "Rubik";
     };
     caelestiaBluetoothPolicy = ./caelestia-bluetooth-policy.js;
+    caelestiaLockDpmsPatch = ./caelestia-lock-dpms-timeout.patch;
     upstreamShellPackage =
       if isLinux
       then hey.inputs.caelestia-shell.packages.${system}.with-cli
       else pkgs.runCommand "caelestia-shell-unavailable" {} "mkdir -p $out";
     defaultShellPackage =
       if isLinux then upstreamShellPackage.overrideAttrs (old: {
-        patches = (old.patches or []) ++ [ ./caelestia-bluetooth-primary.patch ];
+        patches = (old.patches or []) ++ [
+          ./caelestia-bluetooth-primary.patch
+          caelestiaLockDpmsPatch
+        ];
         postPatch = (old.postPatch or "") + ''
           install -m 0644 ${caelestiaBluetoothPolicy} modules/bar/popouts/BluetoothPolicy.js
         '';
@@ -58,6 +62,18 @@ let cfg = config.modules.desktop.caelestia;
         ${defaultShellPackage}/share/caelestia-shell/modules/bar/popouts/BluetoothPolicy.js
       grep -Fq 'BluetoothPolicy.primaryDevices(Bluetooth.devices.values, 5)' \
         ${defaultShellPackage}/share/caelestia-shell/modules/bar/popouts/Bluetooth.qml
+      mkdir -p "$out"
+      touch "$out/passed"
+    '';
+    caelestiaLockDpmsPatchTest = pkgs.runCommand "caelestia-lock-dpms-patch-test" {
+      nativeBuildInputs = [ pkgs.coreutils pkgs.nodejs pkgs.patch ];
+    } ''
+      set -eu
+      source="$TMPDIR/caelestia-shell"
+      cp -R ${hey.inputs.caelestia-shell} "$source"
+      chmod -R u+w "$source"
+      patch --batch --fuzz=0 -p1 -d "$source" < ${caelestiaLockDpmsPatch}
+      node ${./tests/caelestia-lock-dpms-patch-test.js} "$source"
       mkdir -p "$out"
       touch "$out/passed"
     '';
@@ -451,7 +467,10 @@ in {
         breeze-icons
       ];
 
-      system.extraDependencies = [ caelestiaBluetoothPolicyTest ];
+      system.extraDependencies = [
+        caelestiaBluetoothPolicyTest
+        caelestiaLockDpmsPatchTest
+      ];
 
       user.packages = with pkgs; [
         cfg.package
