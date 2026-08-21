@@ -301,3 +301,5 @@
 - Marked `dotfiles-hyprland-lua-migration` completed after implementation PR #167 merged; live-session smoke remains a post-merge deploy check on axiom.
 - Added `workspace-nonsensitive-checkpoint-2026-08-19`: recorded Axiom's 2TB filesystem labels, local credential exclusion boundary, and review requirement for broad workspace checkpoints.
 - Added task summary for `axiom-nix-warning-migration` and recorded the source-level warning migration, system-path ownership, and explicit test-fixture ordering pattern.
+- Added `restore-oneex-portfolio-audience-nav` summary after PR #184 merged, its fresh Axiom-to-Acorn deployment succeeded, and the private Fund received its verified owner-unit baseline.
+- Updated Acorn 1Ex current truth, recovery pattern, and maintenance with the required token audience, fresh-output recovery, and non-retry accounting boundary.

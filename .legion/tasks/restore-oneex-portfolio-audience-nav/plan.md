@@ -10,16 +10,16 @@ The active adapter mints device tokens for auth.ntnl.io while 1Exchange requires
 
 ## 验收标准
 
-- [ ] The active Acorn binary contains the redirect_uri audience fix and the Custom Account Source positions request returns HTTP 200 with complete positions.
-- [ ] A fresh immediate Fund sample succeeds before any accounting write, reports fully priced positions, and establishes the exact current baseline.
-- [ ] Exactly one owner initial-investment event issues units from that baseline, followed by a successful immediate sample with unit price derived from Fund assets and issued units.
-- [ ] No password, private key, bearer token, decrypted environment value, or opaque source header appears in task artifacts, commits, command output, or PR text.
+- [x] The active Acorn binary contains the redirect_uri audience fix and the Custom Account Source positions request returns HTTP 200 with complete positions.
+- [x] A fresh immediate Fund sample succeeded before the accounting write, reported fully priced positions, and established the baseline.
+- [x] Exactly one owner initial-investment event issued units. Its post-write `502` was corrected by one explicitly approved NAV sample, leaving unit price derived from Fund assets and issued units.
+- [x] No password, private key, bearer token, decrypted environment value, or opaque source header appears in task artifacts, commits, command output, or PR text.
 
 ## 假设 / 约束 / 风险
 
 - **假设**: origin/master already contains the required adapter source fix; the active Acorn closure is stale.
 - **假设**: Axiom's missing prior adapter output remains live in its local Nix database and cannot be safely deregistered, so a fresh derivation identity is required.
-- **假设**: The Fund remains owner-readable, has positive assets, and has zero current units until initialization.
+- **假设**: The Fund remained owner-readable with positive assets and zero units until the guarded initialization; it now has one owner investor and positive units.
 - **假设**: The user has authorized a current-baseline initialization rather than historical performance backfill.
 - **约束**: Never build or evaluate the NixOS closure on Acorn. Deploy only from Axiom with the prescribed remote nixos-rebuild command.
 - **约束**: Use a clean dotfiles worktree based on origin/master; retain unrelated main-worktree changes untouched.

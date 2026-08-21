@@ -42,6 +42,8 @@ The 1Ex portfolio adapter is a loopback-only Acorn systemd service at `127.0.0.1
 
 `My Portfolio` is the user-owned private USD Trading Fund backed by the enabled `1Ex Portfolio Adapter` Custom Account Source. Its Fund ID is the adapter's already deployed `EXCLUDED_FUND_ID`, so the adapter omits the Fund and avoids recursive valuation. Keep the Fund private with subscriptions closed; do not rotate that ID or remove the source without first disabling the Fund and designing the replacement/rollback path.
 
+1Ex device-session verification must send `redirect_uri=https://1ex.ntnl.io` so the minted token has the audience required by 1Exchange. Do not weaken audience validation or add a fallback token type. If the tracked vendor source already contains this behavior but Axiom has a registered-and-missing old adapter output, preserve source and secret configuration, force a fresh Nix derivation identity with a version-only suffix, and deploy only from refreshed merged `origin/master` on Axiom. Do not delete or deregister a live recorded store path to work around the missing output.
+
 ## Linux Workstation Desktop Baseline
 
 Shell prompt and tmux theme defaults are no longer owned by active theme modules. The current default prompt lives in `config/zsh/prompt.zsh` and is sourced by `config/zsh/.zshrc`; the current tmux theme lives in `config/tmux/theme.conf` and is sourced by `config/tmux/tmux.conf`. Do not reintroduce theme-module zsh/tmux injection unless a future scoped task designs an explicit shell theme option.
