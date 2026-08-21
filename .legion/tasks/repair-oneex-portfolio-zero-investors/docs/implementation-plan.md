@@ -8,8 +8,8 @@
 
 ### Steps
 
-- [ ] Confirm the RFC separates historical evidence from live preflight facts.
-- [ ] Confirm no alternative introduces a fictional investment or broad history rewrite.
+- [x] Confirm the RFC separates historical evidence from live preflight facts.
+- [x] Confirm no alternative introduces a fictional investment or broad history rewrite.
 
 ### Verification
 
@@ -29,9 +29,11 @@
 
 ### Steps
 
-- [ ] Identify the exact positive initial cash-flow event.
-- [ ] Identify the matching owner-profile event.
-- [ ] Verify no other financial event makes the deletion set ambiguous.
+- [x] Identify the exact positive initial cash-flow event.
+- [x] Identify the matching owner-profile event.
+- [x] Verify no other financial event makes the deletion set ambiguous.
+- [x] Retry only the read-only source positions request when it returns `502`;
+  refresh event indexes after the first healthy response.
 
 ### Verification
 
@@ -50,10 +52,10 @@
 
 ### Steps
 
-- [ ] Delete the live-verified cash-flow event.
-- [ ] Re-read and verify reduced state before deleting the owner-profile event.
-- [ ] Reassert private enabled Fund configuration with subscriptions closed.
-- [ ] Take one fresh sample and verify final projection.
+- [x] Delete the live-verified cash-flow event.
+- [x] Re-read and verify reduced state before deleting the owner-profile event.
+- [x] Confirm the private enabled Fund already has subscriptions closed; no unnecessary upsert was sent.
+- [x] Take one fresh sample and verify final projection.
 
 ### Verification
 

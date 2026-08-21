@@ -74,9 +74,13 @@ because it removes that false investment while preserving Trading NAV history.
 - Delete the positive cash flow first, then re-read all relevant projections
   before deleting the owner profile. Stop after any request failure rather than
   retrying blindly.
-- Preserve all existing Fund configuration fields during the upsert and set only
-  `subscription_open=false` as a deliberate configuration assertion.
+- Confirm `subscription_open=false` while preserving all existing Fund
+  configuration fields. Use a preserving upsert only when the setting needs
+  correction; do not send a no-op configuration write.
 - Keep all runtime auth material and opaque source details out of evidence.
+- The user explicitly authorizes repeated read-only source-position checks for
+  transient `502` responses during a bounded execution window. This does not
+  authorize replaying DELETE, Fund-upsert, or sample writes.
 
 ## Proposed Design
 
@@ -88,6 +92,11 @@ event page. Capture only redacted structural evidence: Fund enablement and
 subscription flags, counts, equity/funding/share totals, event indexes, event
 types, timestamps, and whether each candidate belongs to the approved owner
 initialization.
+
+For transient source `502` responses, repeat only the read-only positions
+request with a bounded retry budget. A successful source response is followed by
+a fresh event read and live event-index selection. No accounting write begins
+until that complete read set is healthy.
 
 The operation stops without mutation unless all conditions hold:
 
@@ -107,9 +116,10 @@ The operation stops without mutation unless all conditions hold:
 3. Delete the verified owner-profile event by its current event index.
 4. Re-read the same state again. Stop if any active investor or issued shares
    remain.
-5. Upsert the existing Fund using current configuration fields, preserving its
-   trading account, type, visibility, enablement, target currency, and
-   description while setting `subscription_open=false`.
+5. Confirm the existing Fund remains private, enabled, and
+   `subscription_open=false`. If that setting needs correction, use a preserving
+   upsert with current trading account, type, visibility, enablement, target
+   currency, and description; otherwise skip the no-op write.
 6. Take exactly one fresh owner-authorized sample. This is a Trading NAV event,
    not an investor, cash-flow, share, or settlement event.
 
@@ -153,13 +163,16 @@ accounting model without inventing a new flow or replacing the Fund.
 
 1. Complete the read-only live gate and save redacted evidence.
 2. Delete cash flow, verify; delete profile, verify.
-3. Reassert closed subscriptions through a preserving upsert.
+3. Confirm subscriptions remain closed; use a preserving upsert only if a
+   correction is required.
 4. Take one sample and prove all final invariants.
 
 ### Stop Conditions
 
-- Any unexpected event, investor, cash flow, Fund configuration, source error,
-  reducer failure, or event-index mismatch stops the operation.
+- Any unexpected event, investor, cash flow, Fund configuration, reducer
+  failure, or event-index mismatch stops the operation. A transient source
+  `502` retries only the read-only positions request within the current bounded
+  execution window; exhausting that budget stops without mutation.
 - A timeout or ambiguous delete response triggers a fresh read-only check; no
   repeat DELETE is sent unless the read proves the first request had no effect
   and the user explicitly reconfirms the retry boundary.
@@ -186,9 +199,9 @@ open a separate explicit accounting-repair decision.
 
 - Static: review the documented 1Exchange Fund event and sample semantics.
 - Live read-only: verify the exact candidate events, current Fund configuration,
-  source health, and pre-repair fictitious-deposit relation.
-- Mutation: prove reducer validity after each deletion and one preserving Fund
-  upsert.
+  source health with bounded read-only retries, and pre-repair fictitious-deposit relation.
+- Mutation: prove reducer validity after each deletion and confirm closed
+  subscriptions without an unnecessary configuration write.
 - Final: compare immediate sample equity to total assets, assert zero investors
   and shares, zero funding component, private/closed configuration, and absence
   of any new cash-flow event.
@@ -204,8 +217,8 @@ open a separate explicit accounting-repair decision.
    - Acceptance: exact event candidates and repair invariants are proven.
    - Rollback impact: none.
 3. Bounded repair and verification
-   - Scope: two approved deletes, preserving Fund upsert, one NAV sample, and
-     post-repair verification.
+   - Scope: two approved deletes, closed-subscription confirmation, one NAV
+     sample, and post-repair verification.
    - Acceptance: zero-investor NAV-only Fund state.
    - Rollback impact: manual follow-up only after a successful delete.
 

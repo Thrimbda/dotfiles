@@ -307,3 +307,5 @@
 - Added the `axiom-lock-dpms-delay` summary and current Axiom lock-scoped DPMS decision/pattern with source/build evidence and a separate deployed-session smoke follow-up.
 - Added the `axiom-hyprland-hotplug-lua-eval` summary and current Lua runtime monitor reconciliation decision after PR #189 merged.
 - Added the required post-deployment monitor reconcile smoke to Axiom maintenance; the source task did not activate the new generation.
+- Added `repair-oneex-portfolio-zero-investors` summary and corrected current My Portfolio truth to a private zero-investor NAV-only Fund.
+- Updated 1Ex maintenance and repair patterns with exact event deletion, read-only retry, and no-op-upsert boundaries.

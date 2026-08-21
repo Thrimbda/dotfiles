@@ -10,11 +10,11 @@ My Portfolio currently has an owner investor and initial cash-flow event despite
 
 ## 验收标准
 
-- [ ] A redacted live preflight identifies the exact erroneous owner-profile and initial-cash-flow events before any mutation.
-- [ ] Only those approved initialization events are removed, in an order that keeps the remaining event stream reducible.
-- [ ] The Fund remains enabled and private with subscription_open=false; self-service investment is unavailable.
-- [ ] After one fresh sample, total assets equal the sampled trading equity with zero active investors, zero issued shares, and no funding balance from the removed cash flow.
-- [ ] No source binding, adapter credential, Fund ID, access grant, settlement, unrelated event, secret, or external money movement is changed.
+- [x] A redacted live preflight identified the exact erroneous owner-profile and initial-cash-flow events before mutation.
+- [x] Only those approved initialization events were removed, in an order that kept the remaining event stream reducible.
+- [x] The Fund remains enabled and private with subscription_open=false; self-service investment is unavailable.
+- [x] A fresh sample set total assets equal to sampled trading equity with zero active investors, zero issued shares, and zero funding balance.
+- [x] No source binding, adapter credential, Fund ID, access grant, settlement, unrelated event, secret, or external money movement changed.
 
 ## 假设 / 约束 / 风险
 
@@ -22,18 +22,20 @@ My Portfolio currently has an owner investor and initial cash-flow event despite
 - **假设**: The Fund remains owner-readable and its Custom Account Source is healthy enough to take a fresh sample.
 - **假设**: The user has explicitly approved removal of the erroneous owner profile and initial cash-flow accounting events.
 - **约束**: Treat event deletion as a destructive accounting repair: capture a redacted audit snapshot, delete only exact approved event indexes, and stop on any mismatch or failed reducer validation.
+- **约束**: The user authorizes repeated read-only source-health checks for transient `502` responses within a bounded execution window. DELETE, Fund upsert, and NAV sample requests remain state-confirmed one-shot operations and are never blindly retried.
 - **约束**: Do not create compensating investors, cash flows, shares, settlements, transfers, or replacement Fund/source objects.
-- **约束**: Preserve the current trading account, Fund ID, source binding, privacy, adapter credentials, and hourly sampling; only reassert subscription_open=false through a preserving Fund upsert.
+- **约束**: Preserve the current trading account, Fund ID, source binding, privacy, adapter credentials, and hourly sampling. Confirm `subscription_open=false`; use a preserving Fund upsert only if a correction is actually needed, never as a no-op write.
 - **约束**: Keep authentication material, opaque headers, tokens, and decrypted runtime values out of logs, docs, commits, and PR text.
 - **风险**: Deleting the wrong event or using a stale event index can corrupt accounting history or leave the stream unreducible.
-- **风险**: A source/NAV failure during the repair can make post-mutation valuation ambiguous; this must stop the operation before or after a bounded, auditable action rather than trigger retries.
+- **风险**: A source/NAV failure during the repair can make post-mutation valuation ambiguous. Only the pre-mutation read-only source check may retry; a write response always requires a state read before any further action.
 - **风险**: With zero issued shares, 1Exchange intentionally reports unit price 1; the verified viewer metric is the total-assets NAV series, not a per-unit investment price.
 
 ## 要点
 
 - The repair must prove the fictitious investor/deposit state and viewer projection from live Fund event state rather than rely only on historical task notes.
 - Delete the positive cash-flow event before the owner-profile event, rereading events and statements after each destructive step.
-- Use the existing Fund upsert contract to preserve all fields while setting subscription_open=false.
+- Confirm the existing Fund configuration keeps subscriptions closed; use the preserving upsert contract only if that setting needs correction.
+- Retry only source-position reads while `502` is transient; after a healthy response, re-select current event indexes before the first DELETE.
 
 ## 范围
 
@@ -47,7 +49,7 @@ My Portfolio currently has an owner investor and initial cash-flow event despite
 **摘要**:
 - Use the live event stream as the authority: proceed only when it contains exactly the known initial owner profile and positive cash-flow artifacts, plus expected trading NAV history.
 - Remove the cash flow first, then the profile, preserving reducer validity at each boundary; no automatic retry or broad history rewrite is permitted.
-- Upsert the same Fund configuration with subscriptions closed, take a fresh trading sample, and verify one-source total assets plus zero-investor/zero-share state.
+- Confirm the same Fund configuration has subscriptions closed, take a fresh trading sample, and verify one-source total assets plus zero-investor/zero-share state.
 
 ## 阶段概览
 

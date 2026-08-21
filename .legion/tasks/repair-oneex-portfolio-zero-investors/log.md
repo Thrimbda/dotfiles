@@ -66,3 +66,15 @@
 - No DELETE, Fund upsert, sample, or other accounting write occurred. Resume
   only with new user authorization and a fresh healthy preflight; do not reuse
   the event indexes captured before this blocker.
+
+## Completed Repair (2026-08-21)
+
+- The user authorized bounded read-only source retries. A healthy source read
+  arrived, and the full event gate was repeated with current indexes.
+- Deleted the exact positive cash-flow event, re-read reduced state, then
+  deleted the remaining owner-profile event. Both DELETE requests returned 204.
+- The Fund already had `subscription_open=false`, so no unnecessary upsert was
+  sent. A new Trading NAV sample succeeded with six source positions.
+- Final reduced state has zero active investors, shares, deposit, and funding
+  balance; total assets equal the new sample equity. No secret or unrelated
+  accounting/source state was changed.
