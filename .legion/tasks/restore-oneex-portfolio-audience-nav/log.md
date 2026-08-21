@@ -12,6 +12,7 @@
 - PR #184 merged and the prescribed Axiom-to-Acorn deployment activated the fresh adapter output.
 - The live Custom Account Source returned HTTP 200 with six positions and no recursive self-Fund row.
 - One owner profile and cash flow, followed by one user-approved corrective NAV sample, established the assets-to-shares unit-price projection.
+- Documentation closeout PR #185 merged with the final verification, change review, walkthrough, and wiki writeback.
 
 (暂无)
 ### 🟡 进行中
@@ -20,10 +21,13 @@
 - Phase 2 deployment and source verification remain the current task.
 - Merge the configuration PR before running the persistent post-merge Axiom-to-Acorn deployment.
 - Create and merge the documentation-only closeout PR, then remove this task worktree and refresh main.
+- Merge the terminal task-state update, then remove the worktree and refresh main.
+- Earlier phase, merge, and blocker entries above are historical; deployment and accounting recovery are complete.
 ### ⚠️ 阻塞/待定
 
 - The prescribed Axiom deployment command stopped during Nix evaluation because the current dotfiles baseline enables a desktop sub-module without a desktop environment and does not set modules.desktop.type.
 - Fund initialization remains intentionally blocked until the merged deployment passes live source and immediate-sample preflight.
+- Resolved: PR #184 deployment restored the source and the guarded Fund initialization completed; no current engineering blocker remains.
 
 (暂无)
 ---
@@ -46,12 +50,12 @@
 
 **下次继续从这里开始：**
 
-1. Commit and merge the documentation-only closeout PR.
-2. After the PR reaches terminal state, remove the task worktree and refresh main.
+1. Merge the terminal task-state PR.
+2. Remove the task worktree and refresh main from `origin/master`.
 
 **注意事项：**
 
-- Do not create another Fund investor, cash flow, or share event while investigating future source failures.
+- No further Fund or source write is required for this closed recovery.
 ---
 
-*最后更新: 2026-08-21 06:31 by Legion CLI*
+*最后更新: 2026-08-21 06:37 by Legion CLI*
