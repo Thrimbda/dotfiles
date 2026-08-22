@@ -9,7 +9,7 @@
 - `nix-instantiate --parse hosts/axiom/modules/qwen.nix >/dev/null`
 - `nix build --no-link .#nixosConfigurations.axiom.config.system.build.toplevel`
 - Validated the realized launcher contains the intended Q4/Q5 and Q6 profiles.
-- Downloaded `RVN-Q5_K_M-mtp.gguf` with SHA-256 `ce34015241702a9258c8cbca64012bf03a05fda919ebd1c6613d88773d71245b`.
+- Replaced an upstream-invalid Q5 MTP artifact with fixed revision `3d0bfd5`; SHA-256 `ef6c307c53da1e0a577b27df0b636c2818880aabe5c132f423a404e36b391365` and a CPU-only MTP load both pass.
 
 ## Blocked Deployment Verification
 

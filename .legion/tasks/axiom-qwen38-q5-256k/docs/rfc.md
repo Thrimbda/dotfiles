@@ -6,7 +6,7 @@ Draft
 
 ## 背景
 
-当前服务以 `RVN-Q6_K-mtp.gguf`、131072 上下文和 Q4 KV cache 运行。运行中的进程占用 28595 MiB GPU 显存，剩余 3483 MiB。目标 Q5 MTP 工件为同一 RVN 发布者的 `RVN-Q5_K_M-mtp.gguf`，约 19.7 GB，但尚未下载到模型目录。
+当前服务以 `RVN-Q6_K-mtp.gguf`、131072 上下文和 Q4 KV cache 运行。运行中的进程占用约 29GB GPU 显存。目标 Q5 MTP 工件为同一 RVN 发布者的 `RVN-Q5_K_M-mtp.gguf`。
 
 Qwen 3.8 27B 原生上下文为 262144 tokens。该模型在 262K 下的 Q8 KV cache 约为 8 GiB。仅把所有档位改为 Q8/262K 会使 Q6 档超过单张 32GB RTX 5090 的可靠容量，因此 Q6 必须保留原有的 128K/Q4 profile 才能作为实际可用的回滚档。
 
@@ -26,7 +26,7 @@ Qwen 3.8 27B 原生上下文为 262144 tokens。该模型在 262K 下的 Q8 KV c
 
 ## 决策与边界
 
-- 从与已安装 Q4/Q6 文件相同的 RVN 仓库下载 `RVN-Q5_K_M-mtp.gguf`，并在切换前确认文件存在。
+- 使用 RVN 修复 revision `3d0bfd507a4451ec83da4cdf641f8f251b6768fb` 的 `RVN-Q5_K_M-mtp.gguf`，并在切换前验证 SHA-256 `ef6c307c53da1e0a577b27df0b636c2818880aabe5c132f423a404e36b391365`。
 - 在 Nix 模块中新增固定的 Q5 路径，缺省 `active.gguf` 仅在尚未存在时指向 Q5。
 - 扩展 `qwen-model` 状态识别、选择命令和 usage 文本以支持 Q5；仅接受 Q4、Q5、Q6 三个固定文件路径。
 - 将 `llama-server` 的启动改为受控 launcher。Q5 与 Q4 使用 `--ctx-size 262144 --cache-type-k q8_0 --cache-type-v q8_0`；Q6 使用当前的 131072/Q4 profile。
@@ -42,5 +42,5 @@ Qwen 3.8 27B 原生上下文为 262144 tokens。该模型在 262K 下的 Q8 KV c
 ## 风险
 
 - Q5 256K/Q8 的预计空闲显存很小，最终是否可用以实际启动后的 GPU 用量为准。
-- 下载的 MTP 工件约 19.7GB，必须在切换前完整落盘；缺失时控制命令不得改变当前服务。
+- 较早 revision `51b0712` 的 Q5 MTP 工件虽然通过其发布的 SHA-256 校验，但 llama.cpp 在 GGUF metadata 解析时拒绝它；不得重新使用。修复版工件大小为 19,682,419,936 bytes，且已通过 CPU-only MTP 加载验证。
 - Q6 是回滚档而非 256K 档。其 128K/Q4 profile 是为保证单卡可启动而保留的容量限制。
