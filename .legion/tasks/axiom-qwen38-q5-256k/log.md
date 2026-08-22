@@ -40,11 +40,12 @@
 
 **注意事项：**
 
-- Draft PR: https://github.com/Thrimbda/dotfiles/pull/199。
-- 未启用 auto-merge：运行时验证与变更审查尚未通过。
-- PR 创建期间命令正文的反引号曾触发无特权命令替换；nixos-rebuild 未成功，随后确认生产服务仍为健康 Q6。
+- Base: origin/master (472fac7a); branch: legion/axiom-qwen38-q5-256k-long-context; worktree: /home/c1/dotfiles/.worktrees/axiom-qwen38-q5-256k。
+- Draft PR: https://github.com/Thrimbda/dotfiles/pull/199; state: OPEN; merge state: CLEAN; no checks reported; no review decision。
+- Auto-merge is intentionally disabled because runtime validation and review-change are blocked. Worktree is retained and the main worktree is not refreshed until PR terminal state.
+- Current session requires an interactive sudo password; production remains a healthy Q6 service.
 
 (暂无)
 ---
 
-*最后更新: 2026-08-22 09:11 by Legion CLI*
+*最后更新: 2026-08-22 09:12 by Legion CLI*
