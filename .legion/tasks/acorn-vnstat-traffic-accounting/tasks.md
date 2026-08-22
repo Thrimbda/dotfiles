@@ -8,4 +8,4 @@
 - [x] Verify the daemon and interface reporting on Acorn.
 - [x] Complete change review.
 - [x] Generate delivery evidence and write back the wiki.
-- [ ] Complete the PR lifecycle.
+- [x] Complete the implementation PR lifecycle: PR #195 merged and its worktree was removed.
