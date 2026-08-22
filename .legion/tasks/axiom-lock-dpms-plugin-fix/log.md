@@ -71,3 +71,11 @@
 |------|------|------|
 | 在 `secureChanged` 时 arm lock DPMS | `lockedChanged` 仅可靠覆盖 unlock，不能表示 compositor 已确认锁屏。 | 2026-08-22 |
 | 使用 Axiom Hyprland 原生 DPMS wake | lock-scoped QML wake monitor 未可靠接收 physical input resume；compositor 可在锁输入前恢复显示器。 | 2026-08-22 |
+
+## 交付收口 (2026-08-22)
+
+### ✅ 已完成
+
+- 实现 PR [#197](https://github.com/Thrimbda/dotfiles/pull/197) 已 squash merge 为 `b8a57fbc`。
+- GitHub 未报告 required check 或 review gate；已尝试 auto-merge，PR 随即合并。
+- 本次文档收口将任务状态和 wiki 标记为完成；Git envelope 随后执行 worktree cleanup 与主工作区基线刷新。
