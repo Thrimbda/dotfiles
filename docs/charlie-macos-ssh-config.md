@@ -1,13 +1,42 @@
 # charlie macOS SSH 配置指南（Cloudflare Zero Trust）
 
-本文档介绍如何在 charlie（macOS，IP: 192.168.50.143）上配置 SSH 以与 Cloudflare Zero Trust 配合工作。
+本文档介绍如何在 charlie（macOS，保留地址 `192.168.10.4`）上配置 SSH、自动选路和 Cloudflare Zero Trust。
 
 ## 先决条件
 
-1. **固定 IP 地址**：确保路由器 DHCP 保留将 charlie 的 MAC 地址映射到 `192.168.50.143`
+1. **固定 IP 地址**：确保路由器 DHCP 保留将 charlie 的 MAC 地址映射到 `192.168.10.4`
 2. **Cloudflare 隧道**：为 charlie 创建独立的 cloudflared tunnel 与凭证
 3. **用户账户**：创建用户 `siyuan.arc` 用于浏览器 SSH 紧急访问
 4. **SSH 密钥**：为用户 `c1` 设置 SSH 密钥认证
+
+## OpenSSH 自动选路
+
+客户端保留两个入口：
+
+- `ssh charlie`：先运行 `ssh-route-probe`，只有 `192.168.10.4:22`
+  提供的 ED25519 host key 与 known_hosts 中固定的 `charlie` key 一致时才直连；
+  否则经 acorn 的反向隧道连接。
+- `ssh charlie-tunnel`：始终强制走 acorn，用于诊断和应急。
+
+客户端配置由 `config/ssh/charlie.conf` 管理。主 `~/.ssh/config` 必须在其他
+`Host` 块之前包含：
+
+```sshconfig
+Include ~/.ssh/config.d/*.conf
+```
+
+两条路径都使用 `HostKeyAlias charlie`。迁移时必须先从已经验证的
+`charlie-tunnel` key 建立 `charlie` known_hosts 条目，不能盲目接受新 key。
+
+charlie 到 acorn 的 autossh 使用独立私钥：
+
+```text
+/Users/c1/.ssh/id_ed25519_charlie_tunnel
+```
+
+acorn 上的 `tunnel-charlie` 是只能建立
+`127.0.0.1:2222` remote forwarding 的系统账户；它不能打开 shell、PTY、本地
+forwarding、agent forwarding 或 X11 forwarding。公网防火墙不开放 `2222`。
 
 ## 用户配置
 
@@ -63,7 +92,7 @@ AuthorizedKeysFile .ssh/authorized_keys
 
 # Port and listening
 Port 22
-ListenAddress 192.168.50.143
+ListenAddress 192.168.10.4
 ```
 
 ### 3. SSH 服务管理
@@ -96,10 +125,10 @@ sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
 
 ```bash
 # Test SSH with keys (user c1)
-ssh c1@192.168.50.143
+ssh c1@192.168.10.4
 
 # Test SSH with password (user siyuan.arc, for browser SSH testing)
-ssh siyuan.arc@192.168.50.143
+ssh siyuan.arc@192.168.10.4
 ```
 
 ### 6. cloudflared（独立隧道 / opencode 回源）
@@ -200,7 +229,7 @@ launchd.user.agents.opencode-server.serviceConfig = {
 确保您的路由器有以下配置：
 
 1. **DHCP 保留**：
-   - charlie (macOS): MAC 地址 → `192.168.50.143`
+   - charlie (macOS): MAC 地址 → `192.168.10.4`
    - atlas (Linux): MAC 地址 → `192.168.50.227`
 
 2. **防火墙规则**：
@@ -290,7 +319,7 @@ sudo dscl . -read /Users/siyuan.arc > ~/siyuan.arc-user-backup.txt
 
 ### 浏览器 SSH / 双机拓扑附加项
 
-- [ ] 路由器：为 charlie 配置 DHCP 保留 (192.168.50.143)
+- [ ] 路由器：为 charlie 配置 DHCP 保留 (`192.168.10.4`)
 - [ ] 路由器：为 atlas 配置 DHCP 保留 (192.168.50.227)
 - [ ] macOS：创建用户 `siyuan.arc`
 - [ ] macOS：配置 `/etc/ssh/sshd_config`

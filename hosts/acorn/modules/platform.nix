@@ -52,7 +52,7 @@
     hostName = "acorn";
     useDHCP = lib.mkForce false;
     firewall = {
-      allowedTCPPorts = lib.mkForce [ 22 443 2222 2223 2224 2225 7000 21115 21116 21117 34197 ];
+      allowedTCPPorts = lib.mkForce [ 22 443 2223 2224 2225 7000 21115 21116 21117 34197 ];
       allowedUDPPorts = [ 21116 34197 ];
     };
   };

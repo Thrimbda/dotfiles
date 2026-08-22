@@ -76,6 +76,14 @@ with lib;
       OPENCODE_EXPERIMENTAL = "true";
     };
 
+    home.file = {
+      ".local/bin/ssh-route-probe" = {
+        source = ../../bin/ssh-route-probe;
+        executable = true;
+      };
+      ".ssh/config.d/charlie.conf".source = ../../config/ssh/charlie.conf;
+    };
+
     user.packages = with pkgs; [
       pandoc
       coreutils

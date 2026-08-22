@@ -1,0 +1,101 @@
+Charlie SSH Nix and static verification evidence
+Date: 2026-07-30 Asia/Shanghai
+Branch: codex/charlie-auto-ssh
+
+N1. Shell and diff checks
+
+Commands:
+  sh -n bin/ssh-route-probe
+  git diff --check
+
+Exit codes: 0, 0
+
+N2. Acorn sshd and firewall evaluation
+
+Commands:
+  nix eval --json \
+    .#nixosConfigurations.acorn.config.networking.firewall.allowedTCPPorts
+  nix eval --raw \
+    .#nixosConfigurations.acorn.config.services.openssh.extraConfig
+  nix eval --json \
+    .#nixosConfigurations.acorn.config.users.users.tunnel-charlie.isSystemUser
+
+Exit codes: 0, 0, 0
+Output:
+  [22,443,2223,2224,2225,7000,21115,21116,21117,34197]
+
+  AuthorizedKeysFile %h/.ssh/authorized_keys /etc/ssh/authorized_keys.d/%u
+  Match User tunnel-charlie
+    AuthenticationMethods publickey
+    AllowAgentForwarding no
+    AllowStreamLocalForwarding no
+    AllowTcpForwarding remote
+    GatewayPorts no
+    KbdInteractiveAuthentication no
+    MaxSessions 0
+    PasswordAuthentication no
+    PermitListen 127.0.0.1:2222
+    PermitTTY no
+    PermitUserRC no
+    X11Forwarding no
+
+  true
+
+N3. Charlie launchd evaluation and build
+
+Command:
+  nix eval --json \
+    .#darwinConfigurations.charlie.config.launchd.user.agents.autossh-reverse-ssh.serviceConfig.ProgramArguments
+
+Exit code: 0
+Relevant output:
+  BatchMode=yes
+  IdentitiesOnly=yes
+  StrictHostKeyChecking=yes
+  UserKnownHostsFile=/Users/c1/.ssh/known_hosts
+  ExitOnForwardFailure=yes
+  -i /Users/c1/.ssh/id_ed25519_charlie_tunnel
+  -R 127.0.0.1:2222:127.0.0.1:22
+  tunnel-charlie@8.159.128.125
+
+The whitelisted source snapshot built on charlie as:
+  /nix/store/v3ddn24qymxqh2d0ls303nwr0la7v8nl-darwin-system-25.11.ebec37a
+
+Commands:
+  test -x /nix/store/v3ddn24qymxqh2d0ls303nwr0la7v8nl-darwin-system-25.11.ebec37a/activate
+  nix path-info /nix/store/v3ddn24qymxqh2d0ls303nwr0la7v8nl-darwin-system-25.11.ebec37a
+
+Exit codes: 0, 0
+
+N4. Charles managed-file evaluation
+
+Command:
+  nix eval --json \
+    .#darwinConfigurations.charles.config.home-manager.users.c1.home.file \
+    --apply 'files: builtins.attrNames files'
+
+Exit code: 0
+Relevant output:
+  .local/bin/ssh-route-probe
+  .ssh/config.d/charlie.conf
+
+A complete charles closure build from a clean, whitelisted path source was
+started successfully. It required 1176.36 MiB of unrelated cached desktop and
+development dependencies and was deliberately interrupted while still
+downloading. This is not used as PASS evidence; N4 and the live checks in
+docs/evidence/charlie-ssh-live.txt are the scoped client evidence.
+
+N5. Current documentation lookup
+
+Context7 resolved current OpenSSH documentation to:
+  /openssh/openssh-portable
+
+The fetched documentation confirmed the configuration semantics used here:
+  restrict disables forwarding/session features by default;
+  port-forwarding re-enables forwarding for the key;
+  permitlisten restricts the remote listening address and port;
+  MaxSessions=0 prevents shell/session channels but does not itself disable
+  forwarding.
+
+The final sshd Match block adds AllowTcpForwarding remote, so the per-key
+port-forwarding allowance cannot be used for client-side local forwarding.

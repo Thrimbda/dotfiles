@@ -5,3 +5,4 @@
 cloudflare
 /API_TOKEN.env
 /ssh_host_ed25519_key
+/acorn_id_ed25519

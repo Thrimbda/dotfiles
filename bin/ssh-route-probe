@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -eu
+
+if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
+  printf 'usage: %s HOST_KEY_ALIAS HOST PORT [KNOWN_HOSTS_FILE]\n' "$0" >&2
+  exit 2
+fi
+
+host_key_alias=$1
+host=$2
+port=$3
+known_hosts=${4:-"$HOME/.ssh/known_hosts"}
+timeout=${SSH_ROUTE_PROBE_TIMEOUT:-2}
+
+[ -r "$known_hosts" ] || exit 1
+
+expected=$(
+  /usr/bin/ssh-keygen -F "$host_key_alias" -f "$known_hosts" 2>/dev/null |
+    /usr/bin/awk '$2 == "ssh-ed25519" { print $2 " " $3; exit }'
+)
+[ -n "$expected" ] || exit 1
+
+actual=$(
+  /usr/bin/ssh-keyscan -T "$timeout" -p "$port" -t ed25519 "$host" 2>/dev/null |
+    /usr/bin/awk '$2 == "ssh-ed25519" { print $2 " " $3; exit }'
+)
+[ -n "$actual" ] || exit 1
+
+[ "$actual" = "$expected" ]

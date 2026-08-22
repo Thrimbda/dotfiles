@@ -1552,17 +1552,30 @@ with lib;
           "0"
           "-N"
           "-o"
-          "ServerAliveInterval=30"
+          "BatchMode=yes"
+          "-o"
+          "IdentitiesOnly=yes"
+          "-o"
+          "StrictHostKeyChecking=yes"
+          "-o"
+          "UserKnownHostsFile=/Users/c1/.ssh/known_hosts"
+          "-o"
+          "ConnectTimeout=10"
+          "-o"
+          "ServerAliveInterval=15"
           "-o"
           "ServerAliveCountMax=3"
           "-o"
           "ExitOnForwardFailure=yes"
+          "-i"
+          "/Users/c1/.ssh/id_ed25519_charlie_tunnel"
           "-R"
           "127.0.0.1:2222:127.0.0.1:22"
-          "c1@8.159.128.125"
+          "tunnel-charlie@8.159.128.125"
         ];
         EnvironmentVariables = {
           AUTOSSH_GATETIME = "0";
+          HOME = "/Users/c1";
         };
         RunAtLoad = true;
         KeepAlive = true;

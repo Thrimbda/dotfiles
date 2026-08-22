@@ -1,0 +1,62 @@
+Charlie SSH activation blocker evidence
+Date: 2026-07-30 Asia/Shanghai
+
+B1. Jump host availability
+
+Target:
+  8.159.128.125
+
+Command:
+  ssh -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 \
+    azar 'hostname; uptime; free -h'
+
+Exit code: 255
+Output:
+  Connection timed out during banner exchange
+  Connection to 8.159.128.125 port 22 timed out
+
+The same result occurred:
+  - from charles directly;
+  - from charlie directly;
+  - through a separate c1-nix management node used only as a TCP ProxyJump.
+
+Command:
+  curl -skS --connect-timeout 5 --max-time 10 -o /dev/null \
+    -w 'https_status=%{http_code} connect=%{time_connect} total=%{time_total}\n' \
+    https://8.159.128.125/
+
+Exit code: 28
+Output:
+  curl: (28) Connection timed out after 5003 milliseconds
+  https_status=000 connect=0.000000 total=5.003229
+
+The old autossh connection from charlie to 8.159.128.125 remains ESTABLISHED,
+so it was preserved. New SSH connections cannot currently obtain a server
+banner.
+
+B2. Privileged activation
+
+Before the outage, both hosts returned a non-zero result for sudo -n:
+  - 8.159.128.125: sudo requires an interactive password
+  - charlie: sudo requires an interactive password
+
+No password was requested, captured, or entered by the agent.
+
+Consequences:
+  - the repository's final tunnel-charlie system account and sshd Match block
+    are evaluated but not active on 8.159.128.125;
+  - the built charlie closure is not activated;
+  - the old c1-based 2222 tunnel remains the production path;
+  - the temporary c1 authorized_keys line permitting only
+    127.0.0.1:2226 remains on the jump host until management access returns;
+    its corresponding LaunchAgent is stopped and its private key is mode 0600
+    on charlie.
+
+Required recovery order:
+  1. Restore new SSH management connections to 8.159.128.125.
+  2. Build and interactively activate the acorn NixOS closure.
+  3. Verify tunnel-charlie rejects sessions/local forwarding/unapproved listen
+     ports and accepts only 127.0.0.1:2222.
+  4. Interactively activate the already built charlie Darwin closure.
+  5. Verify ssh charlie-tunnel, remove the temporary 2226 authorized_keys line,
+     and confirm the old general c1 tunnel authorization is no longer needed.
