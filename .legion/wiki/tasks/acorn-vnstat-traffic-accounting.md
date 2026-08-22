@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `acorn-vnstat-traffic-accounting`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `high`
 - `schema-version`: `1`
 - `historical`: `false`
@@ -15,6 +15,7 @@
 - Acorn now enables the native NixOS `vnstat` daemon for durable interface-level daily and monthly traffic totals.
 - The service was built on Axiom and activated remotely on Acorn; it is active and has registered the primary `ens5` interface.
 - This is the current baseline for detecting future billable egress spikes. It cannot reconstruct historic traffic or attribute traffic to RustDesk, FRP, Nginx, or individual processes.
+- Implementation PR [#195](https://github.com/Thrimbda/dotfiles/pull/195) merged, and its worktree was removed.
 
 ## Reusable Decisions
 

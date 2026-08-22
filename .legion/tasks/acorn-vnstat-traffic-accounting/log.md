@@ -12,3 +12,4 @@
 - Verified `vnstat.service` active and `ens5` registered. Its first interval has not completed, so historic output is correctly unavailable.
 - Verified the existing public-service baseline remains active; an initial `frps-acorn` check was ignored because it is not the configured unit name, and the actual `auth-mini-gateway-frps-acorn` unit is active.
 - Generated walkthrough artifacts from report data. The HTML preview remains local because it describes production service and traffic details.
+- Implementation PR #195 merged. The implementation worktree was removed; this closeout change records the terminal task state.
