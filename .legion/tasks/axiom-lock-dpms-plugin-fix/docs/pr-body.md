@@ -1,34 +1,28 @@
 ## Summary
 
-- Fix the Caelestia DPMS closure mismatch: the shell QML patch previously
-  shipped beside an unpatched C++ `Caelestia.Config` plugin, so
-  `lockDpmsTimeout` was not provided by the plugin the shell loaded.
-- Split the Config and shell patches so each applies to its own derivation.
-- Replace the shell's exact original direct plugin input with the patched
-  plugin, require exactly one replacement, and publish that same derivation as
-  `passthru.plugin`.
-- Preserve the existing timer behavior, Axiom's `60` setting, the 900/1800
-  idle policy, and Hypridle ownership.
+- Arm Caelestia's 60-second lock DPMS timer from compositor-confirmed
+  `WlSessionLock.secureChanged`, not the missing Quickshell 0.3 lock-acquisition
+  notification.
+- Enable Axiom-only Hyprland key-press and pointer-motion DPMS wake so displays
+  wake without unlocking the session.
+- Keep the patched Config plugin closure, 900/1800 idle policy, Caelestia idle
+  ownership, and all non-Axiom hosts unchanged.
 
 ## Validation
 
-- PASS: configured package build:
-  `nix build --no-link .#nixosConfigurations.axiom.config.modules.desktop.caelestia.package`
-  (`docs/test-report.md:34-50`).
-- PASS: the built plugin qmltypes artifact registers
-  `GeneralIdle.lockDpmsTimeout` as `int` (`docs/test-report.md:24-32`).
-- PASS: the configured package has exactly one patched plugin direct input,
-  zero original plugin inputs, and `pkg.plugin` points at the patched output
-  (`docs/test-report.md:53-69`).
-- PASS: the built shell references the patched plugin and has no original
-  plugin reference (`docs/test-report.md:69`; `docs/review-change.md:28-34`).
-- PASS: RFC and implementation reviews report no blocking findings
-  (`docs/review-rfc.md:7-64`; `docs/review-change.md:9-11`).
+- PASS: zero-fuzz Config/shell patch application and focused Node assertions.
+- PASS: patched Caelestia package build and full Axiom system build.
+- PASS: generated Hyprland Lua and live `hyprctl getoption` both show native
+  key and pointer wake enabled.
+- PASS: locked session reaches DPMS-off at 65 seconds; pointer wake restores
+  displays while `LOCK` remains active; another 65 seconds does not rearm.
+- PASS: unlock from timer-owned DPMS-off restores displays and removes lock
+  state.
+- PASS: RFC and change reviews, including the session-lock security lens.
 
-## Not Run
+## Delivery Evidence
 
-Deployment and live testing are blocked by the local sudo password requirement:
-`sudo -n true` requires authorization (`docs/test-report.md:71-83`). No switch,
-Caelestia restart, runtime import-path check, or physical lock/60-second DPMS
-test ran. This PR makes no claim about live QML plugin selection or physical
-60-second DPMS behavior.
+- `docs/test-report.md`
+- `docs/review-rfc.md`
+- `docs/review-change.md`
+- `docs/report-walkthrough.md`

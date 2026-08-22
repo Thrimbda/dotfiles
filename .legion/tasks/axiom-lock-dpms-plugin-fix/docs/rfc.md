@@ -1,121 +1,145 @@
-# RFC: Axiom Caelestia DPMS Plugin Closure Fix
+# RFC: Axiom Caelestia Lock DPMS Secure-State Arming And Native Wake
 
-Status: Proposed | Risk: Standard
+Status: Accepted | Risk: Standard
 
 ## Context And Evidence
 
-`modules/desktop/caelestia.nix` currently applies the combined
-`caelestia-lock-dpms-timeout.patch` through an outer
-`upstreamShellPackage.overrideAttrs`. The patch contains both the Config C++
-property in `plugin/src/Caelestia/Config/generalconfig.hpp` and the lock timer
-QML in `modules/IdleMonitors.qml`. Axiom sets `lockDpmsTimeout = 60` through
-both declarative and mutable Caelestia settings.
+The Config-plugin closure repair from PR #194 is deployed and loaded. The live
+plugin exposes `lockDpmsTimeout`, the active configuration evaluates it as `60`,
+and `hl.dsp.dpms({ action = "disable" })` changes both monitors to
+`dpmsStatus: false`. The original timer failed to arm; after secure-state
+arming was deployed, a manual lock left both monitors at `dpmsStatus: false`
+after 65 seconds while Hyprland still reported `LOCK`.
 
-Recorded live evidence establishes a closure mismatch:
+The initial failure was the event that arms the timer. Caelestia currently
+subscribes to `WlSessionLock.lockedChanged` in `IdleMonitors.qml`. Quickshell
+0.3 declares that notify signal as `lockStateChanged`, but its source has an
+asymmetric implementation:
 
-- The deployed shell `/nix/store/41531...-caelestia-shell-1.0.0` contains the
-  QML lock-timeout patch, and the active configuration has `60`.
-- Its runtime plugin reference is
-  `/nix/store/0d7...-caelestia-qml-plugin`.
-- `nix derivation show` for that plugin proved `patches=""` and an upstream
-  plugin source, so it does not provide `lockDpmsTimeout`.
+- `WlSessionLock::setLocked(true)` creates the local session-lock object through
+  `realizeLockTarget()` without emitting `lockStateChanged`.
+- The compositor acknowledgement is connected to `secureStateChanged`, not
+  `lockStateChanged`.
+- `WlSessionLock::unlock()` emits `lockStateChanged`.
 
-The outer override patches only the shell derivation. The shell's separately
-built `plugin` passthru dependency remains the old plugin, which is what QML
-loads at runtime. Therefore the QML and configuration schema are from different
-derivations; this is the root cause of lock-time failure.
+Qt resolves `onLockedChanged` through the property's notify signal, so the
+current handler runs for unlock cleanup but not for lock arming. Quickshell's
+`secure` property is the correct event boundary: it becomes true only after the
+compositor confirms all screens are covered with lock surfaces.
+
+Before native wake was enabled, the QML zero-timeout wake monitor did not restore DPMS
+after physical local input. Axiom reports both `misc:key_press_enables_dpms`
+and `misc:mouse_move_enables_dpms` as `false`, leaving no compositor-native
+wake path.
 
 ## Goals
 
-- Make the Config plugin that the shell actually loads expose
-  `lockDpmsTimeout`.
-- Make replacement of the shell's plugin dependency explicit, exact, and
-  inspectable.
-- Preserve the existing lock-scoped timer state machine and Axiom's current
-  configuration.
+- Start one lock-scoped 60-second timer only after Caelestia has a secure,
+  compositor-confirmed session lock.
+- Preserve timer cancellation, DPMS restoration on unlock, and input wake
+  without unlock or rearming within the same lock epoch.
+- Keep the already-correct Config plugin closure and Axiom configuration.
+- Restore Axiom DPMS through Hyprland's physical key-press and pointer-motion wake path.
 
 ## Non-goals
 
-- Changing timer behavior, the 900/1800-second idle policy, or suspend and
-  hibernate semantics.
-- Enabling the feature or changing effective behavior on other hosts.
-- Adding Hypridle, a wrapper, or any other idle owner.
+- Patching or upgrading Quickshell, adding an external idle daemon, or changing
+  the 900/1800-second policy.
+- Changing Caelestia's existing lock request entrypoints, other hosts,
+  session-runner ownership, suspend, or hibernate.
+- Retrying failed locks or making a timer action a substitute for a valid
+  session lock.
+- Adding lock-surface-specific input handlers or changing DPMS wake behavior on
+  hosts other than Axiom.
 
 ## Options
 
 | Option | Assessment | Decision |
 | --- | --- | --- |
-| Apply the existing combined patch to the plugin. | Invalid: the plugin fileset lacks `modules/IdleMonitors.qml`, so the QML hunk cannot apply there. | Reject. |
-| Add a wrapper or runtime import-path workaround. | Hides the closure mismatch, makes import selection less deterministic, and leaves the package contract unverified. | Reject. |
-| Split the C++ Config and shell QML patches; patch the plugin with the C++ part; replace the shell's exact old plugin dependency; expose it through `passthru.plugin`. | Each hunk applies to the derivation that builds it, and the package closure has one auditable plugin identity. | Recommend. |
+| Patch Quickshell to emit `lockStateChanged` when it acquires a lock. | Would correct the upstream notify contract but expands scope to a global framework package and its lifecycle. | Reject. |
+| Add a Caelestia-owned request signal and route all five lock entrypoints through it. | Avoids the missing notify, but local `locked` state exists before compositor confirmation and requires unnecessary multi-file routing. | Reject. |
+| Subscribe to `WlSessionLock.secureChanged` and arm only while `secure` is true. | Uses the native compositor-confirmation event, covers every existing lock path, and remains local to the current QML module. | Recommend. |
 
 ## Decision
 
-Replace the combined patch with two focused patches:
+Keep all existing lock request paths unchanged. In `IdleMonitors.qml`, separate
+timer arming from unlock cleanup:
 
-- The Config patch changes only `generalconfig.hpp` and is applied by
-  `upstreamShellPackage.plugin.overrideAttrs`.
-- The shell patch changes only `IdleMonitors.qml` and is applied by the outer
-  shell override. Its timer logic must be a mechanical extraction of the
-  current QML hunk, not a behavior change.
+- `onSecureChanged` checks `root.lock.lock.secure` and invokes the existing
+  lock-arming branch only when it is true.
+- `onLockedChanged` invokes cleanup only when `root.lock.lock.locked` is false.
+- The timer's existing lock, epoch, identity, and one-shot guards remain in
+  place before it dispatches `dpms off`.
 
-Capture the original plugin before either override. In the outer shell override,
-map the main package's `buildInputs` and replace an input only when its resolved
-store path equals the original plugin's resolved store path. Do not match by
-name. Require exactly one match; zero or multiple matches must fail evaluation
-instead of silently appending a second plugin. Preserve every other build input.
+The `secureChanged` handler can fire again during unlock, but its false guard
+prevents arming. If a future Quickshell version starts notifying `lockedChanged`
+on lock acquisition, that event is ignored while `locked` is true; only
+`secureChanged` with `secure === true` arms the timer. A rejected or not-yet-
+secure lock never starts a timer.
 
-Set the resulting shell's `passthru.plugin` to the patched plugin while
-preserving other passthru attributes. This makes the exposed plugin identity and
-the dependency used to build the shell agree.
+For input wake, configure Axiom's existing `hl.config` `misc` block with
+`key_press_enables_dpms = true` and `mouse_move_enables_dpms = true`. Hyprland
+then restores DPMS before lock-screen input handling, so the lock remains active
+and all existing lock paths inherit the same reliable behavior. The second
+option is specifically pointer motion, not mouse-button input. The QML wake
+monitor remains a harmless redundant restore path but is not the acceptance
+mechanism.
+
+## Native Wake Options
+
+| Option | Assessment | Decision |
+| --- | --- | --- |
+| Rely only on the existing QML zero-timeout `IdleMonitor`. | Failed the physical-input smoke and depends on an idle-state transition after displays are disabled. | Reject. |
+| Add QML pointer and keyboard handlers to lock-surface components. | Can be lock-scoped but duplicates compositor input ownership and requires multi-component event propagation. | Reject. |
+| Enable Hyprland native key and mouse DPMS wake for Axiom. | The compositor receives physical input first, covers lock and fallback DPMS, and is an explicit user-approved host policy. | Recommend. |
 
 ## Correctness Criteria
 
 | Property | Required proof |
 | --- | --- |
-| Schema and QML align | The built patched plugin's `qmltypes` contains `lockDpmsTimeout`; the built shell contains the unchanged timer QML hunk. |
-| Exact dependency replacement | The original plugin store path is absent from the shell's `buildInputs`; the patched plugin store path replaces it exactly once. |
-| Public package identity | `package.passthru.plugin` resolves to the patched plugin output. |
-| Runtime closure alignment | The deployed shell resolves the patched plugin, not `/nix/store/0d7...-caelestia-qml-plugin`, for the Caelestia.Config import. |
-| Behavioral boundary | Axiom remains at `60`; its 900-second lock and 1800-second DPMS on/off entries, other hosts, and Caelestia-only idle ownership are unchanged. |
+| Confirmation gate | The only lock-arming route is `secureChanged` with an explicit true check. |
+| Unlock behavior | The `lockedChanged` route only invalidates the epoch, destroys an active timer, and restores timer-owned DPMS after unlock. |
+| Existing paths | No lock request source changes; successful shortcut, IPC, idle, sleep, and logind locks all converge on the same `WlSessionLock.secure` event. |
+| Native wake | Axiom config enables Hyprland key-press and pointer-motion DPMS wake; other hosts remain unchanged. |
+| Existing boundaries | The Config plugin property, Axiom value `60`, 900/1800 entries, and idle ownership are unchanged. |
+| Runtime behavior | A deployed manual lock turns DPMS off after 60 seconds; physical input turns displays back on while it remains locked; unlocking leaves displays on. |
 
 ## Scope
 
-Implementation is limited to the Caelestia package override, the split patches,
-and focused patch/closure tests under `modules/desktop/`. The existing Axiom
-settings remain unchanged. No wrapper, session-control, idle-policy, or
-other-host change is in scope.
+Change the existing `IdleMonitors.qml` shell patch and focused source assertions,
+plus Axiom's Hyprland `misc` host policy. Retain the Nix package integration and
+Config-plugin patch. Update task-local design, verification, review, and
+delivery evidence.
 
 ## Verification
 
-Verification is planned; this RFC does not claim a completed build or deployed
-smoke test.
-
-- Apply each split patch with `--fuzz=0` to its own pinned upstream source.
-  Keep the current QML state-machine assertions and add a plugin-focused check
-  for the generated `qmltypes` property.
-- Evaluate the configured Axiom package and assert that the original plugin
-  path has zero `buildInputs` matches, the patched path has one replacement,
-  and `passthru.plugin` is the patched output. Assert both Axiom settings still
-  equal `60` and the 900/1800 policy and idle ownership are unchanged.
-- Perform a full configured Caelestia package build on an approved build host.
-  Inspect its plugin `qmltypes` and the shell dependency/reference information
-  rather than accepting static QML source as proof.
-- After deployment, restart Caelestia and confirm the active shell and loaded
-  plugin store paths are from the new closure, the active configuration still
-  has `lockDpmsTimeout = 60`, and the old plugin is not selected.
-- Manually lock the deployed session, wait 60 seconds, and verify DPMS off then
-  input wake while the session stays locked. Do not automate an unlock or claim
-  this session check until it is performed.
+- Apply the shell patch to the pinned source with `--fuzz=0` and run Node
+  assertions for secure-gated arming, unlock-only cleanup, timer guards, wake
+  behavior, and the retained plugin-schema assertion.
+- Build the configured Caelestia package without running a Nix build on Acorn.
+- On Axiom, restart Caelestia from the deployed closure, verify the loaded shell
+  and plugin paths and the effective value `60`, then manually lock and sample
+  `hyprctl -j monitors` after at least 60 seconds.
+- While still locked, provide input and verify DPMS is on while lock state
+  remains true; unlock manually and verify no timer-owned DPMS state remains.
+- Verify `hyprctl getoption misc:key_press_enables_dpms` and
+  `misc:mouse_move_enables_dpms` both report `true`, then test a physical key
+  press and pointer motion in separate DPMS-off lock cycles.
 
 ## Rollback
 
-For an immediate behavioral rollback, set `lockDpmsTimeout = 0` in both Axiom
-settings paths, deploy, and restart Caelestia while retaining the patched plugin
-schema. This disables the timer without recreating a schema/closure mismatch.
+Changing `lockDpmsTimeout` to `0` affects future secure locks only; it does not
+cancel a timer that is already armed. For an active lock, first wake DPMS with
+input if necessary, then manually unlock. Confirm `caelestia shell lock
+isLocked` is false and every monitor reports `dpmsStatus: true`; the existing
+unlock cleanup has then cancelled the timer and restored timer-owned DPMS.
 
-For a package-integration rollback, revert the shell QML patch, Config plugin
-override, `buildInputs` replacement, and `passthru.plugin` update as one coupled
-change, or deploy a known prior generation. Before removing Config schema
-support, remove the persisted mutable `general.idle.lockDpmsTimeout` key as well
-as the declarative setting; otherwise a retained `60` can outlive the property.
+Only after that confirmation, deploy the `lockDpmsTimeout = 0` configuration or
+revert this shell-patch change, then allow the normal reload hook to restart
+Caelestia. Confirm the restarted shell reads `0` before any subsequent lock.
+Never deploy a shell restart, terminate QuickShell, or perform the package
+rollback while a session lock is active.
+
+To roll back native wake, follow the same unlocked-session rule, set both Axiom
+Hyprland `misc` values to `false`, deploy, and confirm both `hyprctl getoption`
+values are false before the next lock.

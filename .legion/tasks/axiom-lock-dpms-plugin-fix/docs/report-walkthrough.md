@@ -1,62 +1,47 @@
-# Delivery Walkthrough: Axiom Caelestia DPMS Plugin Closure Fix
+# Delivery Walkthrough: Axiom Caelestia Lock DPMS Behavior
 
 Mode: implementation
 
-## Root Cause
+## Outcome
 
-The prior shell derivation shipped the `IdleMonitors.qml` lock-DPMS patch, but
-its separate `Caelestia.Config` C++ plugin was still the unpatched upstream
-derivation. The QML therefore referenced `lockDpmsTimeout` while the plugin
-loaded by the shell did not provide that configuration property. The shell QML
-and Config schema came from different derivations.
+Axiom now turns both displays off 60 seconds after a compositor-confirmed
+Caelestia lock. Physical keyboard input or pointer motion wakes the displays
+through Hyprland without releasing the lock, and the same lock epoch does not
+start another timer.
 
-## Fix
+## What Changed
 
-- Split the former combined patch at the upstream derivation boundary. The
-  Config-only patch adds `GeneralIdle.lockDpmsTimeout` to
-  `generalconfig.hpp`; the shell-only patch retains the existing QML timer
-  logic in `IdleMonitors.qml` without changing its behavior.
-- Capture the original plugin before either override, apply the Config patch to
-  that plugin, and apply only the QML patch to the shell.
-- Replace the original direct shell `buildInputs` plugin by resolved store path,
-  assert that exactly one input matches, and expose the same patched derivation
-  as `passthru.plugin`. Other inputs and passthru fields are preserved.
+- The shell patch listens for `WlSessionLock.secureChanged` to arm lock DPMS.
+  This bypasses Quickshell 0.3's missing `lockedChanged` notification on lock
+  acquisition while retaining native unlock cleanup.
+- Axiom's Hyprland `misc` policy enables `key_press_enables_dpms` and
+  `mouse_move_enables_dpms`. The compositor, rather than a lock-surface input
+  handler, owns reliable physical-input wake.
+- The focused QML test now requires secure-gated arming and unlock-only cleanup.
+- The prior Config plugin closure fix remains active: the running shell maps the
+  patched Config plugin and reads `lockDpmsTimeout = 60`.
 
-This makes the built shell's direct dependency and public plugin value identify
-the same patched Config plugin (`docs/review-change.md:15-34`).
+## Evidence
 
-## Passed Build And Closure Proof
+- Clean patch application with `--fuzz=0`, Node assertions, package build, full
+  Axiom build, generated Lua evaluation, and `git diff --check` passed.
+- Runtime confirms both Hyprland wake options are `true`, a single patched shell
+  is running, and the patched Config plugin is mapped into it.
+- At 65 seconds of a locked session, both monitors reported DPMS off with
+  Hyprland `LOCK` active.
+- A virtual pointer move restored both monitors while `LOCK` and lock IPC state
+  remained true; another 65 seconds left displays on and lock state true.
+- A separate DPMS-off cycle followed by authorized local unlock restored both
+  monitors and removed the lock state.
 
-- The configured package build passed:
-  `nix build --no-link .#nixosConfigurations.axiom.config.modules.desktop.caelestia.package`
-  (`docs/test-report.md:34-50`).
-- The built plugin's `caelestia-config.qmltypes` registers
-  `caelestia::config::GeneralIdle.lockDpmsTimeout` with type `int`
-  (`docs/test-report.md:24-32`; `docs/review-change.md:35-39`).
-- Configured-package assertions found exactly one patched plugin direct input,
-  zero original plugin direct inputs, and a `pkg.plugin` value resolving to the
-  patched output (`docs/test-report.md:53-69`).
-- The built shell has one direct reference to the patched plugin and no
-  reference to the original plugin; review-time requisites inspection likewise
-  excluded the original plugin (`docs/test-report.md:69`; `docs/review-change.md:28-34`).
-- Both the RFC and implementation reviews passed with no blocking findings.
-  The implementation review records one non-blocking future hardening item:
-  bound the qmltypes test match to its enclosing component
-  (`docs/review-rfc.md:7-64`; `docs/review-change.md:46-53`).
+## Boundaries
 
-## Deployment And Live-Test Boundary
+- The Axiom-wide native wake policy also wakes the existing 1800-second DPMS
+  fallback. This was explicitly approved.
+- Idle durations, Caelestia ownership, other hosts, suspend, hibernate, and
+  authentication behavior are unchanged.
+- Temporary authentication suppression used only for controlled testing was
+  restored to `true` and removed from final source.
 
-Deployment and live validation are blocked because the local non-interactive
-authorization check, `sudo -n true`, requires a sudo password
-(`docs/test-report.md:71-83`). No `nixos-rebuild switch`, Caelestia restart,
-runtime import-path inspection, or lock/DPMS test was attempted.
-
-Accordingly, this delivery makes no claim that a running QML engine selected
-the patched plugin by import-path order, and no claim that physical DPMS turns
-off after 60 seconds or wakes while the session remains locked.
-
-After an approved deployment, restart Caelestia; record the loaded
-`libcaelestia-configplugin.so` path from the shell process with the original
-path absent; confirm the active value is `60`; then manually lock, wait 60
-seconds, and check DPMS-off plus input wake with `WlSessionLock` still active
-(`docs/test-report.md:85-89`; `docs/review-change.md:70-83`).
+See `docs/test-report.md` for commands and raw runtime evidence, and
+`docs/review-change.md` for the readiness decision.

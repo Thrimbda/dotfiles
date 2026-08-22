@@ -50,3 +50,24 @@
 ---
 
 *最后更新: 2026-08-21 16:06 by Legion CLI*
+
+## 会话进展 (2026-08-22)
+
+### ✅ 已完成
+
+- 现场确认 Config plugin closure 已正确加载、`lockDpmsTimeout = 60` 生效。
+- 发现并修复 Quickshell 0.3 在 lock acquisition 不发 `lockedChanged` 的问题：timer 改由 `secureChanged` arm。
+- 为 Axiom 启用 Hyprland 原生键盘按键和鼠标移动 DPMS wake。
+- 完成 65 秒关屏、locked pointer wake、同 epoch 65 秒 no-rearm、timer-owned DPMS unlock cleanup 的受控 runtime 验证。
+- 临时关闭的 Howdy/指纹认证已恢复为 `true`，最终源码不含认证设置变更。
+
+### 🟡 进行中
+
+- 完成 PR、merge、worktree cleanup 和主工作区刷新。
+
+### 关键决策
+
+| 决策 | 原因 | 日期 |
+|------|------|------|
+| 在 `secureChanged` 时 arm lock DPMS | `lockedChanged` 仅可靠覆盖 unlock，不能表示 compositor 已确认锁屏。 | 2026-08-22 |
+| 使用 Axiom Hyprland 原生 DPMS wake | lock-scoped QML wake monitor 未可靠接收 physical input resume；compositor 可在锁输入前恢复显示器。 | 2026-08-22 |

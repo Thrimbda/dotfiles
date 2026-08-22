@@ -12,16 +12,27 @@
 
 ## Outcome Summary
 
-- The prior main-shell patch left Caelestia's separately built Config plugin unpatched, so QML and the runtime configuration schema came from different derivations.
-- The correction splits Config C++ and shell QML patches by source fileset, patches the Config plugin directly, replaces the exact original plugin `buildInputs` entry by resolved store path, and exposes that same output through `passthru.plugin`.
-- Clean source patching, configured package build, plugin `qmltypes`, exact dependency replacement, and shell closure checks pass; the old plugin is absent from the realized shell closure.
-- Axiom deployment, live QML import selection, and the manual 60-second DPMS test are blocked because non-interactive sudo authentication requires a password. No switch, restart, or live lock test was attempted.
+- The prior shell patch left the separately built Config plugin unpatched; the
+  split C++/QML patch and exact plugin replacement now align the live schema and
+  shell closure.
+- Quickshell 0.3 does not emit `lockedChanged` on lock acquisition. The timer
+  now arms only from compositor-confirmed `WlSessionLock.secureChanged`.
+- Axiom enables native Hyprland key-press and pointer-motion DPMS wake. This
+  wakes the display without releasing the Caelestia lock and also covers the
+  approved 1800-second fallback DPMS policy.
+- Runtime validation passed: 65-second locked DPMS-off, pointer wake while
+  locked, no rearm after another 65 seconds, and display restoration on unlock.
 
 ## Reusable Decisions
 
 - A main Caelestia shell `overrideAttrs` does not propagate patches to its separately built Config plugin.
 - Replace a plugin dependency by resolved store path with an exact-one-match assertion and update `passthru.plugin`; do not match names or append a second plugin.
 - Treat source/build closure proof, deployed plugin import selection, and physical lock/DPMS behavior as separate evidence layers.
+- For Quickshell 0.3 session locks, use `secureChanged` rather than
+  `lockedChanged` for lock-acquisition actions; retain `lockedChanged` for
+  unlock cleanup.
+- Prefer compositor-native DPMS wake over lock-surface input plumbing when the
+  accepted policy is host-wide physical-input wake.
 
 ## Related Raw Sources
 

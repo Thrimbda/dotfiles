@@ -31,8 +31,13 @@ assertMatch(idleMonitors, /property int lockEpoch:\s*0/, "lock epoch state is mi
 assertMatch(idleMonitors, /property Timer activeLockDpmsTimer:\s*null/, "active timer state is missing");
 assertMatch(idleMonitors, /property int dpmsOffEpoch:\s*-1/, "DPMS-off epoch state is missing");
 assertMatch(idleMonitors,
-    /target:\s*root\.lock\.lock\s*function onLockedChanged\(\): void \{\s*root\.handleLockStateChanged\(\);/s,
-    "lock state observer is missing");
+    /target:\s*root\.lock\.lock\s*function onSecureChanged\(\): void \{\s*if \(root\.lock\.lock\.secure\)\s*root\.handleLockStateChanged\(\);/s,
+    "secure lock observer is missing");
+assertMatch(idleMonitors,
+    /function onLockedChanged\(\): void \{\s*if \(!root\.lock\.lock\.locked\)\s*root\.handleLockStateChanged\(\);/s,
+    "unlock-only lock state observer is missing");
+assert([...idleMonitors.matchAll(/root\.handleLockStateChanged\(\);/g)].length === 2,
+    "lock state handler has an unguarded arming route");
 assertMatch(idleMonitors, /GlobalConfig\.general\.idle\.lockDpmsTimeout\s*<=\s*0/,
     "nonpositive lock DPMS timeout does not disable the feature");
 assertMatch(idleMonitors, /if \(activeLockDpmsTimer \|\| dpmsOffEpoch === lockEpoch\)\s*return;/s,
