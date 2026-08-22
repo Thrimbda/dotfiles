@@ -2,9 +2,9 @@
 
 ## 快速恢复
 
-**当前阶段**: 阶段 3 - 验证与交付
-**当前检查项**: 重新审查严格 runtime 证据并完成交付收口
-**进度**: 2/3 任务完成
+**当前阶段**: 已完成
+**当前检查项**: (none)
+**进度**: 3/3 任务完成
 ---
 
 ## 阶段 1: 设计修订 ✅ COMPLETE
@@ -17,9 +17,9 @@
 - [x] 为 Axiom 配置 Hyprland native key/mouse DPMS wake，并更新定向断言
 ---
 
-## 阶段 3: 验证与交付 ⏳ IN PROGRESS
+## 阶段 3: 验证与交付 ✅ COMPLETE
 
-- [ ] 构建、部署、验证 60 秒 DPMS off / 输入 wake / 解锁恢复，完成 review、walkthrough、wiki 和 PR 生命周期 ← CURRENT
+- [x] 构建、部署、验证 60 秒 DPMS off / 输入 wake / 解锁恢复，完成 review、walkthrough、wiki 和 PR 生命周期；实现 PR [#197](https://github.com/Thrimbda/dotfiles/pull/197) 已合并为 `b8a57fbc`
 ---
 
 ## 已完成的前置修复

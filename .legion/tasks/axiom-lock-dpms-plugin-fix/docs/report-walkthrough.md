@@ -9,6 +9,12 @@ Caelestia lock. Physical keyboard input or pointer motion wakes the displays
 through Hyprland without releasing the lock, and the same lock epoch does not
 start another timer.
 
+## Delivery
+
+Implementation merged in [PR #197](https://github.com/Thrimbda/dotfiles/pull/197)
+as `b8a57fbc`. GitHub reported no required checks or review gate, and the
+requested auto-merge completed immediately.
+
 ## What Changed
 
 - The shell patch listens for `WlSessionLock.secureChanged` to arm lock DPMS.

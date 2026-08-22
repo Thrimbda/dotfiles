@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-lock-dpms-plugin-fix`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -22,6 +22,9 @@
   approved 1800-second fallback DPMS policy.
 - Runtime validation passed: 65-second locked DPMS-off, pointer wake while
   locked, no rearm after another 65 seconds, and display restoration on unlock.
+- Implementation PR [#197](https://github.com/Thrimbda/dotfiles/pull/197)
+  merged as `b8a57fbc` after the task's build, deployment, review, walkthrough,
+  and wiki evidence were complete.
 
 ## Reusable Decisions
 
