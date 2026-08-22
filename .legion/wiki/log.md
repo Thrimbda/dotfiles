@@ -1,5 +1,6 @@
 # Wiki Log
 
+- Added the `acorn-vnstat-traffic-accounting` summary and current Acorn aggregate traffic-accounting decision/pattern.
 - Marked `axiom-rustdesk-provision-recovery` complete after PR #182 merged and the deployed candidate provision unit exited successfully without `attempt-used`.
 - Added the active `axiom-rustdesk-provision-recovery` summary and its required post-merge switch check.
 - Added the `dotfiles-prune-host-frameworks` summary and recorded the ordered Nix-list preservation pattern after pruning closed raw task evidence.
