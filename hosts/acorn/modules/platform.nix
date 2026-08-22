@@ -76,6 +76,8 @@
     settings.datasource_list = [ "AliYun" "NoCloud" "None" ];
   };
 
+  services.vnstat.enable = true;
+
   programs.ssh.startAgent = true;
   services.openssh.startWhenNeeded = lib.mkForce false;
 

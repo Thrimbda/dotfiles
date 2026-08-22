@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acorn vnStat 流量记账 | 交付审阅</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.012 92);
+      --surface: oklch(99% 0.006 92);
+      --ink: oklch(24% 0.018 132);
+      --muted: oklch(49% 0.025 132);
+      --line: oklch(82% 0.018 105);
+      --accent: oklch(45% 0.12 153);
+      --soft: oklch(91% 0.05 144);
+      --warn: oklch(91% 0.06 82);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; line-height: 1.62; }
+    main { width: min(1120px, calc(100vw - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+    h1, h2 { line-height: 1.18; text-wrap: balance; }
+    h1 { max-width: 22ch; font-size: clamp(2.1rem, 6vw, 4.8rem); margin: .3rem 0 1rem; }
+    h2 { margin-top: 0; }
+    p, li { max-width: 72ch; }
+    code { overflow-wrap: anywhere; }
+    a { color: var(--accent); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 32px; align-items: end; margin-bottom: 32px; }
+    .kicker { color: var(--accent); font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+    .status, section { border: 1px solid var(--line); border-radius: 22px; background: var(--surface); padding: 24px; }
+    .status p { margin: .45rem 0; }
+    .pill { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--soft); padding: .08rem .58rem; font-weight: 750; }
+    .layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 28px; align-items: start; }
+    nav { position: sticky; top: 18px; display: grid; gap: 8px; }
+    nav a { text-decoration: none; padding: .36rem .55rem; border-radius: 8px; }
+    nav a:hover { background: var(--soft); }
+    section { margin-bottom: 20px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: .94rem; }
+    th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 10px; overflow-wrap: anywhere; }
+    th { color: var(--muted); }
+    ul, ol { padding-left: 1.35rem; }
+    .empty { color: var(--muted); }
+    .boundary { background: var(--warn); border-radius: 12px; padding: 12px 14px; }
+    @media (max-width: 820px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      nav { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      section { overflow-x: auto; }
+    }
+    @media print {
+      body { background: var(--surface); }
+      main { width: 100%; padding: 0; }
+      nav { display: none; }
+      .status, section { break-inside: avoid; box-shadow: none; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">acorn-vnstat-traffic-accounting · 交付审阅</p>
+        <h1>Acorn vnStat 流量记账</h1>
+        <p>为 Acorn 持久保存网卡级日/月流量，及早发现会导致阿里云流出流量账单上升的趋势。</p>
+        <p>审阅者：Acorn 运维负责人</p>
+      </div>
+      <aside class="status" aria-label="当前结论与动作">
+        <p><span class="pill">交付类型 implementation</span> <span class="pill">Profile strict</span> <span class="pill">风险 high</span> <span class="pill">结论 PASS</span></p>
+        <p>审查：<strong>PASS</strong></p>
+        <p>注意力：<strong>skim</strong></p>
+
+        <p><strong>当前唯一人类动作</strong></p>
+        <p>审阅变更和已记录的首次采样限制。</p>
+        <p class="boundary"><strong>停止点：</strong>PR 合并、检查、审查、清理和主工作区刷新仍属于后续 Git 生命周期。</p>
+        <p><strong>最终状态：</strong>实现、部署、验证和审查均已通过，等待 PR 生命周期完成。</p>
+      </aside>
+    </header>
+    <div class="layout">
+      <nav aria-label="交付审阅导航">
+        <a href="#summary">审阅结论</a>
+        <a href="#attention">当前动作</a>
+        <a href="#claims">认知状态</a>
+        <a href="#verifiers">领域验证</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据地图</a>
+        <a href="#path">交付路径</a>
+        <a href="#changes">变更决定</a>
+        <a href="#verification">验证审查</a>
+        <a href="#risks">风险限制</a>
+        <a href="#checklist">审阅清单</a>
+        <a href="#render">渲染交接</a>
+        <a href="#final">下一阶段</a>
+      </nav>
+      <div>
+        <section id="summary"><h2>审阅结论</h2><p>已在 Acorn 启用本地 vnStat 流量记账服务。闭包在 Axiom 构建并远程激活，服务已启动并登记主网卡 ens5，现有公网服务保持运行。</p></section>
+        <section id="attention"><h2>人类注意力与当前动作</h2><p>首次采样尚未完成；这是新建 vnStat 数据库的预期状态。</p><p><strong>当前唯一人类动作：</strong>审阅变更和已记录的首次采样限制。</p><p class="boundary"><strong>lifecycle 边界：</strong>PR 合并、检查、审查、清理和主工作区刷新仍属于后续 Git 生命周期。</p><p><strong>证据：</strong><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md</code>、<code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/review-change.md</code></p></section>
+        <section id="claims"><h2>未解决的认知状态</h2><p class="empty">当前证据未登记需要单独聚合的未解决 claim。</p></section>
+        <section id="verifiers"><h2>领域验证摘要</h2><p class="empty">当前证据未登记领域或权威 verifier。</p></section>
+        <section id="scope"><h2>范围</h2><h3>范围内</h3><ul><li>在 hosts/acorn/modules/platform.nix 中启用 NixOS 原生 vnStat 服务。</li><li>从 Axiom 构建并远程激活 Acorn 配置。</li></ul><h3>范围外</h3><ul><li>历史流量或按进程流量归因。</li><li>阿里云计费、带宽、公网服务或防火墙配置变更。</li></ul></section>
+        <section id="evidence"><h2>证据地图</h2><table><thead><tr><th scope="col">证据</th><th scope="col">类型</th><th scope="col">状态</th><th scope="col">locator</th></tr></thead><tbody><tr><td>稳定任务契约</td><td>plan</td><td>PASS</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/plan.md</code></td></tr><tr><td>高风险基础设施设计与回滚方案</td><td>rfc</td><td>PASS</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/rfc.md</code></td></tr><tr><td>RFC 设计审查</td><td>review-rfc</td><td>PASS</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/review-rfc.md</code></td></tr><tr><td>Axiom 构建、远程激活和主机验证</td><td>test-report</td><td>PASS</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md</code></td></tr><tr><td>实现范围与安全审查</td><td>review-change</td><td>PASS</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/review-change.md</code></td></tr></tbody></table></section>
+        <section id="path"><h2>交付路径</h2><ol><li>Axiom 本地构建 NixOS 闭包。</li><li>远程复制并激活 Acorn 上的新配置。</li><li>服务启动并将 ens5 纳入本地计数数据库。</li></ol></section>
+        <section id="changes"><h2>变更与决定</h2><ul><li>hosts/acorn/modules/platform.nix：启用 services.vnstat。</li></ul></section>
+        <section id="verification"><h2>验证与审查状态</h2><table><thead><tr><th scope="col">检查</th><th scope="col">状态</th><th scope="col">证据</th></tr></thead><tbody><tr><td>有效 NixOS 配置将 services.vnstat.enable 求值为 true。</td><td>PASS</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md</code></td></tr><tr><td>Axiom 构建和 Acorn 远程激活成功，vnstat.service 已启动。</td><td>PASS</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md</code></td></tr><tr><td>vnStat 已登记 ens5；新数据库等待第一个采样周期。</td><td>INFO</td><td><code>.legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md</code></td></tr></tbody></table></section>
+        <section id="risks"><h2>风险与限制</h2><table><thead><tr><th scope="col">风险</th><th scope="col">缓解</th></tr></thead><tbody><tr><td>vnStat 无法恢复安装前流量，且仅提供网卡级汇总，不能归因至单一服务。</td><td>将其作为未来账单趋势检测基线；若持续异常，再单独设计进程级或云侧流量归因。</td></tr><tr><td>刚创建的数据库没有可显示的完整日/月样本。</td><td>保持服务运行，待首个采样周期完成后通过 vnstat --days 和 vnstat --months 查看数据。</td></tr></tbody></table></section>
+        <section id="checklist"><h2>审阅清单</h2><ul><li>仅引入本地计数服务，没有新增监听端口、密钥或外部遥测。</li><li>新服务和现有公网服务已在远程激活后验证。</li><li>密码未写入配置、报告或提交内容。</li></ul></section>
+        <section id="render"><h2>渲染交接</h2><p><strong>PR-backed：</strong>是</p><p><strong>状态：</strong>local</p><p>报告包含生产主机服务与流量细节；仅保留为本地和受限 PR 评审产物，不发布公开预览。</p></section>
+        <section id="final"><h2>最终状态与下一阶段</h2><p><strong>当前状态：</strong>实现、部署、验证和审查均已通过，等待 PR 生命周期完成。</p><p><strong>下一阶段：</strong>提交分支、推送、创建 PR 并按仓库规则处理检查与审查。</p><p class="boundary">本报告是 PR 输入，不证明 PR 检查、审查、合并、worktree 清理或主工作区刷新已经完成。</p></section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -13,6 +13,7 @@
 
 ## Tasks
 
+- [Acorn vnStat Traffic Accounting](tasks/acorn-vnstat-traffic-accounting.md)
 - [Acorn Aliyun Host Profile Rename](tasks/acorn-aliyun-host-rename.md)
 - [Acorn frps Dashboard Nginx](tasks/acorn-frps-dashboard-nginx.md)
 - [Acorn Vaultwarden Package Update](tasks/acorn-vaultwarden-package-update.md)

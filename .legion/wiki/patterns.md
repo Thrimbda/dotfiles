@@ -66,6 +66,10 @@ Clean up temporary ECS validation resources in dependency order: release the ins
 
 For one-off, host-specific CLI or GUI package requests on `axiom`, prefer the existing host-local `user.packages` list over introducing a reusable module. Use a reusable module when the app/tool needs cross-host enablement, NixOS service integration, firewall/system settings, generated config, or runtime policy ownership.
 
+## NixOS Aggregate Traffic Accounting Pattern
+
+For a host with unexpectedly high billable egress, enable NixOS-native `services.vnstat` when the immediate requirement is durable per-interface daily/monthly totals. Treat it as local post-activation trend evidence, not historic or per-process attribution. Verify the effective option, run the approved remote switch, confirm the daemon is active and the primary interface is registered, and wait for its first collection interval before expecting daily reports. Do not add a listener, firewall exception, or external telemetry unless a separate task explicitly requires centralized observability.
+
 CLI package-only installation should not imply declarative service/config integration. For secrets tooling specifically, installing `sops` is not the same as adopting `sops-nix`; evaluate agenix coexistence, migration, identity source, rollback, and secret ownership in a separate scoped task.
 
 Package-only GUI client installation should not imply account state, proxy setup, cache management, autostart, credentials, organization policy, or live `nixos-rebuild switch` unless the task contract explicitly includes those runtime concerns.

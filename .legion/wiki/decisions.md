@@ -30,6 +30,10 @@ nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host
 
 `--build-host localhost` must resolve to Axiom. If the Axiom build, closure transfer, or remote activation fails, stop and report the blocker; never fall back to an Acorn-local build.
 
+## Acorn Network Cost Observability
+
+Acorn uses the native NixOS `services.vnstat` daemon as its local, persistent interface-level traffic baseline. It stores aggregate daily and monthly totals for the primary `ens5` interface without opening a listener, changing firewall policy, or exporting telemetry. It starts collecting only after activation and cannot attribute traffic to individual processes or reconstruct earlier billing periods; investigate those requirements in a separate scoped task.
+
 ## Acorn Vaultwarden and Auth-mini Package Sources
 
 Acorn Vaultwarden must source both `services.vaultwarden.package` and `services.vaultwarden.webVaultPackage` from the dedicated `hey.inputs.nixpkgs-vaultwarden` input. Update only that lock node for Vaultwarden releases; do not advance the primary `nixpkgs` or shared `nixpkgs-unstable` pin as a side effect.

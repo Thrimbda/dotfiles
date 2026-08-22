@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "1.1",
+  "task": {
+    "id": "acorn-vnstat-traffic-accounting",
+    "title": "Acorn vnStat 流量记账",
+    "purpose": "为 Acorn 持久保存网卡级日/月流量，及早发现会导致阿里云流出流量账单上升的趋势。",
+    "reviewer": "Acorn 运维负责人"
+  },
+  "profile": "implementation",
+  "workflowProfile": "strict",
+  "designRequired": true,
+  "risk": "high",
+  "stageConclusion": "PASS",
+  "reviewStatus": "PASS",
+  "summary": "已在 Acorn 启用本地 vnStat 流量记账服务。闭包在 Axiom 构建并远程激活，服务已启动并登记主网卡 ens5，现有公网服务保持运行。",
+  "attention": {
+    "level": "skim",
+    "summary": "首次采样尚未完成；这是新建 vnStat 数据库的预期状态。",
+    "humanAction": "审阅变更和已记录的首次采样限制。",
+    "lifecycleBoundary": "PR 合并、检查、审查、清理和主工作区刷新仍属于后续 Git 生命周期。",
+    "evidence": [
+      ".legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md",
+      ".legion/tasks/acorn-vnstat-traffic-accounting/docs/review-change.md"
+    ]
+  },
+  "claims": [],
+  "scope": {
+    "included": [
+      "在 hosts/acorn/modules/platform.nix 中启用 NixOS 原生 vnStat 服务。",
+      "从 Axiom 构建并远程激活 Acorn 配置。"
+    ],
+    "excluded": [
+      "历史流量或按进程流量归因。",
+      "阿里云计费、带宽、公网服务或防火墙配置变更。"
+    ]
+  },
+  "evidence": [
+    {
+      "kind": "plan",
+      "label": "稳定任务契约",
+      "locator": ".legion/tasks/acorn-vnstat-traffic-accounting/plan.md",
+      "status": "PASS"
+    },
+    {
+      "kind": "rfc",
+      "label": "高风险基础设施设计与回滚方案",
+      "locator": ".legion/tasks/acorn-vnstat-traffic-accounting/docs/rfc.md",
+      "status": "PASS"
+    },
+    {
+      "kind": "review-rfc",
+      "label": "RFC 设计审查",
+      "locator": ".legion/tasks/acorn-vnstat-traffic-accounting/docs/review-rfc.md",
+      "status": "PASS"
+    },
+    {
+      "kind": "test-report",
+      "label": "Axiom 构建、远程激活和主机验证",
+      "locator": ".legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md",
+      "status": "PASS"
+    },
+    {
+      "kind": "review-change",
+      "label": "实现范围与安全审查",
+      "locator": ".legion/tasks/acorn-vnstat-traffic-accounting/docs/review-change.md",
+      "status": "PASS"
+    }
+  ],
+  "deliveryPath": [
+    "Axiom 本地构建 NixOS 闭包。",
+    "远程复制并激活 Acorn 上的新配置。",
+    "服务启动并将 ens5 纳入本地计数数据库。"
+  ],
+  "changes": [
+    "hosts/acorn/modules/platform.nix：启用 services.vnstat。"
+  ],
+  "verification": [
+    {
+      "label": "有效 NixOS 配置将 services.vnstat.enable 求值为 true。",
+      "status": "PASS",
+      "evidence": ".legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md"
+    },
+    {
+      "label": "Axiom 构建和 Acorn 远程激活成功，vnstat.service 已启动。",
+      "status": "PASS",
+      "evidence": ".legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md"
+    },
+    {
+      "label": "vnStat 已登记 ens5；新数据库等待第一个采样周期。",
+      "status": "INFO",
+      "evidence": ".legion/tasks/acorn-vnstat-traffic-accounting/docs/test-report.md"
+    }
+  ],
+  "risks": [
+    {
+      "risk": "vnStat 无法恢复安装前流量，且仅提供网卡级汇总，不能归因至单一服务。",
+      "mitigation": "将其作为未来账单趋势检测基线；若持续异常，再单独设计进程级或云侧流量归因。"
+    },
+    {
+      "risk": "刚创建的数据库没有可显示的完整日/月样本。",
+      "mitigation": "保持服务运行，待首个采样周期完成后通过 vnstat --days 和 vnstat --months 查看数据。"
+    }
+  ],
+  "checklist": [
+    "仅引入本地计数服务，没有新增监听端口、密钥或外部遥测。",
+    "新服务和现有公网服务已在远程激活后验证。",
+    "密码未写入配置、报告或提交内容。"
+  ],
+  "final": {
+    "state": "实现、部署、验证和审查均已通过，等待 PR 生命周期完成。",
+    "nextStage": "提交分支、推送、创建 PR 并按仓库规则处理检查与审查。",
+    "lifecycleDisclaimer": "本报告是 PR 输入，不证明 PR 检查、审查、合并、worktree 清理或主工作区刷新已经完成。"
+  },
+  "render": {
+    "prBacked": true,
+    "state": "local",
+    "note": "报告包含生产主机服务与流量细节；仅保留为本地和受限 PR 评审产物，不发布公开预览。"
+  }
+}
