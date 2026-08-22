@@ -50,12 +50,18 @@ diff --git a/modules/IdleMonitors.qml b/modules/IdleMonitors.qml
      function handleIdleAction(action: var): void {
          if (!action)
              return;
-@@ -57,2 +99,48 @@ Scope {
+@@ -57,2 +99,54 @@ Scope {
 +    Connections {
 +        target: root.lock.lock
 +
++        function onSecureChanged(): void {
++            if (root.lock.lock.secure)
++                root.handleLockStateChanged();
++        }
++
 +        function onLockedChanged(): void {
-+            root.handleLockStateChanged();
++            if (!root.lock.lock.locked)
++                root.handleLockStateChanged();
 +        }
 +    }
 +

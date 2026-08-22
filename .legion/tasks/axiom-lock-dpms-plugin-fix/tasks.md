@@ -1,25 +1,32 @@
-# Axiom Caelestia DPMS 插件修复 - 任务清单
+# Axiom Caelestia 锁屏 DPMS 行为修复 - 任务清单
 
 ## 快速恢复
 
 **当前阶段**: 阶段 3 - 验证与交付
-**当前检查项**: 完成闭包构建、部署后运行时检查、审查、walkthrough 和 wiki 写回
+**当前检查项**: 重新审查严格 runtime 证据并完成交付收口
 **进度**: 2/3 任务完成
 ---
 
-## 阶段 1: 设计 ✅ COMPLETE
+## 阶段 1: 设计修订 ✅ COMPLETE
 
-- [x] 记录运行时根因并审查 plugin/shell 补丁组合方案 | 验收: RFC 说明 derivation 边界、依赖替换、验证和回滚，且 review-rfc 通过
+- [x] 记录 QML wake failure，审查 Axiom native DPMS wake 的全局影响、回滚和验证边界
 ---
 
 ## 阶段 2: 实现 ✅ COMPLETE
 
-- [x] 拆分补丁并将打补丁 Config 插件接入 Caelestia shell | 验收: QML 与 C++ 属性分别在正确 derivation 构建，且主 shell 依赖替换无歧义
+- [x] 为 Axiom 配置 Hyprland native key/mouse DPMS wake，并更新定向断言
 ---
 
-## 阶段 3: 验证与交付 ⏳ NOT STARTED
+## 阶段 3: 验证与交付 ⏳ IN PROGRESS
 
-- [ ] 完成闭包构建、部署后运行时检查、审查、walkthrough 和 wiki 写回 | 验收: 构建/运行时证据证明插件属性存在，PR 生命周期完成，并记录未执行的会话验证 ← CURRENT
+- [ ] 构建、部署、验证 60 秒 DPMS off / 输入 wake / 解锁恢复，完成 review、walkthrough、wiki 和 PR 生命周期 ← CURRENT
+---
+
+## 已完成的前置修复
+
+- [x] PR #194 已将 Config 插件与 shell QML runtime closure 对齐；现场证明属性和新插件均已加载。
+- [x] secure-gated timer 已在部署后于 65 秒将两块显示器关闭，同时 Hyprland 保持 `LOCK`。
+- [x] 严格受控测试已验证 locked pointer wake、同 epoch no-rearm 和 timer-owned DPMS unlock cleanup；临时认证禁用已恢复为 `true`。
 ---
 
 ## 发现的新任务
@@ -27,4 +34,4 @@
 (暂无)
 ---
 
-*最后更新: 2026-08-21 16:06*
+*最后更新: 2026-08-22*

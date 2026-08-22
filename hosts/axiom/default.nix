@@ -57,6 +57,9 @@
             misc = {
               -- Permit relaunching the Caelestia WlSessionLock client if it exits.
               allow_session_lock_restore = true,
+              -- DPMS wake must be handled by the compositor while the lock surface owns input.
+              key_press_enables_dpms = true,
+              mouse_move_enables_dpms = true,
             },
           })
 
