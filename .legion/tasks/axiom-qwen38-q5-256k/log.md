@@ -34,11 +34,17 @@
 
 **下次继续从这里开始：**
 
-1. (none)
+1. 在 Axiom 的交互式终端从本 worktree 执行 sudo nixos-rebuild switch --flake .#axiom。
+2. 执行 qwen-model q5，并检查 health endpoint、一次 API 生成和 nvidia-smi。
+3. 执行 qwen-model q6，确认 128K/Q4 回滚 profile 正常，再恢复 Q5。
 
 **注意事项：**
+
+- Draft PR: https://github.com/Thrimbda/dotfiles/pull/199。
+- 未启用 auto-merge：运行时验证与变更审查尚未通过。
+- PR 创建期间命令正文的反引号曾触发无特权命令替换；nixos-rebuild 未成功，随后确认生产服务仍为健康 Q6。
 
 (暂无)
 ---
 
-*最后更新: 2026-08-22 09:08 by Legion CLI*
+*最后更新: 2026-08-22 09:11 by Legion CLI*
