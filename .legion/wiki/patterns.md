@@ -341,3 +341,9 @@ For end4 live-polish fixes, validate process integration as well as QML imports.
 Use real no-op IPC liveness handlers for fallback probes. A missing or placeholder target can make every fallback path run even while Quickshell is alive, which can hide the intended panel and launch unrelated tools.
 
 When imported shell code writes preview images, screenshots, clipboard decodes, or generated theme state, prefer XDG cache/state paths and ensure parent directories exist before helper processes run. Avoid shared `/tmp` paths for persistent shell integration unless a task explicitly scopes cleanup and collision behavior.
+
+## GGUF Long-Context Deployment Pattern
+
+An upstream GGUF SHA-256 confirms transport integrity, not compatibility with the local inference runtime. Before changing the active model link, run a bounded CPU-only llama.cpp load with the intended speculative-decoding settings; record the immutable upstream revision and SHA-256. If llama.cpp rejects metadata despite a matching upstream hash, replace the upstream artifact revision instead of retrying the same file.
+
+For a long Q8 KV cache on a fixed-VRAM GPU, avoid forcing all model layers to GPU. Let llama.cpp's default `--fit` determine placement, then prove the live context size from startup logs, inspect GPU and system memory, and make a real API request. A short response budget can be consumed entirely by reasoning; use a template-supported low reasoning setting when validating visible completion output.

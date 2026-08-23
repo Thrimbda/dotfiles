@@ -6,13 +6,13 @@
 - `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `current`
-- `historical`: `false`
+- `historical`: `true`
 - `supersedes`: `(none)`
-- `superseded-by`: `(none)`
+- `superseded-by`: `axiom-qwen38-q5-256k`
 
 ## Outcome Summary
 
-The standard Q6_K MTP artifact is now Axiom's default 128K Qwen model, with Q4 retained as an operator-selectable rollback. One service reads `active.gguf`; `qwen-model` provides fixed Q4/Q6 selection plus start, stop, restart, and status. Q6, API/tool calls, GPU fit, lifecycle control, and Q6-to-Q4-to-Q6 switching all pass. The final state is healthy Q6 using 25449 MiB GPU memory with 6629 MiB free.
+Historical snapshot: the standard Q6_K MTP artifact was Axiom's default 128K Qwen model, with Q4 retained as an operator-selectable rollback. The fixed-target control and atomic selection model remain valid, but the default profile is superseded by Q5 256K in `axiom-qwen38-q5-256k`.
 
 ## Reusable Decisions
 

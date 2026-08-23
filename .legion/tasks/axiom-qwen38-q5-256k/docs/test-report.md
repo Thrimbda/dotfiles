@@ -2,7 +2,7 @@
 
 ## 结论
 
-配置构建和生成启动器验证通过。Q5 修复版已通过 CPU-only 实际加载；实际 NixOS Q5 服务启动仍需在交互式终端执行，因为当前会话没有可用的 sudo TTY。
+配置构建、部署和运行时验证均通过。Q5 使用原生 262144-token 上下文和 Q8 KV cache 正常运行。
 
 ## 已执行验证
 
@@ -18,16 +18,17 @@
 | Q5 CPU-only MTP 加载 | PASS | `llama-cli --model RVN-Q5_K_M-mtp.gguf --ctx-size 64 --n-gpu-layers 0 --no-warmup --spec-type draft-mtp --spec-draft-n-max 2 --single-turn --prompt ok --n-predict 1` 成功加载并退出。 |
 | 全 GPU 容量诊断 | FAIL（已修复） | Q5 使用 262K/Q8 时，`--n-gpu-layers all` 触发 `failed to fit params to free device memory: n_gpu_layers already set by user to -2`，尚未加载权重即退出。 |
 | 自动 offload launcher | PASS | 完整 NixOS build 成功；生成的 Q5/Q4 launcher 保留 262K/Q8 参数且不再传入 `--n-gpu-layers`，允许 llama.cpp 默认 `--fit` 自动选择可放入 GPU 的层数。 |
+| 新 generation 部署与 Q5 选择 | PASS | 在 Axiom 交互式终端部署后，`qwen-model status` 报告 `selected: q5`、`service: active`、`health: ok`。 |
+| 256K/Q8 运行时 profile | PASS | 启动日志报告 `n_ctx_slot = 262144`；systemd `ExecStart` 含 `--cache-type-k q8_0 --cache-type-v q8_0`，且没有 `--n-gpu-layers`。 |
+| GPU 和系统内存 | PASS | `nvidia-smi` 报告 30,665 MiB / 32,607 MiB 已用，余 1,413 MiB；服务 RSS 为 19.8 GiB，系统可用内存为 37 GiB。 |
+| OpenAI 兼容 API | PASS | `POST /v1/chat/completions` 携带 `reasoning_effort: low` 返回 `READY`，生成速度 40.57 tok/s。 |
 | 当前生产服务基线 | PASS | `systemctl is-active qwen3-8-27b.service` 返回 `active`，`curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8081/health` 返回 `{"status":"ok"}`。 |
 | 差异卫生 | PASS | `git diff --check` 成功。 |
 
-## 未执行验证
+## 已知边界
 
-| 验证 | 状态 | 原因与恢复条件 |
-| --- | --- | --- |
-| 新 generation 的 `nixos-rebuild switch --flake .#axiom` | BLOCKED | 当前 agent 会话没有 sudo TTY；需要在 Axiom 的交互式终端完成授权。 |
-| `qwen-model q5`、Q5 health/API 和 GPU 显存 | BLOCKED | 旧工件已修复，强制全 GPU offload 也已移除；需部署新 generation 后在交互式终端执行。它会在启动或 health check 失败时自动恢复前一模型。 |
-| Q6 回滚实测 | BLOCKED | 在 Q5 验证完成或失败后，执行 `qwen-model q6` 并检查 health endpoint。 |
+- RVN chat template 仅支持 `xhigh`、`medium` 和 `low` reasoning effort；`minimal` 会返回 500。这不是默认服务配置，默认 `medium` 与实测 `low` 均正常。
+- Q6 的 131K/Q4 profile 在 Q5 工件失败时由现有自动恢复逻辑成功启动；Q4 profile 未做单独运行时测试。
 
 ## 选择理由
 

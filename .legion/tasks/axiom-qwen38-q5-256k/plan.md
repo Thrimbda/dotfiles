@@ -10,10 +10,10 @@
 
 ## 验收标准
 
-- [ ] 默认 active.gguf 在未显式选择模型时指向 Q5_K_M MTP 工件。
-- [ ] qwen-model 支持受控地选择 Q4、Q5 或 Q6，并能报告 Q5 选择状态。
-- [ ] llama-server 使用 --ctx-size 262144 与 K/V 均为 q8_0 的 KV cache。
-- [ ] Nix 评估通过；部署后服务健康且全量 GPU 配置可启动。
+- [x] 默认 active.gguf 在未显式选择模型时指向 Q5_K_M MTP 工件。
+- [x] qwen-model 支持受控地选择 Q4、Q5 或 Q6，并能报告 Q5 选择状态。
+- [x] llama-server 使用 --ctx-size 262144 与 K/V 均为 q8_0 的 KV cache。
+- [x] Nix 评估通过；部署后服务健康且全量 GPU 配置可启动。
 
 ## 假设 / 约束 / 风险
 
