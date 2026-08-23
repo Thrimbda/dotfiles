@@ -98,6 +98,8 @@
 - Updated Cloudflare secret handling patterns with API token vs tunnel runtime credential separation and safe validation guidance.
 - Added Cloudflare API token rotation maintenance follow-up.
 - Added task summary for `axiom-install-todesk`.
+- Added the completed `axiom-qwen38-q5-256k` summary, current Q5 256K/Q8 deployment decision, and long-context GGUF validation pattern.
+- Marked `axiom-qwen38-q6-switcher` historical after its Q6-default profile was superseded by the verified Q5 256K profile.
 - Added task summary for `axiom-feishu-client`.
 - Added host-local GUI package pattern for one-off Axiom desktop client installs.
 - Updated opencode Cloudflare Exposure decisions and Axiom Remote Access maintenance after configuring Cloudflare Access Google IdP enforcement for `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space`.

@@ -275,3 +275,11 @@ Hyprland 0.55+ deprecated hyprlang config and 0.57 removes it. The repo's genera
 Bind flags map from hyprlang as: bindl → `{ locked = true }`, bindr → `{ release = true }`, bindm → `{ mouse = true }`. Before deploying Hyprland config changes, render the generated files (`nix eval --raw` on the home file texts) and run `luac -p`; a Lua syntax error in one generated file kills that file's config load. `hypridle.conf` and `hypr/xdph.conf` remain hyprlang because those programs are unaffected by Hyprland's config format removal.
 
 For runtime monitor reconciliation under the Lua configuration, generate `hl.monitor({ ... })` and execute it with `hyprctl eval`; do not use `hyprctl keyword monitor`, which Hyprland rejects for non-legacy parsers. Serialize dynamic monitor strings with jq `@json`, keep scale numeric, and pass the resulting Lua expression as one shell argument rather than shell-evaluating it.
+
+## Axiom Qwen Long Context
+
+Axiom's default Qwen 3.8 27B profile is the repaired RVN `Q5_K_M` MTP artifact with a native 262144-token context and Q8 K/V cache. `qwen-model` remains restricted to fixed Q4, Q5, and Q6 targets; Q4 also uses 256K/Q8, while Q6 is the 131072-token/Q4 rollback profile.
+
+Do not force `--n-gpu-layers all` for Q5 256K/Q8 on the 32GB RTX 5090. Leave layer count unset so llama.cpp's default `--fit` preserves KV-cache capacity and decides GPU placement. The live Q5 profile uses 30,665 MiB / 32,607 MiB GPU memory with one parallel slot; do not increase concurrency without a new memory profile.
+
+The current RVN chat template accepts `xhigh`, `medium`, and `low` reasoning effort. `minimal` is not a valid value and returns a server error.
