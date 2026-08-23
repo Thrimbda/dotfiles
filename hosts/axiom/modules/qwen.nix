@@ -19,7 +19,6 @@ let
   });
   qwenModelDir = "${config.user.home}/.local/share/models/qwen3.8-27b";
   qwenQ4Model = "${qwenModelDir}/RVN-Q4_K_M-mtp.gguf";
-  qwenQ5Model = "${qwenModelDir}/RVN-Q5_K_M-mtp.gguf";
   qwenQ6Model = "${qwenModelDir}/RVN-Q6_K-mtp.gguf";
   qwenModel = "${qwenModelDir}/active.gguf";
   qwenChatTemplate = "${qwenModelDir}/chat_template.jinja";
@@ -28,7 +27,7 @@ let
   qwenEnsureModel = pkgs.writeShellScript "qwen-ensure-model" ''
     set -eu
     if [ ! -e ${lib.escapeShellArg qwenModel} ] && [ ! -L ${lib.escapeShellArg qwenModel} ]; then
-      ${pkgs.coreutils}/bin/ln -s ${lib.escapeShellArg qwenQ5Model} ${lib.escapeShellArg qwenModel}
+      ${pkgs.coreutils}/bin/ln -s ${lib.escapeShellArg qwenQ4Model} ${lib.escapeShellArg qwenModel}
     fi
     if [ ! -L ${lib.escapeShellArg qwenModel} ]; then
       echo "${qwenModel} must be a symbolic link" >&2
@@ -46,7 +45,6 @@ let
       service=${lib.escapeShellArg qwenService}
       active=${lib.escapeShellArg qwenModel}
       q4=${lib.escapeShellArg qwenQ4Model}
-      q5=${lib.escapeShellArg qwenQ5Model}
       q6=${lib.escapeShellArg qwenQ6Model}
       health=http://127.0.0.1:8081/health
 
@@ -69,7 +67,6 @@ let
         resolved=$(readlink -f "$active" 2>/dev/null || true)
         case "$resolved" in
           "$q4") selected=q4 ;;
-          "$q5") selected=q5 ;;
           "$q6") selected=q6 ;;
           "") selected=none ;;
           *) selected=invalid ;;
@@ -137,7 +134,6 @@ let
 
       case "''${1:-}" in
         q4) select_model "$q4" q4 ;;
-        q5) select_model "$q5" q5 ;;
         q6) select_model "$q6" q6 ;;
         start)
           ${qwenSudo} systemctl start "$service"
@@ -154,13 +150,12 @@ let
           ;;
         status) print_status ;;
         *)
-          printf 'usage: qwen-model {q4|q5|q6|start|stop|restart|status}\n' >&2
+          printf 'usage: qwen-model {q4|q6|start|stop|restart|status}\n' >&2
           exit 2
           ;;
       esac
     '';
   };
-  # Let llama.cpp's default --fit preserve long-context KV cache before offloading weights.
   qwenBaseArgs = [
     "--model" qwenModel
     "--jinja"
@@ -175,26 +170,27 @@ let
     "--spec-draft-n-max" "2"
     "--chat-template-kwargs" ''{"reasoning_effort":"medium"}''
   ];
-  qwenLongContextArgs = [
+  qwenQ4Args = [
     "--ctx-size" "262144"
     "--cache-type-k" "q8_0"
     "--cache-type-v" "q8_0"
+    "--n-gpu-layers" "all"
   ];
   qwenQ6Args = [
     "--ctx-size" "131072"
     "--cache-type-k" "q4_0"
     "--cache-type-v" "q4_0"
+    "--n-gpu-layers" "all"
   ];
   qwenLauncher = pkgs.writeShellScript "qwen-launcher" ''
     set -eu
     active=${lib.escapeShellArg qwenModel}
     q4=${lib.escapeShellArg qwenQ4Model}
-    q5=${lib.escapeShellArg qwenQ5Model}
     q6=${lib.escapeShellArg qwenQ6Model}
 
     case "$(${pkgs.coreutils}/bin/readlink -f "$active")" in
-      "$q4"|"$q5")
-        exec ${llamaCpp}/bin/llama-server ${lib.escapeShellArgs (qwenBaseArgs ++ qwenLongContextArgs)}
+      "$q4")
+        exec ${llamaCpp}/bin/llama-server ${lib.escapeShellArgs (qwenBaseArgs ++ qwenQ4Args)}
         ;;
       "$q6")
         exec ${llamaCpp}/bin/llama-server ${lib.escapeShellArgs (qwenBaseArgs ++ qwenQ6Args)}
