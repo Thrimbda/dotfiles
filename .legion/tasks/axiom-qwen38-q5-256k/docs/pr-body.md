@@ -2,6 +2,7 @@
 
 - Add the RVN Q5_K_M MTP artifact as a controlled Qwen target and default seed.
 - Run Q4/Q5 with 262144-token Q8 KV cache; preserve Q6 with its working 131072-token Q4 profile.
+- Let llama.cpp's default `--fit` automatically offload excess weights rather than forcing all Q5 weights onto the 32GB GPU.
 - Retain atomic model switching and automatic rollback on startup or health-check failure.
 
 ## Validation

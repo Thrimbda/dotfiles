@@ -16,6 +16,8 @@
 | Q5 旧工件诊断 | FAIL | revision `51b0712` 的文件虽与发布 SHA-256 `ce340152...d71245b` 一致，但 llama.cpp 报 `invalid GGUF type 545038532` 并拒绝加载。 |
 | Q5 修复工件 | PASS | revision `3d0bfd5` 的文件已原子替换，大小 19,682,419,936 bytes，SHA-256 为 `ef6c307c53da1e0a577b27df0b636c2818880aabe5c132f423a404e36b391365`。 |
 | Q5 CPU-only MTP 加载 | PASS | `llama-cli --model RVN-Q5_K_M-mtp.gguf --ctx-size 64 --n-gpu-layers 0 --no-warmup --spec-type draft-mtp --spec-draft-n-max 2 --single-turn --prompt ok --n-predict 1` 成功加载并退出。 |
+| 全 GPU 容量诊断 | FAIL（已修复） | Q5 使用 262K/Q8 时，`--n-gpu-layers all` 触发 `failed to fit params to free device memory: n_gpu_layers already set by user to -2`，尚未加载权重即退出。 |
+| 自动 offload launcher | PASS | 完整 NixOS build 成功；生成的 Q5/Q4 launcher 保留 262K/Q8 参数且不再传入 `--n-gpu-layers`，允许 llama.cpp 默认 `--fit` 自动选择可放入 GPU 的层数。 |
 | 当前生产服务基线 | PASS | `systemctl is-active qwen3-8-27b.service` 返回 `active`，`curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8081/health` 返回 `{"status":"ok"}`。 |
 | 差异卫生 | PASS | `git diff --check` 成功。 |
 
@@ -23,8 +25,8 @@
 
 | 验证 | 状态 | 原因与恢复条件 |
 | --- | --- | --- |
-| `nixos-rebuild switch --flake .#axiom` | BLOCKED | `sudo -n true` 返回“需要密码”；需要在 Axiom 的交互式终端完成授权。 |
-| `qwen-model q5`、Q5 health/API 和 GPU 显存 | BLOCKED | 以旧工件切换时已自动恢复 Q6；修复版文件已就位。当前 agent 会话的 `qwen-model q5` 因无 sudo TTY 未执行重启。请在交互式终端执行；它会在启动或 health check 失败时自动恢复前一模型。 |
+| 新 generation 的 `nixos-rebuild switch --flake .#axiom` | BLOCKED | 当前 agent 会话没有 sudo TTY；需要在 Axiom 的交互式终端完成授权。 |
+| `qwen-model q5`、Q5 health/API 和 GPU 显存 | BLOCKED | 旧工件已修复，强制全 GPU offload 也已移除；需部署新 generation 后在交互式终端执行。它会在启动或 health check 失败时自动恢复前一模型。 |
 | Q6 回滚实测 | BLOCKED | 在 Q5 验证完成或失败后，执行 `qwen-model q6` 并检查 health endpoint。 |
 
 ## 选择理由

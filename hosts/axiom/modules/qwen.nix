@@ -160,6 +160,7 @@ let
       esac
     '';
   };
+  # Let llama.cpp's default --fit preserve long-context KV cache before offloading weights.
   qwenBaseArgs = [
     "--model" qwenModel
     "--jinja"
@@ -168,7 +169,6 @@ let
     "--host" "127.0.0.1"
     "--port" "8081"
     "--no-ui"
-    "--n-gpu-layers" "all"
     "--flash-attn" "on"
     "--parallel" "1"
     "--spec-type" "draft-mtp"
