@@ -8,11 +8,11 @@
 - `schema-version`: `current`
 - `historical`: `true`
 - `supersedes`: `(none)`
-- `superseded-by`: `axiom-qwen38-q5-256k`
+- `superseded-by`: `axiom-qwen38-q4-256k-q6-profile`
 
 ## Outcome Summary
 
-Historical snapshot: the standard Q6_K MTP artifact was Axiom's default 128K Qwen model, with Q4 retained as an operator-selectable rollback. The fixed-target control and atomic selection model remain valid, but the default profile is superseded by Q5 256K in `axiom-qwen38-q5-256k`.
+Historical snapshot: the standard Q6_K MTP artifact was Axiom's default 128K Qwen model. The fixed-target control and atomic selection model remain valid; Q6 is now the retained high-precision option, while the default is Q4 256K in `axiom-qwen38-q4-256k-q6-profile`.
 
 ## Reusable Decisions
 

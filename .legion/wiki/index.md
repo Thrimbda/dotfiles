@@ -107,6 +107,7 @@
 - [Axiom Qwen3.8 128K Context](tasks/axiom-qwen38-128k-context.md)
 - [Axiom Qwen3.8 Q6 Model Switcher](tasks/axiom-qwen38-q6-switcher.md)
 - [Axiom Qwen3.8 Q5 256K Context](tasks/axiom-qwen38-q5-256k.md)
+- [Axiom Qwen3.8 Q4 256K and Q6 Profiles](tasks/axiom-qwen38-q4-256k-q6-profile.md)
 - [Axiom Qwen3.8 Uncensored Deployment](tasks/axiom-qwen38-uncensored-deployment.md)
 - [Axiom Sidra Apple Music](tasks/axiom-sidra-apple-music.md)
 - [Axiom Steam DWProton](tasks/axiom-steam-dwproton.md)

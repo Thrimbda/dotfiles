@@ -278,8 +278,8 @@ For runtime monitor reconciliation under the Lua configuration, generate `hl.mon
 
 ## Axiom Qwen Long Context
 
-Axiom's default Qwen 3.8 27B profile is the repaired RVN `Q5_K_M` MTP artifact with a native 262144-token context and Q8 K/V cache. `qwen-model` remains restricted to fixed Q4, Q5, and Q6 targets; Q4 also uses 256K/Q8, while Q6 is the 131072-token/Q4 rollback profile.
+Axiom's default Qwen 3.8 27B profile is RVN `Q4_K_M` MTP with native 262144-token context, Q8 K/V cache, and `--n-gpu-layers all`. On the 32GB RTX 5090, it generates at 107.91 tok/s with 96-97% GPU SM and about one CPU core; current desktop load uses roughly 30,970 MiB / 32,607 MiB VRAM. Keep `--parallel 1` until a separate concurrency profile proves headroom.
 
-Do not force `--n-gpu-layers all` for Q5 256K/Q8 on the 32GB RTX 5090. Leave layer count unset so llama.cpp's default `--fit` preserves KV-cache capacity and decides GPU placement. The live Q5 profile uses 30,665 MiB / 32,607 MiB GPU memory with one parallel slot; do not increase concurrency without a new memory profile.
+`qwen-model` only accepts fixed Q4 and Q6 targets. Q6 is the high-precision 131072-token/Q4 cache profile and uses `--n-gpu-layers all`; Q5 is no longer a runtime target or local model artifact.
 
 The current RVN chat template accepts `xhigh`, `medium`, and `low` reasoning effort. `minimal` is not a valid value and returns a server error.
