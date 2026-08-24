@@ -100,6 +100,8 @@
 - Added task summary for `axiom-install-todesk`.
 - Added the completed `axiom-qwen38-q5-256k` summary, current Q5 256K/Q8 deployment decision, and long-context GGUF validation pattern.
 - Marked `axiom-qwen38-q6-switcher` historical after its Q6-default profile was superseded by the verified Q5 256K profile.
+- Added the completed `axiom-qwen38-q4-256k-q6-profile` summary and current Q4 full-GPU 256K/Q8 plus Q6 high-precision profile decision.
+- Marked `axiom-qwen38-q5-256k` historical after Q5's mixed CPU/GPU profile was replaced and its artifact deleted.
 - Added task summary for `axiom-feishu-client`.
 - Added host-local GUI package pattern for one-off Axiom desktop client installs.
 - Updated opencode Cloudflare Exposure decisions and Axiom Remote Access maintenance after configuring Cloudflare Access Google IdP enforcement for `opencode-axiom.0xc1.space` and `opencode-charlie.0xc1.space`.

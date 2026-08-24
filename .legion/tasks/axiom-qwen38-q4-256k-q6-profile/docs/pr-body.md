@@ -10,14 +10,9 @@
 - `nix build --no-link .#nixosConfigurations.axiom.config.system.build.toplevel`
 - CPU-only MTP load of `RVN-Q4_K_M-mtp.gguf`
 - Generated launcher inspection confirms only Q4/Q6 targets, each with `--n-gpu-layers all`.
+- Deployed Q4 full GPU profile: 107.91 tok/s, 96-97% GPU SM utilization, and roughly one CPU core during a 1024-token generation.
+- Switched Q6 128K fallback successfully and returned to Q4; Q5 command surface and 19.7GB model artifact are removed.
 
-## Runtime Migration Required
+## Operational Boundary
 
-The active deployed link currently points to Q5, which the new launcher intentionally does not support. Before deploying this branch, use the currently deployed control command to select Q4, then switch the generation from this worktree:
-
-```bash
-qwen-model q4
-sudo nixos-rebuild switch --flake .#axiom
-```
-
-Q5 must remain on disk until Q4 256K and Q6 128K have both passed health/API/GPU validation. Full evidence: `.legion/tasks/axiom-qwen38-q4-256k-q6-profile/docs/test-report.md`.
+Q4 256K/Q8 uses about 30,970 MiB / 32,607 MiB VRAM. Keep `--parallel 1`; profile higher concurrency before changing it. Full evidence: `.legion/tasks/axiom-qwen38-q4-256k-q6-profile/docs/test-report.md`.

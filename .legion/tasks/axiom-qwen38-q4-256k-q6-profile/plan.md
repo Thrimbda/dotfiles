@@ -10,11 +10,11 @@ Q5 256K/Q8 在单张 32GB RTX 5090 上需要 CPU/GPU 混合推理，实测仅约
 
 ## 验收标准
 
-- [ ] 默认模型与 qwen-model q4 使用 Q4_K_M MTP、262144 context、Q8 K/V cache 和全 GPU offload。
-- [ ] qwen-model q6 使用 Q6_K MTP、131072 context、Q4 K/V cache 和全 GPU offload。
-- [ ] Q5 不再出现在 Nix 配置、模型控制命令、运行时可选目标或模型目录。
-- [ ] Q4 API 生成、health endpoint、256K 启动 profile、GPU 显存与吞吐均在 Axiom 实测通过。
-- [ ] Q6 fallback 启动和 health endpoint 实测通过。
+- [x] 默认模型与 qwen-model q4 使用 Q4_K_M MTP、262144 context、Q8 K/V cache 和全 GPU offload。
+- [x] qwen-model q6 使用 Q6_K MTP、131072 context、Q4 K/V cache 和全 GPU offload。
+- [x] Q5 不再出现在 Nix 配置、模型控制命令、运行时可选目标或模型目录。
+- [x] Q4 API 生成、health endpoint、256K 启动 profile、GPU 显存与吞吐均在 Axiom 实测通过。
+- [x] Q6 fallback 启动和 health endpoint 实测通过。
 
 ## 假设 / 约束 / 风险
 
