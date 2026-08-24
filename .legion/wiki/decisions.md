@@ -42,13 +42,13 @@ Acorn Vaultwarden must source both `services.vaultwarden.package` and `services.
 
 The Acorn auth-mini package must not fetch the mutable `/releases/download/latest/` URL directly. Pin the intended official GitHub release asset by asset-ID API endpoint, use `Accept: application/octet-stream`, and retain a fixed-output SRI hash verified against the official asset digest. If the API asset, header behavior, or content changes, the build must fail rather than silently replace the authentication binary.
 
-## Acorn 1Ex Portfolio Adapter
+## Acorn 1Ex Portfolio Adapter (Retired)
 
-The 1Ex portfolio adapter is a loopback-only Acorn systemd service at `127.0.0.1:8090`, exposed solely through nginx TLS at `1ex-portfolio.0xc1.wang`. Its identity stays in an Acorn-only age environment file owned by the dedicated service user; the public API retains the adapter's existing HMAC-derived Bearer check. The private Rust source is tracked as a snapshot pinned to upstream `8dcf21f9a2549212bff4b380dc5daf3f5c1236f9`, with only the measured 4.5s-to-5.8s read timeout adjusted by the Nix derivation.
+Acorn no longer deploys the 1Ex portfolio adapter. PR #203 (`df26dce7f6b0652172cf5d604527f18d73cd76a5`) removed the sole adapter module import and was deployed through the mandated Axiom-to-Acorn path. The active configuration and runtime have no adapter service, ACME units, process, TCP `8090` listener, or `1ex-portfolio.0xc1.wang` nginx vhost.
 
-`My Portfolio` is the user-owned private USD Trading Fund backed by the enabled `1Ex Portfolio Adapter` Custom Account Source. Its Fund ID is the adapter's already deployed `EXCLUDED_FUND_ID`, so the adapter omits the Fund and avoids recursive valuation. It is a NAV-only viewer: keep it private with subscriptions closed, zero active investors, zero shares, and zero deposit/funding balance. Do not manufacture owner units with an initial cash flow. Do not rotate that ID or remove the source without first disabling the Fund and designing the replacement/rollback path.
+The dormant adapter module, package snapshot, ciphertext/declaration, and globally declared runtime age secret remain intentionally; `modules/agenix.nix` owns that secret independently of the host service import. External 1Exchange/auth-mini metadata and credentials were neither mutated nor re-verified, so this retirement proves Acorn undeployment, not external account erasure or credential revocation.
 
-1Ex device-session verification must send `redirect_uri=https://1ex.ntnl.io` so the minted token has the audience required by 1Exchange. Do not weaken audience validation or add a fallback token type. If the tracked vendor source already contains this behavior but Axiom has a registered-and-missing old adapter output, preserve source and secret configuration, force a fresh Nix derivation identity with a version-only suffix, and deploy only from refreshed merged `origin/master` on Axiom. Do not delete or deregister a live recorded store path to work around the missing output.
+Restoring the adapter requires a reviewed re-import and a fresh deployment from Axiom. Dormant source, secret, old generation, or store-path presence is not evidence that the adapter is currently deployed.
 
 ## Linux Workstation Desktop Baseline
 

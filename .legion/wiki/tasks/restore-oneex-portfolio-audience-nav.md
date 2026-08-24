@@ -6,21 +6,22 @@
 - `status`: `completed`
 - `risk`: `high`
 - `schema-version`: `current`
-- `historical`: `false`
+- `historical`: `true`
 - `supersedes`: `(none)`
-- `superseded-by`: `(none)`
+- `superseded-by`: `decommission-oneex-portfolio-account` (active adapter runtime only)
 
 ## Outcome Summary
 
-- The active Acorn adapter was older than its tracked vendor source and minted an
+- At the time, the active Acorn adapter was older than its tracked vendor source and minted an
   `auth.ntnl.io` audience that 1Exchange rejected. PR
   [#184](https://github.com/Thrimbda/dotfiles/pull/184) forced a fresh output
   from the unchanged vendor source, then the merged Axiom-to-Acorn deployment
   restored the source to HTTP `200` with six positions and no recursive Fund row.
 - The temporary owner investor and issued-unit baseline from this recovery were
   later explicitly removed by `repair-oneex-portfolio-zero-investors`. The
-  current Fund is a zero-investor NAV-only viewer, while this task's adapter
-  audience recovery remains current.
+  last verified Fund state was a zero-investor NAV-only viewer. The adapter
+  runtime recovery is historical after `decommission-oneex-portfolio-account`;
+  that task did not mutate or re-verify external Fund/source metadata.
 - The post-write `502` was contained without retrying or creating a duplicate
   financial event. Future upstream failures remain fail-closed operational
   incidents, not prompts to create more cash flows or shares.
@@ -30,7 +31,7 @@
 
 ## Reusable Decisions
 
-- Device-session authentication for this adapter must send the 1Exchange base
+- If this adapter is redeployed, device-session authentication must send the 1Exchange base
   URL as `redirect_uri` to mint the required `1ex.ntnl.io` audience.
 - When a correct vendor source is blocked by a registered-but-missing Nix
   output, use a version-only fresh derivation identity and deploy from merged

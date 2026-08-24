@@ -124,6 +124,12 @@ For a personal portfolio Fund that exists only to display total-assets NAV, keep
 
 If an initial investment was recorded by mistake, treat removal as destructive accounting repair. Require explicit approval, a fresh healthy source read, and a live event stream that contains exactly the intended profile and positive cash-flow artifacts. Delete the cash flow first, re-read reducer and event state, then select and delete the profile using its current index. Only read-only source checks may retry after transient `502`; never blindly replay DELETE, configuration, or NAV-sample writes. If the Fund is already private and subscriptions are closed, do not send a no-op configuration upsert.
 
+## Host Module Import Retirement Pattern
+
+In this repository, removing a host's sole import of a module retires the service, vhost/ACME contribution, service-owned user/config, and package evaluation contributed by that module without requiring deletion of the dormant module or package. Verify the ownership boundary first, then explicitly evaluate service and vhost absence and prove runtime unit, process, listener, and active-vhost absence after deployment.
+
+`modules/agenix.nix` can independently fold host secret declarations into the evaluated configuration, so a globally declared runtime secret may intentionally remain after its consumer module is no longer imported. Verify service/vhost absence and age-secret presence as separate assertions, compare the dormant module/package/secret declarations for unintended changes, and use only an existence check for retained runtime secret proof.
+
 For healthchecks, prefer typed predicates over host-owned shell bodies when the predicate shape is reusable. Current reusable shapes are HTTP readiness, autossh endpoint-key comparison, and service-core/interface health. Keep raw `check` script support for genuinely one-off predicates, but do not use it as the default for common daemon checks.
 
 For permission policy moved out of hosts, default the module option to disabled and require explicit host enablement. Preserve fixed action allowlists and local subject/user checks; do not turn a host-local polkit rule into group membership, prefix grants, sudo wrappers, or broader default module behavior.

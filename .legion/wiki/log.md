@@ -321,3 +321,4 @@
 - Added the active `axiom-lock-dpms-plugin-fix` summary, corrected the lock-DPMS package pattern for the separately built Config plugin, and recorded the sudo-blocked deployment/import and manual 60-second DPMS residuals.
 - Updated `axiom-lock-dpms-plugin-fix` after live secure-state arming, native Axiom DPMS wake, no-rearm, and unlock-cleanup verification; removed its resolved maintenance blocker and promoted the Quickshell/Hyprland pattern.
 - Marked `axiom-lock-dpms-plugin-fix` completed after implementation PR #197 merged with its deployed-session, review, walkthrough, and wiki evidence.
+- Added the completed `decommission-oneex-portfolio-account` summary after PR #203 merged and its Axiom-only generation/runtime proof passed; retired stale active-adapter truth and recorded the verified host-import/agenix-secret pattern.

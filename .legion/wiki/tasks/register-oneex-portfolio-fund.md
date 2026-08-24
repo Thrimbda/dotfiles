@@ -6,17 +6,18 @@
 - `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `v1`
-- `historical`: `false`
+- `historical`: `true`
 - `supersedes`: `(none)`
-- `superseded-by`: `(none)`
+- `superseded-by`: `decommission-oneex-portfolio-account` (active adapter availability only)
 
 ## Outcome Summary
 
-- Registered the deployed adapter as the enabled `1Ex Portfolio Adapter` Custom Account Source.
+- At delivery time, registered the then-deployed adapter as the enabled `1Ex Portfolio Adapter` Custom Account Source.
 - Created and enabled the private USD `My Portfolio` Fund with subscriptions closed and one initial NAV.
 - Reused the adapter's verified-unused exclusion UUID as the Fund ID, then proved the enabled Fund remains absent from direct adapter output.
 - No Acorn configuration or adapter source change was required; runtime credentials remained in Acorn-only memory and cleaned `/run` files.
-- Implementation PR [#163](https://github.com/Thrimbda/dotfiles/pull/163) merged as `407b634d`; the source and Fund remain current until an explicit replacement or rollback task.
+- Implementation PR [#163](https://github.com/Thrimbda/dotfiles/pull/163) merged as `407b634d`.
+- `decommission-oneex-portfolio-account` later retired only the Acorn service/vhost. It did not mutate or re-verify external source, Fund, account, or auth metadata, so this page is historical registration evidence rather than proof of current adapter availability.
 
 ## Reusable Decisions
 
