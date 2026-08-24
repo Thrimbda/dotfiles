@@ -1,6 +1,7 @@
 # Wiki Log
 
 - Added the `acorn-traffic-attribution` summary, local service/proxy attribution decision, and bounded counter-sampling pattern.
+- Marked `acorn-traffic-attribution` completed after implementation PR #204 merged and the implementation worktree was removed.
 - Added the `acorn-vnstat-traffic-accounting` summary and current Acorn aggregate traffic-accounting decision/pattern.
 - Marked `acorn-vnstat-traffic-accounting` completed after implementation PR #195 merged and the implementation worktree was removed.
 - Marked `axiom-rustdesk-provision-recovery` complete after PR #182 merged and the deployed candidate provision unit exited successfully without `attempt-used`.
