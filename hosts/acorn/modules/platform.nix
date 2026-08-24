@@ -19,8 +19,6 @@
     http-connections = 4;
   };
 
-  programs.nix-ld.enable = lib.mkForce false;
-
   documentation = {
     enable = false;
     man.enable = false;

@@ -6,6 +6,7 @@
   imports = [
     "${modulesPath}/profiles/qemu-guest.nix"
     ./modules/auth-mini.nix
+    ./modules/cybion.nix
     ./modules/ingress.nix
     ./modules/oneex-portfolio-adapter.nix
     ./modules/platform.nix
