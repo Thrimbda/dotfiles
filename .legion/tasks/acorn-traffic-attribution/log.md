@@ -10,3 +10,4 @@
 - Chose local bounded samples from FRP counters plus systemd cgroup counters over request logging, external telemetry, or packet capture.
 - Added a host-local five-minute sampler, 30-day root-owned retention, and root-only delta report command. The module explicitly keeps IP accounting enabled for the measured service cgroups.
 - Deployed from Axiom with the mandated remote switch command. The timer is active, samples are `root:root` mode `0640`, and the report produced distinct service and proxy deltas.
+- Implementation PR #204 merged. The implementation worktree was removed; this closeout change records the terminal task state.

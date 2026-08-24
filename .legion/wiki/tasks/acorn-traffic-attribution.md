@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `acorn-traffic-attribution`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `high`
 - `schema-version`: `1`
 - `historical`: `false`
@@ -15,6 +15,7 @@
 - Acorn now saves root-owned five-minute snapshots of selected systemd cgroup traffic totals and FRP TCP proxy totals for 30 days.
 - `acorn-traffic-report` compares the newest two samples locally and separates service counters from named FRP proxy counters.
 - Current evidence identifies `sshd` as the main service-level carrier of the August egress usage. This task intentionally does not retain remote-peer identity or packet/request content.
+- Implementation PR [#204](https://github.com/Thrimbda/dotfiles/pull/204) merged, and its worktree was removed.
 
 ## Reusable Decisions
 

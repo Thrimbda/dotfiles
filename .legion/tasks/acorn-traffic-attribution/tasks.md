@@ -9,4 +9,4 @@
 - [x] Complete change review.
 - [x] Generate delivery evidence.
 - [x] Write back the wiki.
-- [ ] Complete the PR lifecycle.
+- [x] Complete the implementation PR lifecycle: PR #204 merged and its worktree was removed.
