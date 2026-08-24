@@ -8,6 +8,10 @@
 
 - Complete `acorn-vaultwarden-restore-drill` within 90 days of the 2026-07-30 deployment, or earlier after any Vaultwarden backup failure, rollback attempt, or storage anomaly. The drill must restore a named backup in an isolated non-public environment with a non-production environment file, validate service startup and SQLite access, then securely remove the isolated copy. Do not treat the successful `backup-vaultwarden.service` result as restore proof until this is recorded.
 
+## Acorn SSH Egress Attribution Follow-Up
+
+- Current systemd counter evidence identifies `sshd` as the main service-level carrier of Acorn's August egress. Before adding remote-peer or session-level byte attribution, define the required privacy boundary, retention, operator access, and shared-key remediation policy in a separate security-reviewed task. Do not capture SSH commands, payloads, or client identities by default.
+
 ## Acorn Aliyun ECS Follow-Up
 
 - Before running live `acorn` validation, confirm the OSS bucket/object, image-import RAM role, VPC/vSwitch/security group, instance type, operator SSH CIDR, auto-release time, expected cost/dry-run result, and cleanup owner.

@@ -70,6 +70,8 @@ For one-off, host-specific CLI or GUI package requests on `axiom`, prefer the ex
 
 For a host with unexpectedly high billable egress, enable NixOS-native `services.vnstat` when the immediate requirement is durable per-interface daily/monthly totals. Treat it as local post-activation trend evidence, not historic or per-process attribution. Verify the effective option, run the approved remote switch, confirm the daemon is active and the primary interface is registered, and wait for its first collection interval before expecting daily reports. Do not add a listener, firewall exception, or external telemetry unless a separate task explicitly requires centralized observability.
 
+When interface totals establish an anomaly but not its carrier, sample existing systemd `IPIngressBytes`/`IPEgressBytes` per candidate service and application-native counters such as FRP's loopback proxy API. Keep sample files root-owned, store aggregate names/statuses/byte counters only, retain them with a bounded tmpfiles age policy, and label restarts as counter resets. A local flow can traverse more than one cgroup, so use the interface total for billing reconciliation and service/proxy counters for attribution rather than summing them.
+
 CLI package-only installation should not imply declarative service/config integration. For secrets tooling specifically, installing `sops` is not the same as adopting `sops-nix`; evaluate agenix coexistence, migration, identity source, rollback, and secret ownership in a separate scoped task.
 
 Package-only GUI client installation should not imply account state, proxy setup, cache management, autostart, credentials, organization policy, or live `nixos-rebuild switch` unless the task contract explicitly includes those runtime concerns.
