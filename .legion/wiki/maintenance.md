@@ -28,11 +28,6 @@
 - The current FRP transport is encrypted and token-authenticated but does not verify frps certificate identity. Before treating the path as resistant to active MITM or expanding its trust boundary, scope and verify a separate FRP server-identity/PKI migration.
 - Axiom's pinned Pi `0.84.2` and PI WEB `1.202608.1` runtime is persistent but imperative. Future upgrades or reinstalls must preserve the profile/data boundaries and rerun Pi `verify`, PI WEB `doctor/status/version`, unit, listener, gateway, and end-to-end checks; scope disruptive reboot/logout/rollback proof separately if it becomes a release requirement.
 
-## Acorn 1Ex Portfolio Adapter Follow-Up
-
-- The upstream `auth.ntnl.io` and 1Ex Fund endpoints can fail transiently. The adapter intentionally fails closed with `502`; monitor the consumer's retry behavior and make any resilience change through a separately scoped task rather than weakening the authentication or partial-data boundary.
-- `My Portfolio` is a zero-investor, zero-share NAV-only Fund with enabled hourly sampling. Monitor subsequent samples for upstream `502` failures. Retry reads when appropriate, but do not repair a future outage with an owner, cash-flow, or share event. Before rotating the adapter seed, update the stored Custom Account Source header through the 1Ex source API; the derived source bearer rotates with that seed.
-
 ## RustDesk Relay Follow-Up
 
 - On every RustDesk Server upgrade, re-evaluate whether upstream still lets `same_intranet` bypass `ALWAYS_USE_RELAY`; require zero-fuzz patch application, stable-false equivalence, package tests and a fresh same-public-IP hbbr pairing smoke before retaining or removing the private patch.
