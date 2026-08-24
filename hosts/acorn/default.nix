@@ -10,6 +10,7 @@
     ./modules/ingress.nix
     ./modules/platform.nix
     ./modules/rustdesk.nix
+    ./modules/traffic-accounting.nix
     ./modules/vaultwarden.nix
   ];
 

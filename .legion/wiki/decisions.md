@@ -32,7 +32,9 @@ nixos-rebuild switch --flake .#acorn --target-host c1@8.159.128.125 --build-host
 
 ## Acorn Network Cost Observability
 
-Acorn uses the native NixOS `services.vnstat` daemon as its local, persistent interface-level traffic baseline. It stores aggregate daily and monthly totals for the primary `ens5` interface without opening a listener, changing firewall policy, or exporting telemetry. It starts collecting only after activation and cannot attribute traffic to individual processes or reconstruct earlier billing periods; investigate those requirements in a separate scoped task.
+Acorn uses the native NixOS `services.vnstat` daemon as its local, persistent interface-level traffic baseline. It stores aggregate daily and monthly totals for the primary `ens5` interface without opening a listener, changing firewall policy, or exporting telemetry.
+
+For service and proxy attribution, Acorn also retains root-owned five-minute samples of systemd IP accounting for `frps`, `nginx`, `rustdesk-relay`, and `sshd`, plus named FRP TCP proxy totals from the existing loopback dashboard. Run `sudo acorn-traffic-report` after two samples exist. Do not sum service and FRP totals because a single local forwarded flow can appear in both. The sampler retains no request content, client identity, or SSH command; peer-level SSH attribution remains a separate security/privacy decision.
 
 ## Acorn Vaultwarden and Auth-mini Package Sources
 
