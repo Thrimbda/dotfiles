@@ -1,0 +1,122 @@
+Charlie SSH live verification evidence
+Date: 2026-07-30 Asia/Shanghai
+Target client: charles
+Target host: charlie
+Jump host: 8.159.128.125 (repository host: acorn; client legacy alias: azar)
+
+E1. Authenticated LAN route selection
+
+Command (run outside the Codex network sandbox):
+  ssh -G charlie | awk '/^(hostname|port|proxyjump|hostkeyalias|user) / {print}'
+
+Exit code: 0
+Output:
+  user c1
+  hostname 192.168.10.4
+  port 22
+  hostkeyalias charlie
+
+Command:
+  ssh -o BatchMode=yes -o ConnectTimeout=5 charlie \
+    'printf "host=%s user=%s\n" "$(scutil --get LocalHostName)" "$(id -un)"'
+
+Exit code: 0
+Output:
+  host=charlie user=c1
+
+E2. Forced tunnel and fallback before the jump-host outage
+
+Command:
+  ssh -G charlie-tunnel |
+    grep -E '^(hostname|port|proxyjump|hostkeyalias|user) '
+
+Exit code: 0
+Output:
+  user c1
+  hostname 127.0.0.1
+  port 2222
+  hostkeyalias charlie
+  proxyjump acorn-jump
+
+Command:
+  ssh -J azar -p 2226 c1@127.0.0.1 \
+    'printf "host=%s user=%s\n" "$(scutil --get LocalHostName)" "$(id -un)"'
+
+Exit code: 0
+Output:
+  host=charlie user=c1
+
+A fallback-only test configuration replaced the LAN address with 192.0.2.1.
+Its computed configuration was:
+  user c1
+  hostname 127.0.0.1
+  port 2222
+  hostkeyalias charlie
+  proxyjump acorn-jump
+
+The resulting SSH login returned:
+  host=charlie user=c1
+
+SCP was exercised over both the direct and forced-tunnel routes. Both copies of
+/etc/hosts had SHA-256:
+  9bef4960...393cb8
+
+E3. Host-key-aware probe
+
+The pinned ED25519 key under HostKeyAlias "charlie" matched 192.168.10.4:22.
+The probe returned 0 for 192.168.10.4 and 1 for the stale address
+192.168.50.84. A sandboxed invocation returned 1 because raw ssh-keyscan
+network access was denied; the unsandboxed ssh -G invocation in E1 returned the
+LAN route.
+
+E4. Staged dedicated-key negative tests
+
+The dedicated key fingerprint is:
+  SHA256:MwXHIJF6l2agdbXs+cm3XauTKdO01zwa3H1wD8zAyKc
+
+The temporary jump-host authorization used:
+  command="/run/current-system/sw/bin/false",restrict,port-forwarding,permitlisten="127.0.0.1:2226"
+
+Command-channel test:
+  exit code: 1
+  stdout/stderr payload bytes: 0
+
+Unapproved remote listen test for 127.0.0.1:2299:
+  exit code: 255
+  diagnostic: remote port forwarding failed for listen port 2299
+
+At the time of the positive staged test, the jump host showed:
+  LISTEN ... 127.0.0.1:2222
+  LISTEN ... 127.0.0.1:2226
+
+E5. Safe preservation of the old tunnel
+
+Command:
+  ssh charlie 'launchctl print gui/$(id -u)/org.nixos.autossh-reverse-ssh'
+
+Exit code: 0
+Key observations:
+  state = running
+  pid = 1931
+  last exit code = (never exited)
+  arguments include:
+    -R 127.0.0.1:2222:127.0.0.1:22
+    c1@8.159.128.125
+
+Command:
+  ssh charlie 'lsof -nP -a -p 14021 -iTCP'
+
+Exit code: 0
+Relevant output:
+  ssh 14021 c1 ... TCP 198.18.0.1:62951->8.159.128.125:22 (ESTABLISHED)
+
+The temporary local.charlie-tunnel-v2 LaunchAgent was stopped after it entered
+a reconnect loop:
+  launchctl_rc=113
+  process_rc=1
+  active_plist_rc=1
+
+Its plist was moved to:
+  /private/tmp/local.charlie-tunnel-v2.plist.stopped
+
+The production old 2222 LaunchAgent was not stopped or modified.

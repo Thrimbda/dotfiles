@@ -17,6 +17,14 @@ with lib;
     shell = {
       direnv.enable = true;
       zsh.enable = true;
+      zsh.envInit = ''
+        path=(
+          "$XDG_CONFIG_HOME/emacs/bin"
+          "/Applications/Emacs.app/Contents/MacOS/bin"
+          "''${path[@]}"
+        )
+        typeset -U path PATH
+      '';
       git.enable = true;
       gnupg.enable = true;
       tmux.enable = true;
@@ -66,6 +74,14 @@ with lib;
       PATH = "$HOME/.opencode/bin:$PATH";
       OPENCODE_ENABLE_EXA = "1";
       OPENCODE_EXPERIMENTAL = "true";
+    };
+
+    home.file = {
+      ".local/bin/ssh-route-probe" = {
+        source = ../../bin/ssh-route-probe;
+        executable = true;
+      };
+      ".ssh/config.d/charlie.conf".source = ../../config/ssh/charlie.conf;
     };
 
     user.packages = with pkgs; [
