@@ -1632,6 +1632,10 @@ with lib;
             hostname = "opencode-charlie.0xc1.space";
             service = "http://127.0.0.1:4096";
           }
+          {
+            hostname = "constx-charlie.0xc1.space";
+            service = "http://127.0.0.1:3210";
+          }
           { service = "http_status:404"; }
         ];
       };
