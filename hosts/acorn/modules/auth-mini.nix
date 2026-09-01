@@ -25,6 +25,33 @@ let
       protectedUpstream = "http://127.0.0.1:7500";
       proxyWebsockets = false;
     };
+    constx = {
+      hostName = "constx.0xc1.wang";
+      port = 7782;
+      dbName = "constx";
+      protectedUpstream = "http://127.0.0.1:3210";
+      proxyWebsockets = false;
+      vhostExtraConfig = ''
+        client_max_body_size 22m;
+      '';
+      protectedExtraConfig = ''
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_cache off;
+        gzip off;
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 24h;
+        proxy_read_timeout 24h;
+        proxy_intercept_errors off;
+        proxy_next_upstream off;
+        proxy_redirect off;
+      '';
+    };
   };
 
   gatewayUrl = instance: "http://127.0.0.1:${toString instance.port}";
@@ -82,6 +109,7 @@ let
         proxy_set_header Cookie "";
         proxy_set_header X-Auth-Mini-User-Id $auth_user_id;
         proxy_set_header X-Auth-Mini-Email $auth_email;
+        ${instance.protectedExtraConfig or ""}
       '';
     };
   };
@@ -94,6 +122,8 @@ let
         return 404 "Not found\n";
       '';
     };
+  } // optionalAttrs (instance ? vhostExtraConfig) {
+    extraConfig = instance.vhostExtraConfig;
   };
 
   mkNodeProxyVhost = hostName: remotePort: extraLocationConfig: {

@@ -7,6 +7,7 @@
     "${modulesPath}/profiles/qemu-guest.nix"
     ./modules/auth-mini.nix
     ./modules/charlie-tunnel.nix
+    ./modules/constx.nix
     ./modules/cybion.nix
     ./modules/ingress.nix
     ./modules/platform.nix
