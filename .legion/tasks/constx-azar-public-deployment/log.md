@@ -15,3 +15,4 @@
 - 独立 re-review PASS（attention: skim）：D-ROOT-001 和 release/rollback 双重权威均已消除。下一阶段：engineer。
 - engineer 已新增 `hosts/acorn/modules/constx.nix`、导入该模块，并为 `constx.0xc1.wang` 添加独立 Auth Mini gateway instance。service 固定指向 release SHA、只提供 Node 22 runtime、使用 private StateDirectory；Nginx vhost 保留 `auth_request` 并追加 22 MiB / SSE / long-response proxy directives。
 - 工程级检查：Nix parse、constxd ExecStart / ACME host / gateway unit evaluation 和 scoped Nginx location evaluation 均成功；full attribute JSON 访问触发 Nix optional-field coercion（`startLimitBurst` / `sslCertificate`）并非 configuration failure，toplevel drvPath 可求值。
+- Axiom source build completed: Acorn closure `/nix/store/8d1bfd46v3yzrlfyknwv5aprf36yr9cs-nixos-system-acorn-26.05.7813.0dd31db7e6db` built successfully; generated constxd/Nginx/gateway/ACME shape inspected. Exact Const X release built on Axiom, `doctor` passed with Pi 0.84.3, and the hash-verified binary is staged on Azar but not running. Evidence: `docs/evidence/`.
