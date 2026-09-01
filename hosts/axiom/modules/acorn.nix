@@ -17,6 +17,8 @@ let
     SESSION_TOUCH_INTERVAL_SECONDS = "3600";
   };
 in {
+  networking.hosts.${acorn.publicIp} = [ "constx.0xc1.wang" ];
+
   modules.shell.zsh.envInit = mkAfter ''
     export PATH="${legionPiProfile}/runtime/node_modules/.bin:$PATH"
     export PI_CODING_AGENT_DIR="${legionPiProfile}/agent"

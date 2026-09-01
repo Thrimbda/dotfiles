@@ -25,16 +25,8 @@ let
       protectedUpstream = "http://127.0.0.1:7500";
       proxyWebsockets = false;
     };
-    constx = {
-      hostName = "constx.0xc1.wang";
-      port = 7782;
-      dbName = "constx";
-      protectedUpstream = "http://127.0.0.1:3210";
-      proxyWebsockets = false;
-      vhostExtraConfig = ''
-        client_max_body_size 22m;
-      '';
-      protectedExtraConfig = ''
+    constx = let
+      streamingProxy = ''
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Host $host;
@@ -51,6 +43,18 @@ let
         proxy_next_upstream off;
         proxy_redirect off;
       '';
+    in {
+      hostName = "constx.0xc1.wang";
+      port = 7782;
+      dbName = "constx";
+      protectedUpstream = "http://127.0.0.1:3210";
+      runEnvironmentUpstream = "http://127.0.0.1:3210";
+      proxyWebsockets = false;
+      vhostExtraConfig = ''
+        client_max_body_size 22m;
+      '';
+      protectedExtraConfig = streamingProxy;
+      runEnvironmentPeerExtraConfig = streamingProxy;
     };
   };
 
@@ -114,10 +118,28 @@ let
     };
   };
 
+  mkRunEnvironmentPeerLocation = instance: path: {
+    proxyPass = "${instance.runEnvironmentUpstream}${path}";
+    proxyWebsockets = false;
+    extraConfig = instance.runEnvironmentPeerExtraConfig or "";
+  };
+
+  mkRunEnvironmentPeerLocations = instance:
+    optionalAttrs (instance ? runEnvironmentUpstream) {
+      "= /api/run-environments/pair" =
+        mkRunEnvironmentPeerLocation instance "/api/run-environments/pair";
+      "= /api/run-environments/connect" =
+        mkRunEnvironmentPeerLocation instance "/api/run-environments/connect";
+      "= /api/run-environments/heartbeats" =
+        mkRunEnvironmentPeerLocation instance "/api/run-environments/heartbeats";
+      "= /api/run-environments/tool-results" =
+        mkRunEnvironmentPeerLocation instance "/api/run-environments/tool-results";
+    };
+
   mkGatewayVhost = instance: {
     onlySSL = true;
     useACMEHost = instance.hostName;
-    locations = mkGatewayRoutes instance // mkProtectedLocations instance // optionalAttrs (instance.protectedUpstream == null) {
+    locations = mkGatewayRoutes instance // mkRunEnvironmentPeerLocations instance // mkProtectedLocations instance // optionalAttrs (instance.protectedUpstream == null) {
       "/".extraConfig = ''
         return 404 "Not found\n";
       '';
