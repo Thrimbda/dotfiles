@@ -1,0 +1,9 @@
+command=nix eval --option eval-cache false (Acorn base and constx-native-auth-staging attributes)
+exit=0
+base_ingress=direct
+staging_ingress=gateway
+release_execstart=/home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd serve
+base_constx_gateway=absent
+staging_constx_gateway=present
+base_auth_request=absent
+staging_auth_request=present

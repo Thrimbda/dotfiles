@@ -1,0 +1,7 @@
+$ nix eval base cloudflareDnsAcme.hosts
+["vault.0xc1.wang","cybion.0xc1.wang","constx.0xc1.wang","auth.0xc1.wang","status-axiom.0xc1.wang","opencode-axiom.0xc1.wang","pi-axiom.0xc1.wang","auth-gateway.0xc1.wang","frps-acorn.0xc1.wang"]
+
+$ nix eval constx-native-auth-staging cloudflareDnsAcme.hosts
+["vault.0xc1.wang","cybion.0xc1.wang","constx.0xc1.wang","auth.0xc1.wang","status-axiom.0xc1.wang","opencode-axiom.0xc1.wang","pi-axiom.0xc1.wang","auth-gateway.0xc1.wang","frps-acorn.0xc1.wang"]
+
+constx.0xc1.wang appears exactly once in each evaluated host list; G2 effective Nginx references /var/lib/acme/constx.0xc1.wang.

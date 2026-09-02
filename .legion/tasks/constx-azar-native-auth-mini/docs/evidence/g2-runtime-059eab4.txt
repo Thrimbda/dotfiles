@@ -1,0 +1,48 @@
+$ readlink -f /run/current-system
+/nix/store/nfrffkzwz6grlwznc9dq2l05cszz2z40-nixos-system-acorn-26.05.7813.0dd31db7e6db
+
+$ Axiom nixos-rebuild switch --flake .#acorn --build-host localhost --target-host c1@8.159.128.125 --ask-sudo-password --sudo
+exit=0
+stopped_unit=constxd.service
+started_unit=constxd.service
+new_configuration=/nix/store/nfrffkzwz6grlwznc9dq2l05cszz2z40-nixos-system-acorn-26.05.7813.0dd31db7e6db
+
+$ systemctl show --property=ExecStart --property=MainPID constxd
+MainPID=1329573
+ExecStart={ path=/home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd ; argv[]=/home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd serve ; ignore_errors=no ; start_time=[Wed 2026-09-02 17:10:41 CST] ; stop_time=[n/a] ; pid=1329573 ; code=(null) ; status=0/0 }
+
+$ readlink -f /proc/1329573/exe
+/home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd
+
+$ sha256sum /proc/1329573/exe /home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd
+382d9787affa8b4deeca6dd6d4a8af7ed8cfc0b2c771607f1ce9a9fb30280cab  /proc/1329573/exe
+382d9787affa8b4deeca6dd6d4a8af7ed8cfc0b2c771607f1ce9a9fb30280cab  /home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd
+
+$ systemctl is-active constxd nginx auth-mini auth-mini-gateway-constx auth-mini-gateway-auth-gateway auth-mini-gateway-frps-acorn
+constxd=active
+nginx=active
+auth-mini=active
+auth-mini-gateway-constx=inactive
+auth-mini-gateway-auth-gateway=active
+auth-mini-gateway-frps-acorn=active
+
+$ HOME=/var/lib/constx XDG_CONFIG_HOME=/var/lib/constx/config XDG_DATA_HOME=/var/lib/constx/data /home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd configure-auth --check --issuer https://auth.0xc1.wang --audience constx.0xc1.wang
+configure_auth_check_exit=0
+
+$ curl http://127.0.0.1:3210/api/auth/config
+{"enabled":true,"issuer":"https://auth.0xc1.wang"}
+
+$ curl unauthenticated run-environment endpoints
+loopback_api_status=401
+direct_ingress_api_status=401
+
+$ effective constx nginx server block
+server_name constx.0xc1.wang ;
+ssl_certificate /var/lib/acme/constx.0xc1.wang/fullchain.pem;
+ssl_certificate_key /var/lib/acme/constx.0xc1.wang/key.pem;
+location / {
+  proxy_pass http://127.0.0.1:3210;
+  proxy_set_header Authorization $http_authorization;
+  proxy_set_header Cookie $http_cookie;
+}
+constx_auth_request=absent

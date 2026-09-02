@@ -1,0 +1,18 @@
+# constx-azar-native-auth-mini 日志
+
+- 2026-09-02：用户要求以 Const X 原生 Auth Mini authenticate 取代 constx 的 auth-mini-gateway。
+- 2026-09-02：Azar 当前 `constxd` 的 `/api/auth/config` 返回 `enabled:false`；`constxd`、Nginx、`auth-mini-gateway-constx` 均 active。
+- 2026-09-02：Auth Mini 的 `/jwks`、`/web/` 和 redirect/audience OpenAPI contract 已确认；不需要升级 issuer 服务端。
+- 2026-09-02：review-rfc round 1 FAIL。修订方向：ACME host 转为 constx module owner；禁止 Nix shell patch TOML，改为目标 release `configure-auth`；新增 G0 current gateway、G1 target-release gateway specialisation、G2 direct base 状态机；D3 覆盖 pair/connect/heartbeat/tool-result；rollback 必须先回 G1 gateway hard gate。
+- 2026-09-02：review-rfc round 2 FAIL。G0/G1/G2、ACME、machine matrix 和 rollback gate 已通过设计审查；剩余 blocker 是 `configure-auth` 必须以 source release evidence 证明真实 service config、只读 check、enable/disable 幂等和 non-auth state preservation。
+- 2026-09-02：RFC 增加 Config state preservation release gate：source merge/binary provenance、同 service environment、bootstrap/check/enable/disable/no-op、invalid no-write、non-auth semantic preservation 与 Azar same-binary check 都是进入 G1 的硬条件。
+- 2026-09-02：source candidate PR #82 at 962ed79 提供 config command source evidence；deployment RFC 只将它列为 candidate，真正进入 G0/G1 前仍必须核对最终 merged SHA 和同一 locator。
+- 2026-09-02：PR #82 已 squash merge 为 92112facdb30a1a3a02e0a31fadcf3ff4a6ea379；已从 origin/master 读取 C1-C3 test report。review-rfc round 3 要求 final merge -> Axiom build -> Azar binary -> G1 ExecStart 的 fail-closed provenance；RFC 已新增 release manifest 和 mismatch stop gate，待 round 4 重审。
+- 2026-09-02：review-rfc round 4 FAIL。RFC 现新增机械的 final source blob compare-or-rerun 记录，以及 G1 active ExecStart/MainPID/canonical executable/SHA-256 绑定记录；任何无法比较、重跑失败或运行时路径/hash 不一致都停止在 G0。
+- 2026-09-02：review-rfc round 5 PASS。final source evidence 与 G1 executable provenance 的 compare-or-rerun/actual-process binding 已通过独立设计审查；进入 engineer。
+- 2026-09-02：engineer 完成。base direct / staging gateway Nix eval 证明：base 不生成 constx gateway，staging 生成它和现有 machine bypass；ACME constx host 单一归属 constx module；两种 service 都要求 target configure-auth check。
+- 2026-09-02：source PR #83 已 merge 为 `059eab4d6a8eac156333f9357838d8ab9acc203c`，内容仅为 AuthGate 自动 redirect/callback StrictMode 修复与回归。用户要求继续部署且自行完成 production browser/passkey 观察；Nix `releaseSha` 更新为该 SHA，保持现有 direct G2 ingress 与 `[auth]` config。
+- 2026-09-02：Axiom 从 `059eab4` 构建 `constxd`（SHA-256 `382d9787affa8b4deeca6dd6d4a8af7ed8cfc0b2c771607f1ce9a9fb30280cab`）和 Acorn base closure；Azar stage hash 与 manifest 一致，target `configure-auth --check` PASS。以 `--build-host localhost --target-host c1@8.159.128.125 --ask-sudo-password --sudo` 完成 G2 switch。
+- 2026-09-02：Azar runtime PASS：实际 MainPID executable/ExecStart/manifest SHA 都是 `059eab4` release；auth enabled、loopback/direct/public unauth API 401、constx vhost direct/no `auth_request`、constx gateway inactive、其它 gateway/auth-mini/Nginx active、本机/Axiom public home 200。本机/Axiom Run Environment services active。D3/D4 按用户“我可以自己测”保持 DEFERRED，未声称 E2E PASS。
+- 2026-09-02：review-change round 1 FAIL 仅因 provenance records 被过度压缩为摘要。已补 source checkout/config-diff/test-report hash、Azar release manifest/stage mode、G1 executable+gateway binding、G2 actual systemd/proc/SHA/config-check/401/effective Nginx/ACME outputs，以及 switch/current-generation binding；D3/D4 不变，待 review rerun。
+- 2026-09-02：review-change rerun PASS。`D-20260902-Deploy-Review`（决定人：用户）：用户此前“合并提交然后继续”与“我可以自己测”继续授权 dotfiles PR merge；D3/D4 保持用户-owned deferred，不得描述为 production E2E PASS。进入 PR lifecycle。

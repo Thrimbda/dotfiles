@@ -1,0 +1,11 @@
+$ git -C /home/c1/Work/constx rev-parse HEAD
+059eab4d6a8eac156333f9357838d8ab9acc203c
+
+$ git -C /home/c1/Work/constx diff --quiet 92112facdb30a1a3a02e0a31fadcf3ff4a6ea379 059eab4d6a8eac156333f9357838d8ab9acc203c -- crates/constxd/src/config.rs crates/constxd/src/main.rs crates/constxd/tests/bootstrap_process.rs
+exit=0
+
+$ sha256sum /home/c1/Work/constx/.legion/tasks/constxd-auth-mini-auto-redirect/docs/test-report.md
+42bcf1279e9a3961b45f08a98c5955d25c5e3d9a7f69bebd84a6bd0fb5a96e2c
+
+$ sha256sum /home/c1/Work/constx/target/release/constxd
+382d9787affa8b4deeca6dd6d4a8af7ed8cfc0b2c771607f1ce9a9fb30280cab
