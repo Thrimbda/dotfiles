@@ -74,3 +74,9 @@
 - **non-goals**: 不改变 native ingress、Nginx、Auth Mini issuer/JWT、managed runtime config、Run Environment 协议或 D3/D4 的既有 deferred 归属。
 - **design summary**: 复用已审查的 G2 direct ingress 和既有 rollback release；这是同一拓扑下的 target-binary uplift，不引入新的设计分叉。
 - **claims**: R1（objective / now / routine / high / block-stage）：Azar 的活跃 `constxd` 进程可重算地绑定 PR #88 release binary；R2（objective / deferred / routine / critical / defer-by-contract）：真实用户 Auth Mini 登录与 Run Environment E2E 继续由既有 D3/D4 owner 验证，不在本次 patch deployment 冒充通过。
+
+## Release uplift：PR #89 Bash resolver
+
+- **goal**: 在相同 G2 原生 Auth Mini 拓扑上安装 `c643defd27aa0768ec39d917f172550f0f83b249`，消除 Run Environment 对 `/bin/bash` 的固定假设，并保留完整 Tool Call 错误链。
+- **scope**: 仅更新 release pin、Axiom build 与 Azar switch；不添加 Nix Bash/PATH 配置、不改 `rg` PATH 依赖、工作区绑定、ingress、issuer 或 D3/D4 的既有 deferred 归属。
+- **acceptance**: Azar 的 `constxd` 与 automatic Run Environment 进程均绑定同一 `c643def` binary/SHA-256；health 与 auth config check 通过；以 automatic runner 的真实 PATH/cwd 验证其 `/bin/sh` 规范目标为 Bash 且 `TOOL_OK` 成功。
