@@ -65,3 +65,12 @@
 4. verify-change
 5. review-change
 6. delivery and production rollout
+
+## Release uplift：PR #88 顶栏登出修复
+
+- **goal**: 将已运行 G2 原生 Auth Mini 拓扑的 Const X release 从 `059eab4d6a8eac156333f9357838d8ab9acc203c` 提升为 PR #88 merge commit `a3cb397751e0101d957494be43c6a94bed1e611b`，使顶栏登出不再覆盖搜索。
+- **acceptance**: Axiom 从该精确 source commit 的干净 worktree 构建 release；Azar 的 release manifest、systemd `ExecStart`、运行中 `/proc/<MainPID>/exe` 与 SHA-256 都绑定同一 binary；`constxd` health 与已启用的 Auth Mini config check 通过。
+- **scope**: 仅更新 `hosts/acorn/modules/constx.nix` 的 `releaseSha`、本 task 的 release evidence，以及 Axiom build / Azar switch。
+- **non-goals**: 不改变 native ingress、Nginx、Auth Mini issuer/JWT、managed runtime config、Run Environment 协议或 D3/D4 的既有 deferred 归属。
+- **design summary**: 复用已审查的 G2 direct ingress 和既有 rollback release；这是同一拓扑下的 target-binary uplift，不引入新的设计分叉。
+- **claims**: R1（objective / now / routine / high / block-stage）：Azar 的活跃 `constxd` 进程可重算地绑定 PR #88 release binary；R2（objective / deferred / routine / critical / defer-by-contract）：真实用户 Auth Mini 登录与 Run Environment E2E 继续由既有 D3/D4 owner 验证，不在本次 patch deployment 冒充通过。

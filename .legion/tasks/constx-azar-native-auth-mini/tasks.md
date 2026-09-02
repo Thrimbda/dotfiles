@@ -1,7 +1,7 @@
 # constx-azar-native-auth-mini 状态
 
 - Profile: Strict
-- 当前阶段: `delivery complete`（dotfiles PR #212 merged；D3/D4 user deferred）
+- 当前阶段: `release uplift`（PR #88 顶栏登出修复；D3/D4 user deferred）
 - Worktree: `.worktrees/constx-azar-native-auth-mini`
 - Branch: `codex/constx-azar-native-auth-mini`
 
@@ -21,3 +21,5 @@
 - [x] review-change rerun：PASS（source/Axiom/Azar/G1/G2 provenance records）
 - [x] delivery：PR #212 merged；Axiom build、Azar G2 rollout complete；D3/D4 user deferred
 - [x] release uplift：Axiom build `059eab4`、Azar direct G2 switch、无敏感 runtime checks
+- [ ] release uplift：更新 release pin 到 PR #88 merge commit `a3cb397`
+- [ ] release uplift：Axiom build、Azar G2 switch 与 runtime binary binding 验证
