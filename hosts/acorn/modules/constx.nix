@@ -36,7 +36,7 @@ in
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
 
-        path = [ pkgs.nodejs_22 ];
+        path = [ pkgs.nodejs_22 pkgs.ripgrep ];
         environment = {
           HOME = stateDir;
           XDG_CONFIG_HOME = "${stateDir}/config";
