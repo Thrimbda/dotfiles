@@ -1,7 +1,7 @@
 # constx-azar-native-auth-mini 状态
 
 - Profile: Strict
-- 当前阶段: `dotfiles PR lifecycle`（review-change rerun PASS；D3/D4 deferred）
+- 当前阶段: `delivery complete`（dotfiles PR #212 merged；D3/D4 user deferred）
 - Worktree: `.worktrees/constx-azar-native-auth-mini`
 - Branch: `codex/constx-azar-native-auth-mini`
 
@@ -19,5 +19,5 @@
 - [x] verify-change：Nix/build/runtime evidence（G1/G2 topology、source PR #83 release uplift、Azar binding）
 - [x] review-change round 1：FAIL（runtime provenance records compressed to summaries）
 - [x] review-change rerun：PASS（source/Axiom/Azar/G1/G2 provenance records）
-- [ ] delivery：PR、merge、Axiom build、Azar rollout
+- [x] delivery：PR #212 merged；Axiom build、Azar G2 rollout complete；D3/D4 user deferred
 - [x] release uplift：Axiom build `059eab4`、Azar direct G2 switch、无敏感 runtime checks
