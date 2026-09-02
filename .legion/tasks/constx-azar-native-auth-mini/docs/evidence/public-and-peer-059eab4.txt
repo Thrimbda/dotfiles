@@ -1,0 +1,6 @@
+local_public_home_http=200
+axiom_public_home_http=200
+axiom_public_unauth_api_http=401
+local_run_environment_launchd=running
+axiom_run_environment_user_service=active
+note=No pairing token, machine credential, tool result, browser session, or passkey data recorded.

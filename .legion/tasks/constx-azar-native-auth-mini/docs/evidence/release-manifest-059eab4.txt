@@ -1,0 +1,24 @@
+source_merge_sha=059eab4d6a8eac156333f9357838d8ab9acc203c
+source_pr=83
+source_evidence_mode=source-pr-83-plus-config-diff
+source_evidence_record=/home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/source-evidence.txt
+binary_sha256=382d9787affa8b4deeca6dd6d4a8af7ed8cfc0b2c771607f1ce9a9fb30280cab
+axiom_build_host=axiom
+azar_release_binary=/home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd
+azar_release_binary_canonical=/home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd
+system_toplevel=/nix/store/nfrffkzwz6grlwznc9dq2l05cszz2z40-nixos-system-acorn-26.05.7813.0dd31db7e6db
+built_at=2026-09-02T17:09:10+08:00
+
+source_evidence.source_task_test_report=.legion/tasks/constxd-auth-mini-auto-redirect/docs/test-report.md
+source_evidence.config_surface_base=92112facdb30a1a3a02e0a31fadcf3ff4a6ea379
+source_evidence.config_surface_diff=unchanged
+source_evidence.frontend_marker=Redirecting to Auth Mini
+source_evidence.legacy_continue_marker=absent
+
+$ sha256sum Azar staged binary
+382d9787affa8b4deeca6dd6d4a8af7ed8cfc0b2c771607f1ce9a9fb30280cab  /home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd
+
+$ stat -c '%a %U:%G %n' Azar release files
+755 c1:users /home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/constxd
+600 c1:users /home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/release-manifest.env
+600 c1:users /home/c1/.local/share/constx/releases/059eab4d6a8eac156333f9357838d8ab9acc203c/source-evidence.txt

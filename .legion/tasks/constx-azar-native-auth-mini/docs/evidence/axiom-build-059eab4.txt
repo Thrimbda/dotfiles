@@ -1,0 +1,12 @@
+source_merge_sha=059eab4d6a8eac156333f9357838d8ab9acc203c
+source_pr=83
+build_host=axiom
+command=cargo build --release --locked -p constxd
+exit=0
+binary_sha256=382d9787affa8b4deeca6dd6d4a8af7ed8cfc0b2c771607f1ce9a9fb30280cab
+frontend_marker=Redirecting to Auth Mini
+legacy_continue_marker=absent
+command=nixos-rebuild build --flake .#acorn -L
+exit=0
+system_toplevel=/nix/store/nfrffkzwz6grlwznc9dq2l05cszz2z40-nixos-system-acorn-26.05.7813.0dd31db7e6db
+config_surface_diff_from_92112fac=unchanged (config.rs, main.rs, bootstrap_process.rs)

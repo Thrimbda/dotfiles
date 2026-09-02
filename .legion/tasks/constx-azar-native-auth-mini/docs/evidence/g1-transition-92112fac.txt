@@ -1,0 +1,21 @@
+state=G1
+recorded_at=2026-09-02T15:45:30+08:00
+system_generation=/nix/store/4pnkr7z5rmg8q93hx2izl00f6mas70gw-nixos-system-acorn-26.05.7813.0dd31db7e6db
+source_merge_sha=92112facdb30a1a3a02e0a31fadcf3ff4a6ea379
+effective_execstart={ path=/home/c1/.local/share/constx/releases/92112facdb30a1a3a02e0a31fadcf3ff4a6ea379/constxd ; argv[]=/home/c1/.local/share/constx/releases/92112facdb30a1a3a02e0a31fadcf3ff4a6ea379/constxd serve ; ignore_errors=no ; start_time=[Wed 2026-09-02 15:43:46 CST] ; stop_time=[n/a] ; pid=1312087 ; code=(null) ; status=0/0 }
+main_pid=1312087
+canonical_executable=/home/c1/.local/share/constx/releases/92112facdb30a1a3a02e0a31fadcf3ff4a6ea379/constxd
+executable_sha256=9efb95a7addc4af91d7677de01cd22b3c829401b300b8b81c07cbf8493024610
+manifest_binary_sha256=9efb95a7addc4af91d7677de01cd22b3c829401b300b8b81c07cbf8493024610
+auth_config_check=pass
+loopback_unauth_http=401
+gateway_unit=active
+gateway_unauth_http=302
+nginx_config=/nix/store/gkc871hhisqfq3xza1yzlb0qzk3shdbj-nginx.conf
+nginx_constx_auth_request=present
+
+$ rg -n -C 2 'server_name constx.0xc1.wang|auth_request /_auth' /nix/store/gkc871hhisqfq3xza1yzlb0qzk3shdbj-nginx.conf
+142: server_name constx.0xc1.wang ;
+147: location / {
+148: proxy_pass http://127.0.0.1:3210;
+149: auth_request /_auth;
