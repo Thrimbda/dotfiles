@@ -45,4 +45,13 @@
 
     theme.active = null;
   };
+
+  config = {
+    specialisation."constx-native-auth-staging" = {
+      inheritParentConfig = true;
+      configuration = {
+        modules.services.constx.nativeAuthIngress = "gateway";
+      };
+    };
+  };
 }

@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 with lib;
 
@@ -9,6 +9,41 @@ let
   authHost = "auth.0xc1.wang";
   authPort = 7777;
   authUrl = "http://127.0.0.1:${toString authPort}";
+
+  constxGatewayEnabled =
+    config.modules.services.constx.nativeAuthIngress == "gateway";
+
+  constxGatewayInstance = let
+    streamingProxy = ''
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_request_buffering off;
+      proxy_buffering off;
+      proxy_cache off;
+      gzip off;
+      proxy_connect_timeout 10s;
+      proxy_send_timeout 24h;
+      proxy_read_timeout 24h;
+      proxy_intercept_errors off;
+      proxy_next_upstream off;
+      proxy_redirect off;
+    '';
+  in {
+    hostName = "constx.0xc1.wang";
+    port = 7782;
+    dbName = "constx";
+    protectedUpstream = "http://127.0.0.1:3210";
+    runEnvironmentUpstream = "http://127.0.0.1:3210";
+    proxyWebsockets = false;
+    vhostExtraConfig = ''
+      client_max_body_size 22m;
+    '';
+    protectedExtraConfig = streamingProxy;
+    runEnvironmentPeerExtraConfig = streamingProxy;
+  };
 
   gatewayInstances = {
     auth-gateway = {
@@ -25,37 +60,8 @@ let
       protectedUpstream = "http://127.0.0.1:7500";
       proxyWebsockets = false;
     };
-    constx = let
-      streamingProxy = ''
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_request_buffering off;
-        proxy_buffering off;
-        proxy_cache off;
-        gzip off;
-        proxy_connect_timeout 10s;
-        proxy_send_timeout 24h;
-        proxy_read_timeout 24h;
-        proxy_intercept_errors off;
-        proxy_next_upstream off;
-        proxy_redirect off;
-      '';
-    in {
-      hostName = "constx.0xc1.wang";
-      port = 7782;
-      dbName = "constx";
-      protectedUpstream = "http://127.0.0.1:3210";
-      runEnvironmentUpstream = "http://127.0.0.1:3210";
-      proxyWebsockets = false;
-      vhostExtraConfig = ''
-        client_max_body_size 22m;
-      '';
-      protectedExtraConfig = streamingProxy;
-      runEnvironmentPeerExtraConfig = streamingProxy;
-    };
+  } // optionalAttrs constxGatewayEnabled {
+    constx = constxGatewayInstance;
   };
 
   gatewayUrl = instance: "http://127.0.0.1:${toString instance.port}";
@@ -211,7 +217,7 @@ in
     "status-axiom.0xc1.wang"
     "opencode-axiom.0xc1.wang"
     "pi-axiom.0xc1.wang"
-  ] ++ mapAttrsToList (_: instance: instance.hostName) gatewayInstances;
+  ] ++ mapAttrsToList (_: instance: instance.hostName) (removeAttrs gatewayInstances [ "constx" ]);
 
   age.secrets.auth-mini-resend-api-key = {
     owner = authUser;
