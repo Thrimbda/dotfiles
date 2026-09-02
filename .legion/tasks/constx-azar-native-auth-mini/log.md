@@ -11,3 +11,4 @@
 - 2026-09-02：review-rfc round 4 FAIL。RFC 现新增机械的 final source blob compare-or-rerun 记录，以及 G1 active ExecStart/MainPID/canonical executable/SHA-256 绑定记录；任何无法比较、重跑失败或运行时路径/hash 不一致都停止在 G0。
 - 2026-09-02：review-rfc round 5 PASS。final source evidence 与 G1 executable provenance 的 compare-or-rerun/actual-process binding 已通过独立设计审查；进入 engineer。
 - 2026-09-02：engineer 完成。base direct / staging gateway Nix eval 证明：base 不生成 constx gateway，staging 生成它和现有 machine bypass；ACME constx host 单一归属 constx module；两种 service 都要求 target configure-auth check。
+- 2026-09-02：source PR #83 已 merge 为 `059eab4d6a8eac156333f9357838d8ab9acc203c`，内容仅为 AuthGate 自动 redirect/callback StrictMode 修复与回归。用户要求继续部署且自行完成 production browser/passkey 观察；Nix `releaseSha` 更新为该 SHA，保持现有 direct G2 ingress 与 `[auth]` config。

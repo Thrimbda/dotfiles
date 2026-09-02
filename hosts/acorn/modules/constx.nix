@@ -3,7 +3,7 @@
 with lib;
 
 let
-  releaseSha = "92112facdb30a1a3a02e0a31fadcf3ff4a6ea379";
+  releaseSha = "059eab4d6a8eac156333f9357838d8ab9acc203c";
   serviceUser = "c1";
   serviceGroup = "users";
   stateDir = "/var/lib/constx";

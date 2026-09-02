@@ -1,7 +1,7 @@
 # constx-azar-native-auth-mini 状态
 
 - Profile: Strict
-- 当前阶段: `verify-change`
+- 当前阶段: `verify-change`（G2 release uplift to source PR #83）
 - Worktree: `.worktrees/constx-azar-native-auth-mini`
 - Branch: `codex/constx-azar-native-auth-mini`
 
@@ -19,3 +19,4 @@
 - [ ] verify-change：Nix/build/runtime evidence
 - [ ] review-change：独立就绪度审查
 - [ ] delivery：PR、merge、Axiom build、Azar rollout
+- [ ] release uplift：Axiom build `059eab4`、Azar direct G2 switch、无敏感 runtime checks

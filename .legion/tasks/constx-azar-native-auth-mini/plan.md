@@ -16,6 +16,7 @@
 - [ ] `auth-mini-gateway-constx` 不再由 Nix 配置生成；其他 gateway 实例及 Auth Mini issuer 不受影响。
 - [ ] 未认证用户 API 被 constxd 拒绝；实际 Auth Mini 登录可恢复 UI/API；Run Environment 的 pair/connect/heartbeat/tool-result 仍以机器 token 可用。
 - [ ] 部署在 Axiom 构建、Azar 安装/activate；G0/G1/G2 staging 和回滚到 gateway 的每一个状态均有可执行 gate。
+- [ ] 在已运行 G2 的同一认证拓扑上，将 merged source PR #83 的 `059eab4d6a8eac156333f9357838d8ab9acc203c` 作为 release uplift 安装；只换 target binary/release pin，不改变 ingress 或 Auth Mini runtime config。
 
 ## 约束
 
