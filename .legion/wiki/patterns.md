@@ -14,6 +14,24 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
+## Host-Scoped NVIDIA Production Driver Pinning
+
+When a host needs a newer official NVIDIA production driver than the pinned
+NixOS package set provides, keep the override host-scoped. Import a focused
+host module that sets `hardware.nvidia.package` with
+`lib.mkForce (config.boot.kernelPackages.nvidiaPackages.mkDriver { ... })`;
+this binds the driver module to the configured kernel package set and prevents
+an ABI mismatch from an unrelated package set.
+
+Take the version and all source hashes from the Nixpkgs production definition,
+keep `hardware.nvidia.open` and the existing Wayland integration unchanged
+unless separately scoped, and do not change a shared NVIDIA profile when only
+one host needs the newer driver. Validate the flake-selected package version,
+build the host closure, switch and reboot the target, then prove the loaded
+version with `nvidia-smi`, the kernel binding with `lspci -nnk`, the active
+generation through `/run/current-system`, and the graphical session with its
+compositor process.
+
 ## Mutable GitHub Release Asset Pinning
 
 When an upstream publishes only a mutable `latest` release tag, do not merely refresh a fixed-output hash against its browser download URL. First query the official GitHub release asset API, record the concrete asset ID, name, upload state, and SHA-256 digest, then convert the digest to SRI and compare it with the failed or newly fetched Nix hash.
