@@ -3,7 +3,7 @@
 ## Metadata
 
 - `task-id`: `axiom-nvidia-59591-production`
-- `status`: `active`
+- `status`: `completed`
 - `risk`: `medium`
 - `schema-version`: `current`
 - `historical`: `false`
@@ -19,8 +19,8 @@
   selection and the system-wide Nixpkgs baseline remains unchanged.
 - Axiom built, switched, rebooted, and passed driver-version, kernel-binding,
   active-generation, system-health, and Hyprland-session checks.
-- The implementation is deployed; its Git/PR lifecycle remains active until
-  the delivery branch is merged and cleaned up.
+- Implementation PR [#220](https://github.com/Thrimbda/dotfiles/pull/220)
+  merged as `9d090ed0e05795883e6ad956b747d8275796b71d`.
 
 ## Reusable Decisions
 
