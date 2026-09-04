@@ -13,6 +13,7 @@
     ./modules/caelestia.nix
     ./modules/cloudflare.nix
     ./modules/hyprland-hotplug-guard.nix
+    ./modules/nvidia-driver.nix
     ./modules/workstation.nix
   ];
 
