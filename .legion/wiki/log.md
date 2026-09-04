@@ -323,3 +323,4 @@
 - Marked `axiom-lock-dpms-plugin-fix` completed after implementation PR #197 merged with its deployed-session, review, walkthrough, and wiki evidence.
 - Added the completed `decommission-oneex-portfolio-account` summary after PR #203 merged and its Axiom-only generation/runtime proof passed; retired stale active-adapter truth and recorded the verified host-import/agenix-secret pattern.
 - Added the active `axiom-nvidia-59591-production` summary and host-scoped NVIDIA production-driver pinning pattern after Axiom deployed and verified 595.99.02.
+- Marked `axiom-nvidia-59591-production` completed after implementation PR #220 merged.

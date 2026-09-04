@@ -9,10 +9,11 @@
 - Added an Axiom-only NVIDIA 595.99.02 package override while leaving the shared profile unchanged.
 - Built the full Axiom closure successfully with nixos-rebuild build; output is /nix/store/li2hf423pb4fgb3x2h7cj70hwla5aadf-nixos-system-axiom-26.05.7813.0dd31db7e6db.
 - User activated the configuration and rebooted Axiom; runtime checks confirm driver 595.99.02, NVIDIA kernel binding, active target generation, system health, and a running Hyprland session.
+- Implementation PR #220 merged as `9d090ed0e05795883e6ad956b747d8275796b71d`.
 
 ### 🟡 进行中
 
-- Commit, push, open the PR, and follow its required checks and review.
+(暂无)
 
 ### ⚠️ 阻塞/待定
 
@@ -46,12 +47,11 @@
 
 **下次继续从这里开始：**
 
-1. Commit, push, create the PR, and follow required checks.
-2. After merge, clean up the worktree and refresh the main workspace baseline.
+1. No further implementation work is required.
 
 **注意事项：**
 
-- The user completed the privileged switch and reboot; the target generation is running.
+- The user completed the privileged switch and reboot; the target generation is running and PR #220 is merged.
 ---
 
 *最后更新: 2026-09-04 15:04 by Legion CLI*
