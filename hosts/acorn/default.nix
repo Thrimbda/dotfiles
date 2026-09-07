@@ -14,6 +14,7 @@
     ./modules/rustdesk.nix
     ./modules/traffic-accounting.nix
     ./modules/vaultwarden.nix
+    ./modules/we-bot.nix
   ];
 
   modules = {
