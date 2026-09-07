@@ -136,6 +136,7 @@
 - [Axiom SSH Autossh and Opencode Cloudflared Fix](tasks/axiom-ssh-opencode-cloudflared-fix.md)
 - [Charlie Autossh C1 User](tasks/charlie-autossh-c1-user.md)
 - [Charlie Doom Emacs PATH](tasks/doom-path-charlie.md)
+- [Doom Org/Norang Minimal](tasks/doom-org-norang-minimal.md)
 - [Darwin Playwright Nix-LD Guard](tasks/darwin-playwright-nix-ld-guard.md)
 - [Clash Verge NixOS Service Tun](tasks/clash-verge-nixos-service-tun.md)
 - [Cloudflare API Token Age Secret](tasks/cloudflare-api-token-age-secret.md)
