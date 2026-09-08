@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 let
-  releaseSha = "61cf34f1ef1d547c91bca804b9c29bb1f9c47991";
+  releaseSha = "31d4517a24ab4ed218609ea43be12a057c7e859b";
   releaseBinary = "/home/c1/.local/share/we-bot/releases/${releaseSha}/we-bot";
   credentialDir = "/home/c1/.config/we-bot";
   hostName = "notify.0xc1.space";
@@ -19,19 +19,19 @@ in
       WE_BOT_ALLOWED_HOSTS = "${hostName},localhost,127.0.0.1";
       WE_BOT_API_TOKEN_FILE = "/run/credentials/we-bot.service/api-token";
       WE_BOT_BIND_ADDR = "127.0.0.1:${toString port}";
-      WXPUSHER_SPT_FILE = "/run/credentials/we-bot.service/wxpusher-spt";
+      WE_BOT_STATE_PATH = "/var/lib/we-bot/state.json";
     };
 
     serviceConfig = {
       Type = "simple";
       User = "c1";
       Group = "users";
+      WorkingDirectory = "/var/lib/we-bot";
+      StateDirectory = "we-bot";
+      StateDirectoryMode = "0700";
       ExecStartPre = "${pkgs.coreutils}/bin/test -x ${releaseBinary}";
       ExecStart = releaseBinary;
-      LoadCredential = [
-        "api-token:${credentialDir}/api-token"
-        "wxpusher-spt:${credentialDir}/wxpusher-spt"
-      ];
+      LoadCredential = [ "api-token:${credentialDir}/api-token" ];
       Restart = "on-failure";
       RestartSec = "5s";
       UMask = "0077";
