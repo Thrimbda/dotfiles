@@ -24,7 +24,8 @@ in
 
     serviceConfig = {
       Type = "simple";
-      DynamicUser = true;
+      User = "c1";
+      Group = "users";
       ExecStartPre = "${pkgs.coreutils}/bin/test -x ${releaseBinary}";
       ExecStart = releaseBinary;
       LoadCredential = [
@@ -47,8 +48,8 @@ in
   };
 
   services.nginx.virtualHosts.${hostName} = {
-    enableACME = true;
-    forceSSL = true;
+    onlySSL = true;
+    useACMEHost = hostName;
     locations."/" = {
       proxyPass = "http://127.0.0.1:${toString port}";
       recommendedProxySettings = false;
@@ -71,4 +72,6 @@ in
       '';
     };
   };
+
+  modules.services.nginx.cloudflareDnsAcme.hosts = [ hostName ];
 }
