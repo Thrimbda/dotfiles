@@ -1,10 +1,10 @@
 { pkgs, ... }:
 
 let
-  releaseSha = "31d4517a24ab4ed218609ea43be12a057c7e859b";
+  releaseSha = "20260909T073055Z-31d4517-2752a7527539";
   releaseBinary = "/home/c1/.local/share/we-bot/releases/${releaseSha}/we-bot";
   credentialDir = "/home/c1/.config/we-bot";
-  hostName = "notify.0xc1.space";
+  hostName = "notify.0xc1.wang";
   port = 3099;
 in
 {
