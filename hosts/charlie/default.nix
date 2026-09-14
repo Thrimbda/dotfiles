@@ -54,6 +54,8 @@ with lib;
   config = { config, pkgs, ... }: {
     imports = [ ./modules/screen-sharing.nix ];
 
+    home.file.".codex/codex-app/config.json".source = ../../config/codex/charlie.json;
+
     users.users.c1 = {
       name = "c1";
       home = "/Users/c1";
