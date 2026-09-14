@@ -13,6 +13,7 @@
     ./modules/frp-tls.nix
     ./modules/platform.nix
     ./modules/rustdesk.nix
+    ./modules/sunshine-relay.nix
     ./modules/traffic-accounting.nix
     ./modules/vaultwarden.nix
     ./modules/we-bot.nix

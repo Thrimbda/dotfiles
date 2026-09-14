@@ -1,0 +1,17 @@
+diff --git a/modules/IdleMonitors.qml b/modules/IdleMonitors.qml
+--- a/modules/IdleMonitors.qml
++++ b/modules/IdleMonitors.qml
+@@ -72,6 +72,13 @@ Scope {
+             lock.lock.locked = true;
+         else if (action === "unlock")
+             lock.lock.locked = false;
++        else if (action === "dpms off" && Hypr.usingLua) {
++            // The headless streaming display must render even while locked.
++            for (const monitor of Hypr.monitors.values) {
++                if (monitor.name !== "SUNSHINE")
++                    Hypr.dispatch(`hl.dsp.dpms({ action = "disable", monitor = "${monitor.name}" })`);
++            }
++        }
+         else if (typeof action === "string")
+             Hypr.dispatch(Hypr.usingLua && ["dpms off", "dpms on"].includes(action) ? `hl.dsp.dpms({ action = "${action === "dpms off" ? "disable" : "enable"}" })` : action);
+         else if (!SessionManager.exec(action))

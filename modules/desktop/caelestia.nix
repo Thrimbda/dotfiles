@@ -57,7 +57,7 @@ let cfg = config.modules.desktop.caelestia;
           patches = (old.patches or []) ++ [
             ./caelestia-bluetooth-primary.patch
             caelestiaLockDpmsShellPatch
-          ];
+          ] ++ cfg.extraShellPatches;
           buildInputs = builtins.map (input:
             if builtins.toString input == builtins.toString upstreamCaelestiaPlugin
             then patchedCaelestiaPlugin
@@ -475,6 +475,7 @@ in {
   options.modules.desktop.caelestia = with types; {
     enable = mkBoolOpt false;
     package = mkOpt package defaultShellPackage;
+    extraShellPatches = mkOpt (listOf path) [];
     cliPackage = mkOpt package defaultCliPackage;
     settings = mkOpt attrs {};
     cli.settings = mkOpt attrs {};
