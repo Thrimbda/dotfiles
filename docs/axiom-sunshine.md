@@ -62,3 +62,5 @@ ssh azar 'systemctl status frps-sunshine'
 - RustDesk、原 FRP 和 Hyprland 会话均保持运行。音频通道初始化成功，但未做听感测试；物理屏幕重新接入、整机重启和长时间高动态画面尚未实测。
 
 参考：[Sunshine 配置](https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2configuration.html)、[Moonlight 设置](https://github.com/moonlight-stream/moonlight-docs/wiki/Setup-Guide)、[FRP QUIC](https://gofrp.org/en/docs/features/common/network/network/)。
+
+2026-09-15 的实际公网流量、每小时用量和高分辨率规划见[网络采样报告](sunshine-network.md)。
