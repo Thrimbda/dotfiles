@@ -1,0 +1,62 @@
+{
+  "sample_start": "2026-09-15T00:06:34.530741+08:00",
+  "sample_end": "2026-09-15T00:09:36.293906+08:00",
+  "resolution": "1920x1080",
+  "fps": 60,
+  "configured_bitrate_kbps": 20000,
+  "codec": "HEVC",
+  "interval_seconds": 5,
+  "measurement_layer": "IPv4 packet bytes, including IP/transport headers; no payload capture",
+  "flows": {
+    "axiom.quic_out": {
+      "duration_seconds": 180.149,
+      "bytes": 190287860,
+      "average_mbps": 8.4502,
+      "p95_5s_mbps": 8.5209,
+      "peak_5s_mbps": 8.5623,
+      "projected_GB_per_hour": 3.8026
+    },
+    "axiom.quic_in": {
+      "duration_seconds": 180.149,
+      "bytes": 2864040,
+      "average_mbps": 0.1272,
+      "p95_5s_mbps": 0.1364,
+      "peak_5s_mbps": 0.1365,
+      "projected_GB_per_hour": 0.0572
+    },
+    "acorn.client_out": {
+      "duration_seconds": 181.305,
+      "bytes": 182102782,
+      "average_mbps": 8.0352,
+      "p95_5s_mbps": 8.098,
+      "peak_5s_mbps": 8.1322,
+      "projected_GB_per_hour": 3.6158
+    },
+    "acorn.client_in": {
+      "duration_seconds": 181.305,
+      "bytes": 281286,
+      "average_mbps": 0.0124,
+      "p95_5s_mbps": 0.0204,
+      "peak_5s_mbps": 0.0209,
+      "projected_GB_per_hour": 0.0056
+    },
+    "acorn.quic_out": {
+      "duration_seconds": 181.305,
+      "bytes": 2880951,
+      "average_mbps": 0.1271,
+      "p95_5s_mbps": 0.1363,
+      "peak_5s_mbps": 0.1372,
+      "projected_GB_per_hour": 0.0572
+    },
+    "acorn.quic_in": {
+      "duration_seconds": 181.305,
+      "bytes": 191519760,
+      "average_mbps": 8.4507,
+      "p95_5s_mbps": 8.5301,
+      "peak_5s_mbps": 8.5527,
+      "projected_GB_per_hour": 3.8028
+    }
+  },
+  "forward_relay_overhead_percent": 5.171,
+  "acorn_total_egress_GB_per_hour": 3.673
+}

@@ -8,6 +8,7 @@
   imports = [
     ./modules/acorn.nix
     ./modules/rustdesk.nix
+    ./modules/sunshine.nix
     ./modules/qwen.nix
     ./modules/autossh.nix
     ./modules/caelestia.nix
