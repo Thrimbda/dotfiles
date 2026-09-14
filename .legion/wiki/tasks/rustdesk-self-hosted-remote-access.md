@@ -10,6 +10,10 @@
 - `supersedes`: `(none)`
 - `superseded-by`: `(none)`
 
+## Current scope update — 2026-09-14
+
+Charlie has migrated to Apple Screen Sharing over Acorn FRP and its managed RustDesk installation is retired. The Charlie-specific provisioning details below describe the earlier rollout. Axiom and Acorn still use the RustDesk configuration described here. See [current Mac access and rollback](../../../docs/mac-screen-sharing.md).
+
 ## Outcome Summary
 
 Acorn runs the self-hosted RustDesk 1.1.14 signal/relay services, and Axiom/Charlie use pinned RustDesk 1.4.9 clients. Acorn's task-owned source patch makes `ALWAYS_USE_RELAY=Y` override the upstream same-intranet `FetchLocalAddr` shortcut, so same-public-IP sessions use hbbr. Charlie v10 provisions the permanent password through the correct GUI launchd domain. Runtime verification passed for relay pairing,画面、鼠标、键盘、correct/wrong password、manual finalizer和fast-skip。

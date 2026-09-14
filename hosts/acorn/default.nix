@@ -10,6 +10,7 @@
     ./modules/constx.nix
     ./modules/cybion.nix
     ./modules/ingress.nix
+    ./modules/frp-tls.nix
     ./modules/platform.nix
     ./modules/rustdesk.nix
     ./modules/traffic-accounting.nix

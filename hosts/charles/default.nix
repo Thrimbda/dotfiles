@@ -49,6 +49,7 @@ with lib;
 
   ## Local configuration
   config = { pkgs, ... }: {
+    imports = [ ./modules/screen-sharing.nix ];
     users.users.c1 = {
       name = "c1";
       home = "/Users/c1";
