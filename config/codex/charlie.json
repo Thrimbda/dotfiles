@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "remoteConnections": [
+    {
+      "sshAlias": "axiom-tunnel",
+      "projects": [
+        {
+          "remotePath": "/home/c1/dotfiles",
+          "label": "dotfiles · Axiom"
+        }
+      ]
+    }
+  ]
+}

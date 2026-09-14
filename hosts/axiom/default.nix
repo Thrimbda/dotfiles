@@ -12,6 +12,7 @@
     ./modules/autossh.nix
     ./modules/caelestia.nix
     ./modules/cloudflare.nix
+    ./modules/codex.nix
     ./modules/hyprland-hotplug-guard.nix
     ./modules/nvidia-driver.nix
     ./modules/workstation.nix
