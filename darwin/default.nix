@@ -40,6 +40,7 @@ in {
     ../modules/hey.nix
     ../modules/agenix.nix
     ../modules/services/cloudflared.nix
+    ../modules/services/frp.nix
 
     # Shell
     ../modules/shell/zsh.nix

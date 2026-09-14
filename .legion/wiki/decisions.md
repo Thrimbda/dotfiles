@@ -285,3 +285,7 @@ Axiom's default Qwen 3.8 27B profile is RVN `Q4_K_M` MTP with native 262144-toke
 `qwen-model` only accepts fixed Q4 and Q6 targets. Q6 is the high-precision 131072-token/Q4 cache profile and uses `--n-gpu-layers all`; Q5 is no longer a runtime target or local model artifact.
 
 The current RVN chat template accepts `xhigh`, `medium`, and `low` reasoning effort. `minimal` is not a valid value and returns a server error.
+
+## Charles to Charlie Screen Sharing
+
+As of 2026-09-14, Charles accesses Charlie with Apple's built-in Screen Sharing through a private FRP STCP channel on Acorn. Charles uses a user LaunchAgent and loopback port 15900; Charlie uses a system LaunchDaemon and its local Screen Sharing service on 5900, restricted to c1. Keep the existing SSH reverse tunnel independent. Charlie's managed RustDesk installation has been retired; Axiom's RustDesk client and Acorn's shared RustDesk service remain in use. TCP standard mode is verified; high-performance UDP mode is not implied. See [configuration, deployment and rollback](../../docs/mac-screen-sharing.md).

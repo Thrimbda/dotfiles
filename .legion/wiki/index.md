@@ -10,6 +10,7 @@
 - [Decisions](decisions.md)
 - [Patterns](patterns.md)
 - [Maintenance](maintenance.md)
+- [Charles to Charlie Screen Sharing](../../docs/mac-screen-sharing.md)
 
 ## Tasks
 

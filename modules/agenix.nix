@@ -60,7 +60,8 @@ in {
       secrets = foldl (a: b: a // b) {}
         (map (dir: mapAttrs'
           (n: v: nameValuePair (removeSuffix ".age" n) {
-            file = "${dir}/${n}";
+            # Keep ciphertext in the deployment closure, including launchd-only builds.
+            file = /. + "${dir}/${n}";
             owner = mkDefault config.user.name;
           })
           (import "${dir}/secrets.nix"))
