@@ -1,0 +1,122 @@
+captured_at=2026-09-07T09:50:16Z
+scope=pre-delivery git-state and candidate audit; no secret contents read
+[candidate-status]
+# branch.oid 68ed64adc1f7ca95851536b0f786fb32a448b37b
+# branch.head legion/dotfiles-reconcile-git-state-20260907
+# branch.upstream origin/master
+# branch.ab +0 -1
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/docs/pr-body.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/docs/report-walkthrough.html
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/docs/report-walkthrough.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/docs/review-change.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/docs/rfc.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/docs/test-report.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/log.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/plan.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/doom-org-norang-minimal/tasks.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/dotfiles-reconcile-git-state-20260907/docs/research.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/dotfiles-reconcile-git-state-20260907/docs/review-rfc.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/dotfiles-reconcile-git-state-20260907/docs/rfc.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/dotfiles-reconcile-git-state-20260907/log.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/dotfiles-reconcile-git-state-20260907/plan.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/tasks/dotfiles-reconcile-git-state-20260907/tasks.md
+1 .M N... 100644 100644 100644 6271db3a65f1bd4d0f8f05bc4bba180b293917a2 6271db3a65f1bd4d0f8f05bc4bba180b293917a2 .legion/wiki/index.md
+1 .M N... 100644 100644 100644 75d72d28d45a557dbc3953d6b66d19996d6b9090 75d72d28d45a557dbc3953d6b66d19996d6b9090 .legion/wiki/log.md
+1 .M N... 100644 100644 100644 2176e108101c9e9bb04f76cef9cc017c2879df24 2176e108101c9e9bb04f76cef9cc017c2879df24 .legion/wiki/maintenance.md
+1 .M N... 100644 100644 100644 49148c839eeafa7ba768ca38e36b08f7244f098c 49148c839eeafa7ba768ca38e36b08f7244f098c .legion/wiki/patterns.md
+1 .A N... 000000 000000 100644 0000000000000000000000000000000000000000 0000000000000000000000000000000000000000 .legion/wiki/tasks/doom-org-norang-minimal.md
+[candidate-diff-check]
+exit=0
+[candidate-files]
+A	.legion/tasks/doom-org-norang-minimal/docs/pr-body.md
+A	.legion/tasks/doom-org-norang-minimal/docs/report-walkthrough.html
+A	.legion/tasks/doom-org-norang-minimal/docs/report-walkthrough.md
+A	.legion/tasks/doom-org-norang-minimal/docs/review-change.md
+A	.legion/tasks/doom-org-norang-minimal/docs/rfc.md
+A	.legion/tasks/doom-org-norang-minimal/docs/test-report.md
+A	.legion/tasks/doom-org-norang-minimal/log.md
+A	.legion/tasks/doom-org-norang-minimal/plan.md
+A	.legion/tasks/doom-org-norang-minimal/tasks.md
+A	.legion/tasks/dotfiles-reconcile-git-state-20260907/docs/research.md
+A	.legion/tasks/dotfiles-reconcile-git-state-20260907/docs/review-rfc.md
+A	.legion/tasks/dotfiles-reconcile-git-state-20260907/docs/rfc.md
+A	.legion/tasks/dotfiles-reconcile-git-state-20260907/log.md
+A	.legion/tasks/dotfiles-reconcile-git-state-20260907/plan.md
+A	.legion/tasks/dotfiles-reconcile-git-state-20260907/tasks.md
+M	.legion/wiki/index.md
+M	.legion/wiki/log.md
+M	.legion/wiki/maintenance.md
+M	.legion/wiki/patterns.md
+A	.legion/wiki/tasks/doom-org-norang-minimal.md
+[doom-copy]
+source_count=9 target_count=9
+.legion/tasks/doom-org-norang-minimal/docs/pr-body.md exact_equal=yes sha256=4240ba3036f420b86d169552c54010327f4ea2cc75f2e4db1b2ffb180cadc21d
+.legion/tasks/doom-org-norang-minimal/docs/report-walkthrough.html exact_equal=yes sha256=ad6dd64b47762910662858c9ec4462d63e0f62ae93446274b9bb33e062db55e1
+.legion/tasks/doom-org-norang-minimal/docs/report-walkthrough.md exact_equal=yes sha256=9e2603769a2110fe4beef0fd671cbbad37fab9c6c599629d80098f710ef046be
+.legion/tasks/doom-org-norang-minimal/docs/review-change.md exact_equal=yes sha256=0b3f4ff704a5602c59da5ec173a4520a237641b0932b3d7726cb94398f3f6b71
+.legion/tasks/doom-org-norang-minimal/docs/rfc.md exact_equal=yes sha256=04ab38c9a42dc40b9deab774f6237dd048876d4be7b5ca278ab7e6debd584a27
+.legion/tasks/doom-org-norang-minimal/docs/test-report.md exact_equal=yes sha256=cf57dcfa7d03bfb1816ee609e12a1c79fdb9e8058ae67661d77717198cce2f68
+.legion/tasks/doom-org-norang-minimal/log.md exact_equal=yes sha256=be7997b2fa54dc273d22aa200ab677309a19930fbadd8720aaad0c99025d3a93
+.legion/tasks/doom-org-norang-minimal/plan.md exact_equal=yes sha256=801d97079618317435f30c09b6f2471fec15b079d43ba05f6587a7a5258597a3
+.legion/tasks/doom-org-norang-minimal/tasks.md normalized_equal=yes source_sha256=926565033300cdb27b944ac31ffc9b69c1855714459f1991d3b48a4d73277d91 target_sha256=f0e9a4f3dc59cfc7d3f0653c6676978a2b1656c2909e1ca701d159fa2191e20c
+.legion/wiki/tasks/doom-org-norang-minimal.md exact_equal=yes sha256=bbd657e8e1d66740d1d0b50fe3b3133ed3a852483af2b35671d7d57c6b73b05a
+doom_copy_exit=0
+[doom-pr]
+{"mergeCommit":{"oid":"507d5924f966a8da3e8736cf87f5d630da7cd86f"},"mergedAt":"2026-07-09T11:27:28Z","number":1,"state":"MERGED","url":"https://github.com/Thrimbda/doom-c1/pull/1"}
+merge_ancestor_of_current_origin_master=yes exit=0
+[wiki-shape]
+.legion/wiki/tasks/doom-org-norang-minimal.md exists_nonempty=yes
+.legion/tasks/doom-org-norang-minimal/docs/report-walkthrough.html exists_nonempty=yes
+index_link_count=1
+maintenance_heading_count=1
+archive_pattern_count=1
+[secret-negative-controls]
+candidate_tracks_acorn_password=no exit=1
+high_confidence_secret_markers=none
+[merged-pr-equivalence]
+pr=210 state=MERGED head=3f1259648d8d63be173b44763612cbf6526c6657 merge=babbe9d8b69eaafd6289349253aff86d67e81260 patch_equal=yes merge_in_origin_master=yes patch_id=657e12c966fbd1fd77804f1844969fa85b42944b
+pr=211 state=MERGED head=c20b87f67a326fb02c480f0a074bc5f665738182 merge=4a1e1ece188356ff15256d43389fa635bf084002 patch_equal=yes merge_in_origin_master=yes patch_id=031306125d6c50ca27fb7622f040fae60cb98c09
+pr=216 state=MERGED head=db063855cf93fab3e8ed4930236bf933e446fdf2 merge=392ddf01992316af4d72ad2f4560893a0c459341 patch_equal=yes merge_in_origin_master=yes patch_id=a519b1936f863a6b1cd946a02e28335f5b1d7648
+pr=139 state=MERGED head=57e8dc91e5f57a2d39091ee3c26d0f35e4c25b05 merge=0026eb9922c87e9624ed7352b09b58cddb1a45a3 patch_equal=yes merge_in_origin_master=yes patch_id=3613f075884439cb7b6b28fe3009bfb7df9f8f1e
+rustdesk_worktree_head_ancestor_of_pr_head=yes
+[old-worktrees]
+path=/Users/c1/dotfiles/.worktrees/constx-azar-public-deployment
+## codex/constx-azar-public-deployment...origin/codex/constx-azar-public-deployment [ahead 1, behind 2]
+ M .legion/tasks/constx-azar-public-deployment/log.md
+ M .legion/tasks/constx-azar-public-deployment/tasks.md
+?? .legion/tasks/constx-azar-public-deployment/docs/evidence/production-rollout.md
+?? .legion/tasks/constx-azar-public-deployment/docs/test-report.md
+lsof_exit=1 output_lines=0
+path=/Users/c1/dotfiles/.worktrees/constx-azar-signout-header
+## codex/constx-azar-signout-header-blocker...origin/codex/constx-azar-signout-header-blocker
+lsof_exit=1 output_lines=0
+path=/Users/c1/dotfiles/.worktrees/constx-run-environment-peer-route
+## codex/constx-run-environment-peer-route...origin/codex/constx-run-environment-peer-route
+lsof_exit=1 output_lines=0
+path=/Users/c1/dotfiles/.worktrees/rustdesk-self-hosted-remote-access-charlie
+## HEAD (no branch)
+?? .cache/
+lsof_exit=1 output_lines=0
+[secret-file-metadata-only]
+path=/Users/c1/dotfiles/acorn_password mode=-rw------- size=9 mtime=2026-09-01T22:36:13+0800
+lsof_exit=1 output_lines=0
+[supersession]
+{"mergeCommit":{"oid":"0a5e6f0e391a9a52b9ca650551162dd19a49985b"},"mergedAt":"2026-06-16T03:48:16Z","number":88,"state":"MERGED","url":"https://github.com/Thrimbda/dotfiles/pull/88"}
+aliyun_completed_summary=2
+aliyun_renamed_summary=2
+constx_delivery_complete=1
+constx_deferred_decision=3
+constx_failure_shield=1
+[final-gate-currently-not-run]
+main_branch=master
+main_ahead_behind=0 12
+## master...origin/master [behind 12]
+M  .legion/wiki/index.md
+M  .legion/wiki/log.md
+M  .legion/wiki/maintenance.md
+?? .legion/tasks/aliyun-nixos-ecs-deploy/
+?? .legion/tasks/doom-org-norang-minimal/
+?? .legion/wiki/tasks/doom-org-norang-minimal.md
+?? .worktrees/
+?? acorn_password
+C4 requires post-merge cleanup and final fetch; current output is pre-delivery only
