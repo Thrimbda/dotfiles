@@ -10,10 +10,11 @@ Charles 管理 Axiom 时也使用已有的 `ssh axiom-tunnel`。
   保留 code-mode host、ripgrep、bubblewrap 和 zsh；修复 bundled zsh 在 NixOS
   上的 ELF loader 与 ncurses 路径。无需 npm 或另装 Node 来启动 Codex。
 - `hosts/axiom/modules/codex.nix` 将 `codex` 加入系统 PATH，SSH 非交互登录也可用。
-  只配置 Charlie 的 `ntnl-openai` provider 和 `gpt-6-astra` 模型。
-- provider token 存放在 `hosts/axiom/secrets/codex-ntnl-openai-key.age`。
-  agenix 解密至 `/run/agenix/codex-ntnl-openai-key`，由 `c1` 以 `0400` 读取。
-  启动器通过 `NTNL_OPENAI_API_KEY` 注入，不把明文写入 Nix store 或配置文件。
+  只配置 Charlie 的 `ntnl` provider 和 `gpt-6-astra` 模型。
+  `requires_openai_auth = false`，模型请求使用 NTNL API key。
+- provider token 存放在 `hosts/axiom/secrets/codex-ntnl-key.age`。
+  agenix 解密至 `/run/agenix/codex-ntnl-key`，由 `c1` 以 `0400` 读取。
+  启动器通过 `NTNL_API_KEY` 注入，不把明文写入 Nix store 或配置文件。
 - Axiom 的历史、登录资料和其他现有数据继续使用 `/home/c1/.codex`。
   初次检查未发现 npm Codex 安装，因此无需卸载其他 npm 包。
 - 后续升级修改包版本与 hash，经构建、PR 和系统 switch 生效。
@@ -52,6 +53,22 @@ ssh axiom-tunnel 'codex --version'
 也可在桌面应用的 **设置 → 连接** 中管理 SSH 主机，并添加其他 Axiom 项目。
 App Server 由桌面应用通过 SSH 启动，不部署公网 App Server 端口或额外常驻服务。
 
+## 在手机上开始工作
+
+1. 打开手机 ChatGPT，进入 **Remote / 远程**。
+2. 选择已配对的 **Charlie**，新建任务。
+3. 在项目列表中选择 **dotfiles · Axiom**，再输入任务。
+4. 首次可让 Codex 运行 `hostname` 和 `pwd`：应分别返回 `axiom` 和
+   `/home/c1/dotfiles`，以确认执行位置。
+
+如果手机尚未显示 Charlie，在 Charlie 桌面应用打开 **设置 → 连接 → 控制此 Mac**，
+选择添加设备，使用手机扫描二维码，并以同一 ChatGPT 账号与工作空间完成配对。
+Charlie 已有的手机配对无需重新创建。让 Charlie 保持唤醒、联网并运行桌面应用，
+Axiom 保持开机且 SSH 可达。
+
+要在其他仓库工作，先在 Charlie 桌面端为 `axiom-tunnel` 添加相应远程目录，
+然后从手机选择该项目；在 Charlie 的本地项目中新建任务仍会使用 Charlie。
+
 ## A、B、C 三种方式的核实
 
 | 方案 | 结论与本次选择 |
@@ -73,11 +90,10 @@ macOS / Windows，因此不能把“Linux 可执行任务”理解为所有桌�
 
 包构建已验证 CLI 版本、code-mode host、ripgrep、bubblewrap 和修复后的 zsh。
 Axiom 完整系统构建通过；SSH App Server 完成 `initialize`，并在只读沙盒中通过
-`command/exec` 返回主机名 `axiom`。使用 NTNL provider 的真实模型请求也成功调用
-shell，返回 `AXIOM_CODEX_OK hostname=axiom` 与测试目录。
+`command/exec` 返回主机名 `axiom`。当前 `ntnl` provider 使用 Charlie 对应的独立凭据，
+真实模型请求成功返回 `AXIOM_NTNL_OK`。
 
-Axiom 原有 ChatGPT 登录刷新失败，账号关联工具出现 401；NTNL 的模型请求仍成功。
-provider 的模型列表接口返回 OpenAI 标准 `data` 格式，Codex 的动态模型目录刷新会
-报告格式不匹配；显式配置的 `gpt-6-astra` 已实测可用。此次未替换登录资料或扩展插件配置。
+Axiom 原有 ChatGPT 登录资料保留。NTNL 模型请求使用独立 API key，不要求 ChatGPT 登录；
+需要 ChatGPT 账号的其他工具仍取决于原登录是否有效。
 
 手机端点击、审批与通知需要实际手机验证；桌面端连接和 SSH 命令测试不能替代这些验证。
