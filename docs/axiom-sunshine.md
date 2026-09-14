@@ -1,6 +1,6 @@
 # Axiom：Sunshine / Moonlight 远程桌面
 
-Charles 上打开 `~/Applications/Moonlight.app`，选择 **Axiom → Axiom Desktop**。主机地址是 `8.159.128.125`，已完成配对。默认 1920×1080、60 FPS、20 Mbps、HEVC、硬件解码，启用远程桌面鼠标模式。用 `Ctrl+Alt+Shift+Q` 断开，再点击播放按钮恢复桌面。
+Charles 上打开 `~/Applications/Moonlight.app`，选择 **Axiom → Axiom Desktop**。主机地址是 `8.159.128.125`，已完成配对。默认 3840×2160、60 FPS、40 Mbps、HEVC、硬件解码，启用远程桌面鼠标模式。Hyprland 虚拟屏使用 2 倍缩放，保留原 1080p 桌面的界面大小并提高文字清晰度。用 `Ctrl+Alt+Shift+Q` 断开，再点击播放按钮恢复桌面。
 
 ## 物理显示器关闭时
 
@@ -63,4 +63,4 @@ ssh azar 'systemctl status frps-sunshine'
 
 参考：[Sunshine 配置](https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2configuration.html)、[Moonlight 设置](https://github.com/moonlight-stream/moonlight-docs/wiki/Setup-Guide)、[FRP QUIC](https://gofrp.org/en/docs/features/common/network/network/)。
 
-2026-09-15 的实际公网流量、每小时用量和高分辨率规划见[网络采样报告](sunshine-network.md)。
+2026-09-15 已切换至 4K60 / HEVC 40 Mbps，并完成约三分钟采样：渲染 60.00 FPS、平均网络延迟 36 ms、网络丢帧 0.00%、抖动丢帧 0.01%。4K 硬件编解码和断开后恢复已验证。实际公网流量、每小时用量和带宽预留建议见[网络采样报告](sunshine-network.md)。

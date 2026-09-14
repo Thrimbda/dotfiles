@@ -8,7 +8,7 @@ let
     if ! ${hyprctl} monitors -j | ${pkgs.jq}/bin/jq -e 'any(.[]; .name == "SUNSHINE")' >/dev/null; then
       ${hyprctl} output create headless SUNSHINE
     fi
-    ${hyprctl} eval 'hl.monitor({output="SUNSHINE",mode="1920x1080@60",position="auto",scale=1})'
+    ${hyprctl} eval 'hl.monitor({output="SUNSHINE",mode="3840x2160@60",position="auto",scale=2})'
     ${hyprctl} eval 'hl.dispatch(hl.dsp.dpms({monitor="SUNSHINE",action="enable"}))'
     ${hyprctl} eval 'hl.dispatch(hl.dsp.focus({monitor="SUNSHINE"}))'
   '';
@@ -25,9 +25,9 @@ in
   modules.desktop.hyprland.monitors = lib.mkAfter [
     {
       output = "SUNSHINE";
-      mode = "1920x1080@60";
+      mode = "3840x2160@60";
       position = "auto";
-      scale = 1;
+      scale = 2;
     }
   ];
   # Keep the virtual output rendering through both idle and lock-screen DPMS.

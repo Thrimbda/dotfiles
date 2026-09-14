@@ -1,0 +1,87 @@
+{
+  "sample_start": "2026-09-15T00:20:10.209311+08:00",
+  "sample_end": "2026-09-15T00:23:12.067265+08:00",
+  "resolution": "3840x2160",
+  "desktop_scale": 2,
+  "fps": 60,
+  "configured_bitrate_kbps": 40000,
+  "codec": "HEVC",
+  "interval_seconds": 5,
+  "measurement_layer": "IPv4 packet bytes, including IP/transport headers; no payload capture",
+  "workload": "Existing desktop session; no controlled high-motion workload",
+  "flows": {
+    "axiom.quic_in": {
+      "duration_seconds": 180.147,
+      "bytes": 2332942,
+      "average_mbps": 0.1036,
+      "p95_5s_mbps": 0.1092,
+      "peak_5s_mbps": 0.1097,
+      "projected_GB_per_hour": 0.0466
+    },
+    "axiom.quic_out": {
+      "duration_seconds": 180.147,
+      "bytes": 107353950,
+      "average_mbps": 4.7674,
+      "p95_5s_mbps": 4.7788,
+      "peak_5s_mbps": 4.7798,
+      "projected_GB_per_hour": 2.1453
+    },
+    "acorn.client_in": {
+      "duration_seconds": 181.382,
+      "bytes": 178256,
+      "average_mbps": 0.0079,
+      "p95_5s_mbps": 0.0083,
+      "peak_5s_mbps": 0.0084,
+      "projected_GB_per_hour": 0.0035
+    },
+    "acorn.client_out": {
+      "duration_seconds": 181.382,
+      "bytes": 102110938,
+      "average_mbps": 4.5037,
+      "p95_5s_mbps": 4.5161,
+      "peak_5s_mbps": 4.5184,
+      "projected_GB_per_hour": 2.0267
+    },
+    "acorn.quic_in": {
+      "duration_seconds": 181.382,
+      "bytes": 108089903,
+      "average_mbps": 4.7674,
+      "p95_5s_mbps": 4.7834,
+      "peak_5s_mbps": 4.7976,
+      "projected_GB_per_hour": 2.1453
+    },
+    "acorn.quic_out": {
+      "duration_seconds": 181.382,
+      "bytes": 2347675,
+      "average_mbps": 0.1035,
+      "p95_5s_mbps": 0.1086,
+      "peak_5s_mbps": 0.1107,
+      "projected_GB_per_hour": 0.0466
+    }
+  },
+  "forward_relay_overhead_percent": 5.855,
+  "acorn_total_egress_GB_per_hour": 2.0733,
+  "client_session": {
+    "log_file": "Moonlight-1789402773.log",
+    "stream_resolution": "3840x2160x60",
+    "video_bitrate_kbps": 40000,
+    "host_encoder": "hevc_nvenc",
+    "client_decoder": "VideoToolbox hardware; Apple M2 Metal renderer",
+    "incoming_fps": 60.01,
+    "decoding_fps": 60.01,
+    "rendering_fps": 60.0,
+    "host_processing_ms": {
+      "min": 2.9,
+      "max": 5.3,
+      "average": 3.1
+    },
+    "network_dropped_frames_percent": 0.0,
+    "jitter_dropped_frames_percent": 0.01,
+    "network_latency_ms": 36,
+    "network_latency_variance_ms": 3,
+    "average_decoding_ms": 3.82,
+    "average_frame_queue_ms": 0.04,
+    "average_rendering_ms": 1.78,
+    "scope": "Entire 4K client session, including startup and the 3-minute network sample; not an exactly aligned interval"
+  }
+}
