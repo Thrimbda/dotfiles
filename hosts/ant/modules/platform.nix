@@ -1,9 +1,7 @@
 { lib, pkgs, ... }:
 
 {
-  modules.agenix.sshKey = "/home/c1/.ssh/id_ed25519";
-  # The base image carries no application credentials.
-  modules.agenix.dirs = lib.mkForce [];
+  modules.agenix.sshKey = "/etc/ssh/ssh_host_ed25519_key";
 
   # Replace the shared bootstrap password with key-only operator access.
   user.initialPassword = lib.mkForce null;
@@ -61,8 +59,8 @@
     hostName = "ant";
     useDHCP = lib.mkForce false;
     firewall = {
-      allowedTCPPorts = lib.mkForce [ 22 ];
-      allowedUDPPorts = lib.mkForce [];
+      allowedTCPPorts = [ 22 ];
+      allowedUDPPorts = [];
     };
   };
 
