@@ -8,12 +8,14 @@
     secretNames.FRP_SCREEN_KEY = "screen-sharing-key";
     client = {
       enable = true;
-      serverAddr = "8.159.128.125";
+      serverAddr = "106.15.156.143";
+      serverPort = 7001;
       extraConfig = {
+        transport.protocol = "quic";
         transport.tls = {
           enable = true;
-          trustedCaFile = ./acorn-frps.crt;
-          serverName = "8.159.128.125";
+          trustedCaFile = ./ant-frps.crt;
+          serverName = "106.15.156.143";
         };
         log = {
           to = "${config.user.home}/Library/Logs/frpc.log";

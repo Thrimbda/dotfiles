@@ -7,6 +7,7 @@
     "${modulesPath}/profiles/qemu-guest.nix"
     ./modules/platform.nix
     ./image.nix
+    ./modules/sunshine-relay.nix
   ];
 
   modules = {

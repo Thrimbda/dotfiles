@@ -1,12 +1,35 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   retire = pkgs.writeShellScriptBin "retire-charlie-rustdesk" (builtins.readFile ./retire-rustdesk.sh);
+  resolution = pkgs.stdenv.mkDerivation {
+    pname = "charlie-screen-resolution";
+    version = "1";
+    src = ./screen-resolution.c;
+    dontUnpack = true;
+    buildPhase = ''
+      $CC -Wall -Wextra -Werror -O2 -framework ApplicationServices "$src" -o charlie-screen-resolution
+    '';
+    installPhase = ''
+      install -Dm755 charlie-screen-resolution "$out/bin/charlie-screen-resolution"
+    '';
+    meta.platforms = [ "aarch64-darwin" ];
+  };
 in {
   imports = [ ../../../config/frp/mac-client.nix ];
 
   # Run once after verifying the private FRP connection; preserve a local rollback.
   system.build.screenSharingTools = retire;
-  environment.systemPackages = [ retire ];
+  system.build.screenSharingResolution = resolution;
+  environment.systemPackages = [ retire resolution ];
+
+  # Apply once in the GUI session; later manual display changes remain possible.
+  launchd.user.agents.screen-sharing-resolution.serviceConfig = {
+    ProgramArguments = [ "${resolution}/bin/charlie-screen-resolution" ];
+    RunAtLoad = true;
+    ProcessType = "Background";
+    StandardOutPath = "${config.user.home}/Library/Logs/screen-sharing-resolution.log";
+    StandardErrorPath = "${config.user.home}/Library/Logs/screen-sharing-resolution-error.log";
+  };
 
   system.activationScripts.postActivation.text = lib.mkAfter ''
     echo "configuring Charlie screen sharing..." >&2
