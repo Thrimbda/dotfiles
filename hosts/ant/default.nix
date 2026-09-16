@@ -4,13 +4,13 @@
   system = "x86_64-linux";
 
   imports = [
+    ../../config/wireguard/linux.nix
     "${modulesPath}/profiles/qemu-guest.nix"
     ./modules/platform.nix
     ./image.nix
     ./modules/relay.nix
     ./modules/ingress.nix
     ./modules/charlie-tunnel.nix
-    ./modules/sunshine-relay.nix
   ];
 
   modules = {

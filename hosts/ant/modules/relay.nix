@@ -1,5 +1,8 @@
 { config, ... }:
 {
+  age.secrets.frp-token = { owner = config.user.name; mode = "0400"; };
+  age.secrets.frps-tls-key = { owner = config.user.name; mode = "0400"; };
+
   modules.services.frp.server = {
     enable = true;
     extraConfig = {

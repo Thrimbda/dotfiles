@@ -6,10 +6,11 @@
   system = "x86_64-linux";
 
   imports = [
+    ../../config/wireguard/linux.nix
     ./modules/acorn.nix
-    ./modules/rustdesk.nix
     ./modules/qwen.nix
     ./modules/autossh.nix
+    ./modules/sunshine.nix
     ./modules/sunshine-relay.nix
     ./modules/caelestia.nix
     ./modules/cloudflare.nix

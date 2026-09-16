@@ -52,7 +52,7 @@ with lib;
 
   ## Local configuration
   config = { config, pkgs, ... }: {
-    imports = [ ./modules/screen-sharing.nix ];
+    imports = [ ./modules/screen-sharing.nix ../../config/wireguard/darwin.nix ];
 
     home.file.".codex/codex-app/config.json".source = ../../config/codex/charlie.json;
 

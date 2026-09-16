@@ -59,8 +59,8 @@
     hostName = "ant";
     useDHCP = lib.mkForce false;
     firewall = {
-      allowedTCPPorts = lib.mkForce [ 22 443 2225 7000 7001 47984 47989 48010 ];
-      allowedUDPPorts = lib.mkForce [ 7001 47998 47999 48000 ];
+      allowedTCPPorts = lib.mkForce [ 22 443 2225 7000 ];
+      allowedUDPPorts = lib.mkForce [ 51820 ];
     };
   };
 
