@@ -5,7 +5,7 @@ let
     if ! ${pkgs.python3}/bin/python3 - <<'PY'
     import socket
     try:
-        with socket.create_connection(("127.0.0.1", 15900), timeout=5) as stream:
+        with socket.create_connection(("10.77.0.3", 5900), timeout=5) as stream:
             stream.settimeout(5)
             if not stream.recv(12).startswith(b"RFB "):
                 raise OSError("No screen-sharing server")
@@ -13,10 +13,10 @@ let
         raise SystemExit(1)
     PY
     then
-      echo "Charlie screen sharing is unavailable. Check FRP logs in ~/Library/Logs/frpc.log and Charlie's Sharing settings." >&2
+      echo "Charlie screen sharing is unavailable. Check /var/log/desktop-wireguard.log and Charlie's Sharing settings." >&2
       exit 1
     fi
-    exec /usr/bin/open 'vnc://127.0.0.1:15900'
+    exec /usr/bin/open 'vnc://10.77.0.3'
   '';
 in {
   imports = [ ../../../config/frp/mac-client.nix ];

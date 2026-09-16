@@ -6,6 +6,7 @@
   system = "x86_64-linux";
 
   imports = [
+    ../../config/wireguard/linux.nix
     ./modules/acorn.nix
     ./modules/rustdesk.nix
     ./modules/qwen.nix

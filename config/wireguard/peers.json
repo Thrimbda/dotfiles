@@ -1,0 +1,18 @@
+{
+  "ant": {
+    "ip": "10.77.0.1",
+    "publicKey": "ThBpl7KBwlqLRS2c6St7CJUtlv/PNI5Rza88vJuphDg="
+  },
+  "axiom": {
+    "ip": "10.77.0.2",
+    "publicKey": "YAeeEusgtxd3gwNfcRP5kHaNHQoqvNlOJ0p9e72ijEA="
+  },
+  "charlie": {
+    "ip": "10.77.0.3",
+    "publicKey": "9bgx5qtO1H7jyeHr6coKZvZy3d9mz4Zo8WgFFqRJmS4="
+  },
+  "charles": {
+    "ip": "10.77.0.4",
+    "publicKey": "BBBkCSTAGGFtwcjFtaN9kqIYIurwjm63+rc+llRFDHA="
+  }
+}
