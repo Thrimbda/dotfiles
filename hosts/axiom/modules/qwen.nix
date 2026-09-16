@@ -207,7 +207,7 @@ in
 
   systemd.services.qwen3-8-27b = {
     description = "Qwen3.8 27B uncensored inference server";
-    wantedBy = [ "multi-user.target" ];
+    # Start explicitly with qwen-model; reserve the GPU for the desktop at boot.
     after = [ "network.target" ];
     unitConfig.ConditionPathExists = qwenChatTemplate;
     serviceConfig = {
