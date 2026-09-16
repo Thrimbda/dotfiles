@@ -1,6 +1,6 @@
 # Charles 连接 Charlie：Apple 屏幕共享
 
-Charles 使用 Apple 普通屏幕共享，经 Ant 的 FRP 私有 STCP 通道访问 Charlie。FRP 网络段采用 QUIC（UDP 7001）；Charlie 在图形登录时应用实际 2560×1440、60 Hz，避免原先 2560×1440 HiDPI 产生的 5120×2880 画面。
+Charles 使用 Apple 普通屏幕共享，经 Ant 的 FRP 私有 STCP 通道访问 Charlie。FRP 网络段采用 QUIC（UDP 7001）。屏幕共享配置不修改 Charlie 的实体显示器分辨率。
 
 ## 使用
 
@@ -21,9 +21,9 @@ Charles Screen Sharing → 127.0.0.1:15900 → Charles frpc visitor
 
 ## 分辨率
 
-`org.nixos.screen-sharing-resolution` 是 Charlie 的用户 LaunchAgent，每次图形登录时执行一次 `charlie-screen-resolution`。它按实际像素、逻辑尺寸和刷新率选择主显示器的 2560×1440、约 60 Hz 模式，不依赖会变化的显示模式编号。
+Charlie 保留用户选择的显示模式。2026-09-16 复核为 HiDPI：界面尺寸 2560×1440、渲染尺寸 5120×2880、60 Hz；渲染尺寸不代表显示器面板的原生分辨率。
 
-命令只修改当前图形会话，不反复覆盖用户之后的手动调整。没有主显示器或不支持目标模式时，它记录错误并退出。完整系统激活后可用 `charlie-screen-resolution --check` 查询并校验当前模式；独立部署时使用 `screenSharingResolution` 产物中的同名命令。通过 SSH 执行设置时需要进入用户的 GUI launchd 会话，普通 SSH 会话可能被 macOS 拒绝。显示器休眠时也可能拒绝切换；唤醒后重新运行任务即可。
+此前的 `charlie-screen-resolution` 和登录任务直接改变了实体显示器的模式，不符合只调整远程画面的要求，已撤除。当前普通屏幕共享连接不支持动态分辨率；本配置没有实现独立于实体显示器的远程分辨率限制。
 
 ## 配置与密钥
 
@@ -51,7 +51,6 @@ nix build .#darwinConfigurations.charles.config.system.build.launchd
 nix build .#darwinConfigurations.charles.config.system.build.screenSharingTools
 nix build .#darwinConfigurations.charlie.config.system.build.launchd
 nix build .#darwinConfigurations.charlie.config.system.build.screenSharingTools
-nix build .#darwinConfigurations.charlie.config.system.build.screenSharingResolution
 ```
 
 以下为 2026-09-14 首次部署记录，当时中转为 Acorn：只安装 Charles 用户级 frpc plist、Charlie 系统级 frpc 和更新后的 agenix plist，以及连接工具，没有切换两台 Mac 的完整系统 generation。原因是当前整机 generation 与仓库基线之间还有无关的开发工具变化。相关产物已注册 GC roots，plist 持久安装在各自的 `Library/LaunchAgents` / `/Library/LaunchDaemons`，与本次声明一致；后续完整 nix-darwin 激活可接管这些服务。
@@ -72,8 +71,6 @@ ssh charlie 'nc -G 3 -z 127.0.0.1 5900'
 
 错误日志位于 `~/Library/Logs/frpc-error.log`。Ant 服务为 `frps-sunshine`；单看应用连接 localhost TCP 15900 不能判断中转协议，需要核对当前 frpc 的 UDP socket 和两端到 Ant:7001 的实际流量。
 
-分辨率日志位于 Charlie 的 `~/Library/Logs/screen-sharing-resolution{,-error}.log`。
-
 ## 初次迁移的 RustDesk 退役与回滚
 
 新通道通过账户认证和图像传输验证后，才运行 Charlie 的 `retire-charlie-rustdesk`。它只处理带仓库 ownership marker 的安装，停止三个旧作业，将 App、plist、provisioning 状态和 marker 移入 `/var/db/mac-screen-sharing/rustdesk-backup`，不覆盖已有备份。用户的其他 RustDesk 数据不作批量删除。
@@ -84,22 +81,22 @@ ssh charlie 'nc -G 3 -z 127.0.0.1 5900'
 
 ## 2026-09-15 试用结果
 
-- 原模式：逻辑 2560×1440、实际 5120×2880；试用模式：逻辑和实际均为 2560×1440、60 Hz。
+- 原模式：界面 2560×1440、渲染 5120×2880；试用曾将实体显示器切换为非 HiDPI 的 2560×1440、60 Hz，随后按用户要求撤回。
 - 两端实际流量确认 QUIC/UDP 到 Ant:7001，Clash 策略为 DIRECT；原入口 localhost:15900 可用。
 - 两端 frpc 重启后恢复，屏幕共享实际锁屏画面可见；临时探测配置已清理。
 - 用户试用反馈流畅度明显改善。
 - 12 组交替 RFB 握手测试的中位耗时：TCP 47.0 ms，QUIC 54.1 ms。这不是画面延迟测试，也不能用来声称 QUIC 降低了基础延迟。分辨率和传输均有改变，主观改善不能单独归因于其中一项。
 
-## 2026-09-16 固化与验收
+## 2026-09-16 QUIC 部署与分辨率纠正
 
-- Charles、Charlie 的 `system.build.launchd` 和分辨率工具在 Charles 构建通过；FRP 配置渲染及 age 集成测试 9 项通过。
-- 两台 Mac 只替换 `org.nixos.frpc`，Charlie 另安装 `org.nixos.screen-sharing-resolution`；现有 AutoSSH 和其他作业未部署或替换。两个 launchd 产物均注册在各机 `~/.local/state/mac-screen-sharing/launchd` GC root。
+- Charles、Charlie 的 `system.build.launchd` 在 Charles 构建通过；FRP 配置渲染及 age 集成测试 9 项通过。
+- 两台 Mac 替换了 `org.nixos.frpc`；现有 AutoSSH 和其他作业未部署或替换。两个 launchd 产物均注册在各机 `~/.local/state/mac-screen-sharing/launchd` GC root。
 - 安装后的 plist 与构建产物字节一致，FRP 使用原生 Nix 启动脚本，已接替临时的配置补丁脚本。
-- 从实际 3840×2160 切换起测：`--check` 正确拒绝 4K 状态，启动 GUI 分辨率任务后读回实际 2560×1440、60 Hz，任务退出码为 0。
+- 已卸载并移除误装的 `org.nixos.screen-sharing-resolution` 登录任务，同时删除对应源码和构建目标。读回的显示模式与试用前记录一致：界面 2560×1440、渲染 5120×2880、60 Hz。
 - Ant 整机 derivation 求值通过；QUIC 服务的二进制和配置路径与当前运行实例一致，两项密文使用 Ant 现有主机密钥解密验证通过。Ant 未构建或切换系统。
-- 普通屏幕共享实际连接、两端 QUIC/UDP 和 1440p 均复核通过。未注销或重启机器；登录任务通过手动加载验证，不将其当作 FileVault 冷启动测试。
+- QUIC 部署时复核了普通屏幕共享实际连接和两端 QUIC/UDP。分辨率纠正未重启 frpc；未注销或重启机器，不将其当作 FileVault 冷启动测试。
 
-回退本次 Mac 部署时，分别卸载对应 frpc 作业、恢复各机 `~/.local/state/mac-screen-sharing/before-nix-frpc.plist` 并重新加载；这份备份保留之前已经验证的 QUIC 试用配置。停止 Charlie 的分辨率 LaunchAgent 后，可在系统显示设置中恢复原分辨率；后续完整 Nix 激活前也应同步回退对应源码。
+回退本次 Mac FRP 部署时，分别卸载对应 frpc 作业、恢复各机 `~/.local/state/mac-screen-sharing/before-nix-frpc.plist` 并重新加载；这份备份保留之前已经验证的 QUIC 试用配置。不要恢复已撤除的分辨率登录任务。
 
 ## 2026-09-14 首次部署验证记录
 
