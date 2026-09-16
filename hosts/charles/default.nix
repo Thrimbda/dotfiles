@@ -82,6 +82,7 @@ with lib;
         source = ../../bin/ssh-route-probe;
         executable = true;
       };
+      ".ssh/config.d/relay.conf".source = ../../config/ssh/relay.conf;
       ".ssh/config.d/charlie.conf".source = ../../config/ssh/charlie.conf;
     };
 

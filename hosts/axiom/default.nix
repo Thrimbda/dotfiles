@@ -10,6 +10,7 @@
     ./modules/rustdesk.nix
     ./modules/qwen.nix
     ./modules/autossh.nix
+    ./modules/sunshine-relay.nix
     ./modules/caelestia.nix
     ./modules/cloudflare.nix
     ./modules/codex.nix

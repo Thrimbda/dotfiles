@@ -1,63 +1,13 @@
-{ config, lib, pkgs, ... }:
-
+{ config, lib, ... }:
 with lib;
-
 let
-  authMiniPackage = pkgs.callPackage ../../../packages/auth-mini {};
-
-  authUser = "auth-mini";
-  authHost = "auth.0xc1.wang";
-  authPort = 7777;
-  authUrl = "http://127.0.0.1:${toString authPort}";
-
-  constxGatewayEnabled =
-    config.modules.services.constx.nativeAuthIngress == "gateway";
-
-  constxGatewayInstance = let
-    streamingProxy = ''
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Forwarded-Host $host;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_request_buffering off;
-      proxy_buffering off;
-      proxy_cache off;
-      gzip off;
-      proxy_connect_timeout 10s;
-      proxy_send_timeout 24h;
-      proxy_read_timeout 24h;
-      proxy_intercept_errors off;
-      proxy_next_upstream off;
-      proxy_redirect off;
-    '';
-  in {
-    hostName = "constx.0xc1.wang";
-    port = 7782;
-    dbName = "constx";
-    protectedUpstream = "http://127.0.0.1:3210";
-    runEnvironmentUpstream = "http://127.0.0.1:3210";
+  gatewayInstances.frps-acorn = {
+    hostName = "frps-acorn.0xc1.wang";
+    port = 7781;
+    dbName = "frps-acorn";
+    protectedUpstream = "http://127.0.0.1:7500";
     proxyWebsockets = false;
-    vhostExtraConfig = ''
-      client_max_body_size 22m;
-    '';
-    protectedExtraConfig = streamingProxy;
-    runEnvironmentPeerExtraConfig = streamingProxy;
   };
-
-  gatewayInstances = {
-    auth-gateway = {
-      hostName = "auth-gateway.0xc1.wang";
-      port = 7778;
-      dbName = "auth-gateway";
-      protectedUpstream = null;
-      proxyWebsockets = false;
-    };
-
-  } // optionalAttrs constxGatewayEnabled {
-    constx = constxGatewayInstance;
-  };
-
   gatewayUrl = instance: "http://127.0.0.1:${toString instance.port}";
 
   gatewayForwardHeaders = ''
@@ -148,76 +98,78 @@ let
     extraConfig = instance.vhostExtraConfig;
   };
 
-
-in
-
-{
-  users.groups.${authUser} = {};
-
-  users.users.${authUser} = {
-    isSystemUser = true;
-    group = authUser;
-    home = "/var/lib/${authUser}";
+  mkNodeProxyVhost = hostName: remotePort: extraLocationConfig: {
+    onlySSL = true;
+    useACMEHost = hostName;
+    extraConfig = ''
+      underscores_in_headers on;
+      ignore_invalid_headers on;
+      client_max_body_size 0;
+    '';
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${toString remotePort}";
+      recommendedProxySettings = false;
+      extraConfig = ''
+        proxy_http_version 1.1;
+        proxy_set_header Host ${hostName};
+        proxy_set_header X-Forwarded-Host ${hostName};
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_cache off;
+        gzip off;
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 24h;
+        proxy_read_timeout 24h;
+        proxy_intercept_errors off;
+        proxy_next_upstream off;
+        proxy_redirect off;
+        ${extraLocationConfig}
+      '';
+    };
   };
 
+in {
+  modules.services.nginx = {
+    enable = true;
+    cloudflareDnsAcme = {
+      enable = true;
+      email = "siyuan.arc@gmail.com";
+      credentialsFile = ../secrets/cloudflare-dns.env.age;
+      hosts = [ "status-axiom.0xc1.wang" "opencode-axiom.0xc1.wang" "pi-axiom.0xc1.wang" "frps-acorn.0xc1.wang" ];
+    };
+  };
   modules.services.auth-mini-gateway = {
     enable = true;
     instances = mapAttrs (_: instance: {
       publicHost = instance.hostName;
       inherit (instance) port;
-      dependencies = [ "auth-mini.service" ];
       stateDirectory = "auth-mini-gateway";
       stateDirectoryMode = "0750";
       databaseFile = "${instance.dbName}.sqlite";
     }) gatewayInstances;
   };
+  # SameSite cookies do not prevent sibling-origin WebSocket handshakes.
+  services.nginx.commonHttpConfig = ''
+    map "$http_upgrade:$http_origin" $pi_axiom_websocket_origin_rejected {
+      default 0;
+      ~*^websocket:https://pi-axiom\.0xc1\.wang$ 0;
+      ~*^websocket: 1;
+    }
+  '';
 
-  modules.services.nginx.cloudflareDnsAcme.hosts = [
-    authHost
-  ] ++ mapAttrsToList (_: instance: instance.hostName) (removeAttrs gatewayInstances [ "constx" ]);
-
-  age.secrets.auth-mini-resend-api-key = {
-    owner = authUser;
-    group = authUser;
-    mode = "0400";
+  services.nginx.virtualHosts = mapAttrs' (_: instance:
+    nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances // {
+    "status-axiom.0xc1.wang" = mkNodeProxyVhost "status-axiom.0xc1.wang" 18080 "";
+    "opencode-axiom.0xc1.wang" = mkNodeProxyVhost "opencode-axiom.0xc1.wang" 18081 "";
+    "pi-axiom.0xc1.wang" = mkNodeProxyVhost "pi-axiom.0xc1.wang" 18082 ''
+      if ($pi_axiom_websocket_origin_rejected) {
+        return 403;
+      }
+    '';
   };
-
-  systemd.services.auth-mini = {
-    description = "auth-mini authentication server";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = authUser;
-      Group = authUser;
-      ExecStart = "${authMiniPackage}/bin/auth-mini --host 127.0.0.1 --port ${toString authPort} --db /var/lib/${authUser}/auth-mini.sqlite";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      StateDirectory = authUser;
-      StateDirectoryMode = "0750";
-      WorkingDirectory = "/var/lib/${authUser}";
-      ReadWritePaths = [ "/var/lib/${authUser}" ];
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectHome = true;
-      ProtectSystem = "strict";
-    };
-  };
-
-  services.nginx.virtualHosts = {
-    ${authHost} = {
-      onlySSL = true;
-      useACMEHost = authHost;
-      locations = {
-        "= /".extraConfig = ''
-          return 302 /web/;
-        '';
-        "/" = {
-          proxyPass = authUrl;
-          proxyWebsockets = true;
-        };
-      };
-    };
-  } // mapAttrs' (_: instance: nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances;
 }

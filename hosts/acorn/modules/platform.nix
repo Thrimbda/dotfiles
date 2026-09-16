@@ -3,11 +3,6 @@
 {
   modules.agenix.sshKey = "/home/c1/.ssh/id_ed25519";
 
-  modules.services.frp.server.extraConfig.webServer = {
-    addr = "127.0.0.1";
-    port = 7500;
-  };
-
   nix.settings = {
     substituters = lib.mkBefore [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
@@ -52,8 +47,8 @@
     hostName = "acorn";
     useDHCP = lib.mkForce false;
     firewall = {
-      allowedTCPPorts = lib.mkForce [ 22 443 2223 2224 2225 7000 21115 21116 21117 34197 ];
-      allowedUDPPorts = [ 21116 34197 ];
+      allowedTCPPorts = lib.mkForce [ 22 443 34197 ];
+      allowedUDPPorts = [ 34197 ];
     };
   };
 

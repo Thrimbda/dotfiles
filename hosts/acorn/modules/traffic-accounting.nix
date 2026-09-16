@@ -2,7 +2,7 @@
 
 let
   stateDir = "/var/lib/acorn-traffic-accounting";
-  services = [ "frps" "nginx" "rustdesk-relay" "sshd" ];
+  services = [ "nginx" "sshd" ];
 
   sample = pkgs.writeShellApplication {
     name = "acorn-traffic-sample";
@@ -30,23 +30,8 @@ let
         done | jq -cs 'add'
       )
 
-      frps_response=$(curl --silent --fail --max-time 5 http://127.0.0.1:7500/api/proxy/tcp 2>/dev/null || true)
-      if [ -n "$frps_response" ] && frps_json=$(printf '%s' "$frps_response" | jq -ce '{
-        available: true,
-        proxies: [
-          .proxies[]? | {
-            name,
-            status,
-            curConns,
-            todayTrafficIn,
-            todayTrafficOut
-          }
-        ]
-      }'); then
-        :
-      else
-        frps_json='{"available":false,"proxies":null}'
-      fi
+      # Relay services moved to Ant; keep the historical sample schema.
+      frps_json='{"available":false,"proxies":null}'
 
       timestamp=$(date --utc --iso-8601=seconds)
       sample_json=$(jq -cn \
@@ -122,10 +107,8 @@ let
     '';
   };
 in {
-  modules.services.frp.server.serviceConfig.IPAccounting = true;
   modules.services.ssh.serviceConfig.IPAccounting = true;
   systemd.services.nginx.serviceConfig.IPAccounting = true;
-  systemd.services.rustdesk-relay.serviceConfig.IPAccounting = true;
 
   systemd.tmpfiles.rules = [
     "d ${stateDir} 0750 root root -"
@@ -134,7 +117,7 @@ in {
 
   systemd.services.acorn-traffic-sample = {
     description = "Capture Acorn local traffic attribution counters";
-    after = [ "network-online.target" "frps.service" ];
+    after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     serviceConfig = {
       Type = "oneshot";

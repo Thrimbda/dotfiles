@@ -6,13 +6,10 @@
   imports = [
     "${modulesPath}/profiles/qemu-guest.nix"
     ./modules/auth-mini.nix
-    ./modules/charlie-tunnel.nix
     ./modules/constx.nix
     ./modules/cybion.nix
     ./modules/ingress.nix
-    ./modules/frp-tls.nix
     ./modules/platform.nix
-    ./modules/rustdesk.nix
     ./modules/traffic-accounting.nix
     ./modules/vaultwarden.nix
     ./modules/we-bot.nix
@@ -40,7 +37,6 @@
     services = {
       ssh.enable = true;
       fail2ban.enable = true;
-      frp.server.enable = true;
       nginx.enable = true;
     };
 
