@@ -100,6 +100,14 @@ Charlie FRPC 是以 c1 运行的系统 LaunchDaemon；AutoSSH 和 Charles FRPC �
 
 上述修正已通过图形会话重建验证；修正后尚未再次重启整机。音频和长期性能尚未验收。
 
+### Caelestia 启动遗漏
+
+15:53 的串流验收只确认了 Hyprland 画面，漏验 Caelestia 外壳。`hey hook` 将最后一次事件缓存在用户 runtime 目录；上次事件仍为 `startup` 时，新图形会话再次调用 `hey hook startup` 会被去重而跳过，导致 Caelestia 没有启动。
+
+`hypr/custom/execs.lua` 的 `hyprland.start` 回调改为 `hey hook startup -f`，让每个新 compositor 都执行现有启动 hooks。只在新会话入口跳过去重，保留 Caelestia 原有 session helper。Axiom 已从 Nix 构建该文件，运行链接为 `/home/c1/.config/hypr/custom/execs.lua`，GC root 为 `/home/c1/.local/state/sunshine-boot-execs`，旧链接保存在 `/home/c1/.local/state/sunshine-boot-backup/execs.lua`；后续 Home Manager 部署应接管该路径。
+
+本次通过原有 helper 恢复 Caelestia，并重启失败的 Hyprland portal。Moonlight 实测可见侧栏、工作区与应用启动器，Super+Space 正常；Sunshine、portal、AutoSSH 和 FRPC 均运行。为保留正在使用的桌面，安装新启动回调后未再次重建图形会话或重启整机，因此新回调的自动启动仍待该项验收。
+
 ## 2026-09-15 故障记录
 
 最初运行时迁移曾验证成功。后续自定义复制系统版本时改变了 systemd 配置目录结构，激活期间重载超时，导致 Axiom 和 Acorn 管理通道异常。该复制方式已弃用。Acorn 通过恢复原生目录结构并重新注册 systemd 消息总线恢复；Axiom 由用户恢复后于 9 月 16 日继续迁移。
