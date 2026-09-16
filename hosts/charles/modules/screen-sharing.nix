@@ -19,20 +19,6 @@ let
     exec /usr/bin/open 'vnc://10.77.0.3'
   '';
 in {
-  imports = [ ../../../config/frp/mac-client.nix ];
-
-  modules.services.frp.client.darwinUserAgent = true;
-
-  modules.services.frp.client.visitors = [{
-    name = "charlie-screen-sharing-visitor";
-    type = "stcp";
-    serverName = "charlie-screen-sharing";
-    secretKey = "@FRP_SCREEN_KEY@";
-    bindAddr = "127.0.0.1";
-    bindPort = 15900;
-    transport.useEncryption = true;
-  }];
-
   system.build.screenSharingTools = connect;
   environment.systemPackages = [ connect ];
 }

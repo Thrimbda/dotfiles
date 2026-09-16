@@ -2,9 +2,7 @@
 let
   retire = pkgs.writeShellScriptBin "retire-charlie-rustdesk" (builtins.readFile ./retire-rustdesk.sh);
 in {
-  imports = [ ../../../config/frp/mac-client.nix ];
-
-  # Run once after verifying the private FRP connection; preserve a local rollback.
+  # Run once after verifying the private desktop connection; preserve a local rollback.
   system.build.screenSharingTools = retire;
   environment.systemPackages = [ retire ];
 
@@ -27,12 +25,4 @@ in {
     unset screen_user_uuid
   '';
 
-  modules.services.frp.client.proxies = [{
-    name = "charlie-screen-sharing";
-    type = "stcp";
-    secretKey = "@FRP_SCREEN_KEY@";
-    localIP = "127.0.0.1";
-    localPort = 5900;
-    transport.useEncryption = true;
-  }];
 }

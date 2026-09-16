@@ -11,7 +11,6 @@
     ./modules/relay.nix
     ./modules/ingress.nix
     ./modules/charlie-tunnel.nix
-    ./modules/sunshine-relay.nix
   ];
 
   modules = {
