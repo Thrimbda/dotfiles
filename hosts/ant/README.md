@@ -1,13 +1,15 @@
 # Ant
 
-Alibaba Cloud host copied from Acorn's server baseline, with no application services enabled.
+Ant 承担中转流量：反向 SSH、主 FRP、Sunshine QUIC FRP，以及 Axiom 网页的 HTTPS 入口。Acorn 保留常驻应用及其入口。
 
-- NixOS 26.05, x86_64, UEFI/systemd-boot, ext4 root, DHCP through systemd-networkd.
-- User `c1`, Neovim, Git, tmux, zsh and Node.js; SSH keys come from the existing `c1` profile.
-- SSH, Fail2ban, vnStat and normal system maintenance are enabled. The host firewall permits TCP 22 only.
-- Acorn's ingress, FRP, RustDesk, Auth Mini, ConstX, Cybion, Vaultwarden, bots and tunnel accounts are not imported. No application secrets or specialisations are loaded.
-- Password login and root SSH login are disabled. The `c1` operator can use sudo without a password. The shared bootstrap password is overridden with locked password hashes.
-- cloud-init preserves the hostname `ant`; NixOS owns user provisioning.
+- SSH：`ssh ant`；Charlie：`ssh charlie-tunnel`。Axiom：`ssh axiom-tunnel`。Sunshine 中转已迁入，视频帧验收仍受 Axiom 采集/编码故障阻塞。
+- 两条反向 SSH 仅监听 Ant 的 `127.0.0.1:2222/2223`。Charlie 使用受限的 `tunnel-charlie` 账户。
+- 主 FRP 使用 TCP 7000；Sunshine 专用实例使用 TCP/UDP 7001。两者强制 TLS，客户端校验 Ant 证书。
+- Axiom 网页与 FRP dashboard 继续使用原域名，DNS 指向 Ant；认证 issuer 保持 `auth.0xc1.wang`。
+- Ant 的 agenix 文件加密给其 SSH host key；私钥为 `/etc/ssh/ssh_host_ed25519_key`。
+- 密码登录与 root SSH 登录禁用，`c1` 使用公钥和免密码 sudo。构建在 Axiom 完成。
+
+[2026-09-15 迁移记录](../../docs/ant-relay-migration.md)包含端口、验证和恢复入口。下面保留初始基础镜像的安装记录；该镜像早于中转服务部署。
 
 ## Build
 

@@ -1,3 +1,7 @@
+# 当前中转入口
+
+2026-09-15 起，`charlie-tunnel` 经 Ant（`106.15.156.143`）连接。共享跳板配置为 `config/ssh/relay.conf`，LAN 优先规则仍在 `config/ssh/charlie.conf`。下文保留原始方案背景；当前部署见 [迁移记录](ant-relay-migration.md)。
+
 # charlie macOS SSH 配置指南（Cloudflare Zero Trust）
 
 本文档介绍如何在 charlie（macOS，保留地址 `192.168.10.4`）上配置 SSH、自动选路和 Cloudflare Zero Trust。

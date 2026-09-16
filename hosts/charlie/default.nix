@@ -87,6 +87,8 @@ with lib;
       OPENCODE_EXPERIMENTAL = "true";
     };
 
+    home.file.".ssh/config.d/relay.conf".source = ../../config/ssh/relay.conf;
+
     launchd.user.agents.autossh-reverse-ssh = {
       serviceConfig = {
         ProgramArguments = [
@@ -114,7 +116,7 @@ with lib;
           "/Users/c1/.ssh/id_ed25519_charlie_tunnel"
           "-R"
           "127.0.0.1:2222:127.0.0.1:22"
-          "tunnel-charlie@8.159.128.125"
+          "tunnel-charlie@106.15.156.143"
         ];
         EnvironmentVariables = {
           AUTOSSH_GATETIME = "0";

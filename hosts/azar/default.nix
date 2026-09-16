@@ -173,7 +173,7 @@ with builtins;
     services.logrotate.checkConfig = false;
 
     systemd.services.autossh-reverse-ssh = {
-      description = "Autossh reverse SSH tunnel to 8.159.128.125";
+      description = "Autossh reverse SSH tunnel to Ant";
       after = [ "network-online.target" "sshd.service" ];
       wants = [ "network-online.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
@@ -186,7 +186,7 @@ with builtins;
         Type = "simple";
         User = "c1";
         WorkingDirectory = "/home/c1";
-        ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes -R 127.0.0.1:2224:127.0.0.1:22 root@8.159.128.125";
+        ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes -R 127.0.0.1:2224:127.0.0.1:22 c1@106.15.156.143";
         Restart = "always";
         RestartSec = "10s";
       };

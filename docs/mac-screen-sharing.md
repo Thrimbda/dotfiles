@@ -42,7 +42,7 @@ Charlie 保留用户选择的显示模式。2026-09-16 复核为 HiDPI：界面�
 
 本次只部署 Mac 屏幕共享相关产物。Ant 的 `frps-sunshine` 是已经在运行的 QUIC 服务，本变更补齐其源码声明，并保留已有 Sunshine 端口、二进制版本和凭据。没有重新部署 Ant，也没有纳入 Acorn、SSH 跳板和 Axiom 的整批迁移。
 
-Ant 的其他迁移仍需独立完成；不要用本变更的局部配置覆盖当前 Ant 整机。后续完整部署必须先合并其余有效迁移声明，再在 Axiom 构建、目标机激活。Ant 和 Acorn 均不执行构建。
+Ant 其余中转已在后续迁移中补齐并完成原生部署，见 [迁移记录](ant-relay-migration.md)。Ant 和 Acorn 均不执行构建。
 
 Mac 可以独立构建本次相关的产物：
 

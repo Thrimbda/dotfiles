@@ -2,22 +2,22 @@
 
 let
   facts = import ./_facts.nix;
-  acorn = facts.acorn;
+  ant = facts.ant;
   reverseSsh = config.modules.services.reverse-ssh;
   c1ctl = pkgs.callPackage ../../../packages/c1ctl {
     heyBin = "${hey.binDir}/hey";
     autosshRemoteHost = reverseSsh.remoteHost;
     autosshRemoteUser = reverseSsh.remoteUser;
     autosshRemotePort = reverseSsh.remotePort;
-    autosshRemoteHostKey = acorn.sshHostKey;
+    autosshRemoteHostKey = ant.sshHostKey;
   };
 in {
   modules.services.reverse-ssh = {
     enable = true;
-    remoteHost = acorn.publicIp;
+    remoteHost = ant.publicIp;
     remoteUser = "c1";
-    serviceHostKey = acorn.sshHostKey;
-    knownHostName = "axiom-acorn";
+    serviceHostKey = ant.sshHostKey;
+    knownHostName = "axiom-ant";
     userKnownHostsFile = "/dev/null";
     remotePort = 2223;
   };

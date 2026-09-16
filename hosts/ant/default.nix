@@ -7,6 +7,9 @@
     "${modulesPath}/profiles/qemu-guest.nix"
     ./modules/platform.nix
     ./image.nix
+    ./modules/relay.nix
+    ./modules/ingress.nix
+    ./modules/charlie-tunnel.nix
     ./modules/sunshine-relay.nix
   ];
 

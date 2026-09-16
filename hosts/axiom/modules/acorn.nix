@@ -4,6 +4,7 @@ with lib;
 let
   facts = import ./_facts.nix;
   acorn = facts.acorn;
+  relay = facts.ant;
   userName = config.user.name;
   legionPiProfile = "${config.home.dataDir}/legion-pi/profile";
   piWebDataDir = "${config.home.dataDir}/legion-pi/pi-web";
@@ -68,8 +69,8 @@ in {
     };
   };
 
-  systemd.services.frpc-acorn-direct-route = {
-    description = "Route Axiom frpc traffic to acorn outside Clash Meta";
+  systemd.services.frpc-ant-direct-route = {
+    description = "Route Axiom frpc traffic to Ant outside Clash Meta";
     after = [ "network-online.target" "clash-verge.service" ];
     wants = [ "network-online.target" ];
     before = [ "frpc.service" ];
@@ -79,8 +80,8 @@ in {
     script = ''
       set -eu
 
-      priority=${toString acorn.frpcDirectRoutePriority}
-      target=${acorn.publicIp}/32
+      priority=${toString relay.frpcDirectRoutePriority}
+      target=${relay.publicIp}/32
 
       ip -4 rule del priority "$priority" 2>/dev/null || true
       ip -4 rule add priority "$priority" to "$target" lookup main
@@ -90,23 +91,28 @@ in {
 
   systemd.services.frpc = {
     after = [
-      acorn.frpcDirectRouteUnit
+      relay.frpcDirectRouteUnit
       "auth-mini-gateway-status-axiom.service"
       "auth-mini-gateway-opencode-axiom.service"
       "auth-mini-gateway-pi-axiom.service"
     ];
     wants = [
-      acorn.frpcDirectRouteUnit
+      relay.frpcDirectRouteUnit
       "auth-mini-gateway-status-axiom.service"
       "auth-mini-gateway-opencode-axiom.service"
       "auth-mini-gateway-pi-axiom.service"
     ];
-    requires = [ acorn.frpcDirectRouteUnit ];
+    requires = [ relay.frpcDirectRouteUnit ];
   };
 
   modules.services.frp.client = {
     enable = true;
-    serverAddr = acorn.publicIp;
+    serverAddr = relay.publicIp;
+    extraConfig.transport.tls = {
+      enable = true;
+      trustedCaFile = ../../../config/frp/ant-frps.crt;
+      serverName = relay.publicIp;
+    };
     proxies = [
       {
         name = "axiom-ssh";
