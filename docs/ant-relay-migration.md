@@ -88,7 +88,17 @@ Charlie FRPC 是以 c1 运行的系统 LaunchDaemon；AutoSSH 和 Charles FRPC �
 
 14:41 曾发生独立的全机内存耗尽：内核记录 `acceptance-c08f` 进程占用约 43 GiB RSS、约 22 GiB swap，OOM 杀掉桌面会话内的 Quickshell，继而结束整个 Hyprland 会话。该进程随后已退出，内存恢复。新图形会话未重新拉起 `hyprland-session.target`；本次已启动该 target 和 Sunshine。没有重启整机，也未追溯或改动该测试进程所属工作。
 
-音频、长时间流畅度与整机冷启动恢复尚未验收。
+### 整机重启暴露的显卡选择问题
+
+15:29 用户重启 Axiom 后，AutoSSH、FRPC、Sunshine 和图形会话都自动启动，但 Moonlight 黑屏。日志为 `Failed to create buffer from params`：Hyprland 本次选中了 AMD 核显，Sunshine 仍使用 NVIDIA。此前只固定 Sunshine 的适配器不足以保证重启后的配合。
+
+`sunshine-gpu-env.sh` 由 UWSM 在启动 Hyprland 前加载，每次通过 PCI `by-path` 链接解析当前 DRM card 编号，将 NVIDIA 排第一、AMD 排第二。不能直接把含冒号的 PCI 路径写入 `AQ_DRM_DEVICES`，因为该变量用冒号分隔设备列表。运行文件为 `/home/c1/.config/uwsm/env-hyprland.d/10-render-device.sh`，对应声明在 `sunshine-relay.nix`。
+
+同时将 `hyprland-session.target` 加入 `graphical-session.target` 的启动依赖，避免图形会话重建后只靠一次性的桌面 hook 启动 Sunshine。运行时通过 `/home/c1/.config/systemd/user/graphical-session.target.wants/hyprland-session.target` 链接生效；后续 Home Manager/systemd 部署应接管这两个用户路径。
+
+15:52 第二次重建图形会话后，UWSM 自动加载上述文件，Hyprland 渲染器为 RTX 5090，Sunshine 和 session target 自动 active，没有手动补启动。15:53 Moonlight 实际显示 3840×2160 HEVC、约 60 FPS，未见新的采集错误。AutoSSH 与 FRPC 的启动时间仍为 15:29，未受图形会话重启影响。
+
+上述修正已通过图形会话重建验证；修正后尚未再次重启整机。音频和长期性能尚未验收。
 
 ## 2026-09-15 故障记录
 
