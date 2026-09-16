@@ -11,6 +11,10 @@ let
     transport.useCompression = false;
   };
 in {
+  # Headless capture otherwise falls back to renderD128 (the AMD iGPU).
+  # Use the same NVIDIA device that renders Hyprland, with a stable PCI path.
+  services.sunshine.settings.adapter_name = "/dev/dri/by-path/pci-0000:01:00.0-render";
+
   systemd.services.frpc-sunshine = lib.recursiveUpdate
     (relay.mkService "frpc" {
       inherit (relay) auth;

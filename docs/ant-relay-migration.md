@@ -1,6 +1,6 @@
 # Acorn → Ant 中转迁移
 
-截至 2026-09-16（Asia/Shanghai），在线机器的反向 SSH、主 FRP、Sunshine FRP 和网页中转均已转向 Ant。Ant、Acorn 已部署原生 NixOS 配置。**Sunshine 图像验收未通过**：Moonlight 能建立会话，但 Axiom 的 Wayland 采集与 NVENC 编码报错，显示黑屏。
+截至 2026-09-16（Asia/Shanghai），在线机器的反向 SSH、主 FRP、Sunshine FRP 和网页中转均已转向 Ant。Ant、Acorn 已部署原生 NixOS 配置。Sunshine 的无头显卡选择已修正，Moonlight 经 Ant 实际显示 3840×2160、约 60 FPS 的 HEVC 桌面画面，远程键盘输入通过验证。
 
 ## 入口与验证
 
@@ -11,7 +11,7 @@
 | Axiom AutoSSH | `ssh axiom-tunnel` → Ant 回环 2223 → Axiom 22 | 登录返回 `axiom` |
 | Axiom FRP SSH | Ant TCP 2225 → Axiom 22 | 独立完成 SSH 主机密钥校验与登录 |
 | Charlie 屏幕共享 | Charles `127.0.0.1:15900` → Ant QUIC 7001 → Charlie 5900 | RFB 握手正常；保留 #234、#236 的 QUIC 与实体显示器设置 |
-| Axiom Sunshine | Ant QUIC 7001 → Sunshine 控制与媒体端口 | 六个代理在线；serverinfo 返回 Axiom UUID；实际图像黑屏 |
+| Axiom Sunshine | Ant QUIC 7001 → Sunshine 控制与媒体端口 | 六个代理在线；3840×2160 HEVC 约 60 FPS；远程键盘可打开终端 |
 | Axiom 网页 | 原 `.0xc1.wang` 域名 → Ant HTTPS → FRP → Axiom gateway | 三个 gateway 经 Ant 的 `/healthz` 均返回 204 |
 | Acorn 常驻应用 | `ssh azar`、原应用域名 | nginx、auth-mini、constxd、vaultwarden 均 active |
 
@@ -74,13 +74,21 @@ Axiom 未再次切换整机 generation，保留恢复后的桌面、Sunshine 和
 
 Charlie FRPC 是以 c1 运行的系统 LaunchDaemon；AutoSSH 和 Charles FRPC 是用户 LaunchAgent，依赖用户登录。对应独立 launchd 产物与 GC roots 的部署记录见 [Mac 屏幕共享](mac-screen-sharing.md)。本次未重启 Mac，也未验证 FileVault 冷启动首次解锁。
 
-## Sunshine 图像故障
+## Sunshine 图像修复与验证
 
 实际测试经 Ant 完成 Sunshine serverinfo、Moonlight 应用列表及加密会话协商；Sunshine 日志确认 `CLIENT CONNECTED`。三个 TCP、三个 UDP 代理均在线。
 
-第一轮拉流显示黑屏，日志先出现 Wayland `Frame capture failed`，随后重复 `OpenEncodeSessionEx failed: unsupported device (2)`。RTX 5090 和驱动 595.99.02 可由 nvidia-smi 正常查询；Sunshine 的编码器探测可识别 H.264、HEVC、AV1。重启 Sunshine、重新打开 Moonlight后，新会话仍出现采集失败与黑屏，测试会话已断开。
+第一轮拉流显示黑屏，日志先出现 Wayland `Frame capture failed`，随后重复 `OpenEncodeSessionEx failed: unsupported device (2)`。重启 Sunshine、新建图形会话、临时选择 NVIDIA EGL 以及软件编码都没有解决采集失败；这些测试覆盖已撤回。
 
-这证明中转和会话建立可用，**不证明视频帧可用**。未修改 GPU 驱动、桌面配置或编码器参数；下一步应围绕恢复后的 Wayland 输出与 Sunshine 采集/编码状态排查。音频、长时间画面流畅度与冷启动恢复也未验收。
+根因是无实体显示器连接时的采集设备选择：当前 Sunshine 2026.516.143833 的 `resolve_render_device()` 在没有检测到带显示器的设备时回退到 `/dev/dri/renderD128`，在 Axiom 上这对应 AMD 核显；Hyprland 则由 RTX 5090 渲染。Wayland 协议记录显示尺寸与格式协商成功，但 compositor 随后拒绝帧复制。设置 `adapter_name=/dev/dri/by-path/pci-0000:01:00.0-render`，使采集缓冲区与桌面使用同一 NVIDIA 设备后，错误消失。[对应版本源码](https://github.com/LizardByte/Sunshine/blob/v2026.516.143833/src/platform/linux/misc.cpp#L1262)
+
+15:02 的 Moonlight 实测显示 3840×2160 HEVC、约 60 FPS 的桌面画面，远程快捷键能打开终端。首次成功会话短时观察的网络丢帧为 0%，网络延迟约 38–77 ms；这不是长期性能保证。持久化修正后重启 Sunshine、重新连接仍有画面；启动阶段可见短时丢帧，未完成长时间性能评估。测试会话已结束。
+
+修正已加入 `hosts/axiom/modules/sunshine-relay.nix`。运行中的独立 Sunshine 部署通过 `/home/c1/.config/systemd/user/sunshine.service.d/50-nvidia-adapter.conf` 持久覆盖 ExecStart，保留当前二进制和完整配置，仅追加该 adapter 参数。之后纳入完整桌面配置部署时，应让原生 Sunshine 配置接管此参数并移除该用户覆盖，避免它固定旧二进制/配置路径。GPU 驱动、物理显示器模式未改动，所有临时编码、EGL、Wayland 与 Hyprland 日志设置已恢复。
+
+14:41 曾发生独立的全机内存耗尽：内核记录 `acceptance-c08f` 进程占用约 43 GiB RSS、约 22 GiB swap，OOM 杀掉桌面会话内的 Quickshell，继而结束整个 Hyprland 会话。该进程随后已退出，内存恢复。新图形会话未重新拉起 `hyprland-session.target`；本次已启动该 target 和 Sunshine。没有重启整机，也未追溯或改动该测试进程所属工作。
+
+音频、长时间流畅度与整机冷启动恢复尚未验收。
 
 ## 2026-09-15 故障记录
 
