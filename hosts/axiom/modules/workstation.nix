@@ -63,6 +63,11 @@ in
     };
   };
 
+  modules.desktop.hyprland.extraConfig = ''
+    -- Sunshine may focus its headless output before autostart applications map.
+    hl.window_rule({ name = "clash-verge-workspace", match = { class = "^(clash-verge)$" }, workspace = "1 silent" })
+  '';
+
   modules.services.healthchecks.checks.clash-verge-healthcheck = {
     description = "Clash Verge service-mode health check";
     runtimeDirectory = "axiom-healthchecks";
