@@ -7,12 +7,12 @@
 
 stdenv.mkDerivation rec {
   pname = "auth-mini";
-  version = "latest-2026-07-24";
+  version = "latest-2026-08-23";
 
   src = fetchurl {
-    url = "https://api.github.com/repos/zccz14/auth-mini/releases/assets/488807338";
+    url = "https://api.github.com/repos/zccz14/auth-mini/releases/assets/525860183";
     curlOpts = "--header Accept:application/octet-stream";
-    hash = "sha256-aAIhKH4MyncxGs9rXJdDCJ2I2RFTMrqDqfPONd6QiSI=";
+    hash = "sha256-Equym5er1VeXYN/NN2EjXVvutT3oBkAxJKedtHBWKzY=";
   };
 
   nativeBuildInputs = lib.optionals stdenv.isLinux [ autoPatchelfHook ];
