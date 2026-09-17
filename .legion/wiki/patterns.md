@@ -14,6 +14,8 @@ The final commit must still add the files normally.
 
 When validating an impure flake from a nested PR worktree, set `DOTFILES_HOME` to the worktree path and prefer a `path:` flake reference to that worktree. A stale ambient `DOTFILES_HOME` can cause generated Home Manager sources to point at an older Nix store snapshot even when the command is run from the intended worktree.
 
+For archive-based remote Nix deployments, preflight every source path referenced by the evaluated configuration, including ignored encrypted agenix files and helper source roots outside the tracked archive. `git archive` intentionally omits ignored/untracked paths, so a successful build does not prove the target has all activation-time sources. Copy only the required encrypted/source roots without decrypting them, verify their expected paths before switching, and if activation still fails, immediately return to the previous NixOS generation before correcting the source set and retrying.
+
 ## Host-Scoped NVIDIA Production Driver Pinning
 
 When a host needs a newer official NVIDIA production driver than the pinned

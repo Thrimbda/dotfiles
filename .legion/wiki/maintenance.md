@@ -44,6 +44,12 @@
 - After deploying the theme shell/terminal migration, open a fresh shell and tmux session on a host that enables zsh/tmux to confirm the default prompt and `config/tmux/theme.conf` load as expected. Repository-local validation cannot fully prove `~/.config/tmux/theme.conf` post-activation sourcing.
 - Split follow-up tasks before moving the remaining `modules/themes` responsibilities: GTK/cursor/fontconfig, wallpapers, Rofi assets, Hyprland visual polish, Doom local theme, and `hey path theme` still need clear owner modules or compatibility boundaries.
 
+## Doom Org/Norang Follow-Up
+
+- Run a GUI Emacs smoke with the real Org files: open `/Users/c1/OneDrive/cone/todo.org`, agenda, clock in/out, and any capture/refile paths the user depends on.
+- The local machine had no GPG secret key for `F0B66B40` when `doom-org-norang-minimal` was verified; recheck and import a matching secret key or replace `org-crypt-key` before relying on `:crypt:` heading encryption.
+- `doom doctor` reported missing GNU `gls`; install GNU coreutils or accept degraded Dired details. This is not a blocker for the Org/Norang workflow.
+
 ## Caelestia Shell Follow-Up
 
 - After deploying `axiom-build-caelestia-regression`, run a fresh Axiom switch/reboot smoke: confirm `hey hook startup` no longer reports Janet native module ABI mismatch, `systemctl --user is-active hyprland-session.target` is active, `pgrep -a caelestia` shows the session runner/shell, and `fc-match 'FiraCode Nerd Font Mono'` resolves to the FiraCode Nerd Font package rather than a Chinese fallback font.
