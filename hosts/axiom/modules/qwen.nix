@@ -207,7 +207,8 @@ in
 
   systemd.services.qwen3-8-27b = {
     description = "Qwen3.8 27B uncensored inference server";
-    wantedBy = [ "multi-user.target" ];
+    # Start explicitly with qwen-model start; boot and system switches must not load it.
+    wantedBy = [ ];
     after = [ "network.target" ];
     unitConfig.ConditionPathExists = qwenChatTemplate;
     serviceConfig = {
