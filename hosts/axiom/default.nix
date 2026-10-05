@@ -7,6 +7,7 @@
 
   imports = [
     ../../config/wireguard/linux.nix
+    ./modules/files.nix
     ./modules/acorn.nix
     ./modules/qwen.nix
     ./modules/autossh.nix

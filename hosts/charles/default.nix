@@ -49,7 +49,7 @@ with lib;
 
   ## Local configuration
   config = { pkgs, ... }: {
-    imports = [ ./modules/screen-sharing.nix ../../config/wireguard/darwin.nix ];
+    imports = [ ./modules/screen-sharing.nix ./modules/axiom-files.nix ../../config/wireguard/darwin.nix ];
     users.users.c1 = {
       name = "c1";
       home = "/Users/c1";

@@ -22,6 +22,9 @@ let
     ${ipt} -F wgdesk-input
     ${lib.optionalString hub ''${ipt} -A wgdesk-input -p udp --dport 51820 -j ACCEPT''}
     ${ipt} -A wgdesk-input -i wgdesk -p icmp -j ACCEPT
+    ${lib.optionalString (host == "axiom") ''
+      ${ipt} -A wgdesk-input -i wgdesk -s ${net.peers.charles.ip} -p tcp --dport 445 -j ACCEPT
+    ''}
     ${lib.optionalString (!hub) ''
       ${ipt} -A wgdesk-input -i wgdesk -s ${net.peers.charles.ip} -p tcp -m multiport --dports 47984,47989,48010 -j ACCEPT
       ${ipt} -A wgdesk-input -i wgdesk -s ${net.peers.charles.ip} -p udp -m multiport --dports 47998,47999,48000 -j ACCEPT
@@ -34,6 +37,7 @@ let
       ${ipt} -F wgdesk-forward
       ${ipt} -A wgdesk-forward -i wgdesk -o wgdesk -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
       ${ipt} -A wgdesk-forward -i wgdesk -o wgdesk -p icmp -j ACCEPT
+      ${ipt} -A wgdesk-forward -i wgdesk -o wgdesk -s ${net.peers.charles.ip} -d ${net.peers.axiom.ip} -p tcp --dport 445 -j ACCEPT
       ${ipt} -A wgdesk-forward -i wgdesk -o wgdesk -s ${net.peers.charles.ip} -d ${net.peers.axiom.ip} -p tcp -m multiport --dports 47984,47989,48010 -j ACCEPT
       ${ipt} -A wgdesk-forward -i wgdesk -o wgdesk -s ${net.peers.charles.ip} -d ${net.peers.axiom.ip} -p udp -m multiport --dports 47998,47999,48000 -j ACCEPT
       ${ipt} -A wgdesk-forward -i wgdesk -o wgdesk -s ${net.peers.charles.ip} -d ${net.peers.charlie.ip} -p tcp --dport 5900 -j ACCEPT
