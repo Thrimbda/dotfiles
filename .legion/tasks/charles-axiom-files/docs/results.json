@@ -43,7 +43,7 @@
     "relay_tx_below_quarter_of_file": true
   },
   "deployment": {
-    "axiom": "switched l9jz843bdrhai28b5d356yy629cis1bk; Result=success ExecMainStatus=0",
+    "axiom": "switched vkcljnr7j3lyk6j2j4dhz8z3w0i4qyl2; Result=success ExecMainStatus=0; share=/home/c1",
     "ant": "switched nalhqya72a7nqcx5wsvk2g87kiz78vy7",
     "charles": "switched 9my6b2cdx1fi5vj1hxdzj36qym79zyl2; darwin-rebuild exit=0",
     "charles_current_system": "9my6b2cdx1fi5vj1hxdzj36qym79zyl2",
@@ -68,5 +68,27 @@
     "both_hashes_match": true,
     "charles_switch_exit": 0,
     "charles_system": "9my6b2cdx1fi5vj1hxdzj36qym79zyl2"
+  },
+  "home_root_validation": {
+    "date": "2026-10-05",
+    "share_root": "/home/c1",
+    "client_mount": "/Users/c1/Axiom",
+    "directory_access": {
+      "Work": true,
+      "dotfiles": true,
+      ".config": true,
+      ".ssh": true
+    },
+    "root_enumerated_new_linux_directory": true,
+    "bytes_each_way": 2097152,
+    "download_seconds": 1.197,
+    "upload_fsync_seconds": 0.788,
+    "hashes_match": true,
+    "remote_created_file_uid": 1000,
+    "axiom_system": "vkcljnr7j3lyk6j2j4dhz8z3w0i4qyl2",
+    "build_result": "success/0",
+    "switch_result": "success/0",
+    "initial_direct_lookup_test": "ENOENT before directory enumeration; subsequent enumerated root probe passed",
+    "owned_fixture_removed": true
   }
 }

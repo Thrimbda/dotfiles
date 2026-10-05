@@ -40,7 +40,7 @@ in {
         "smb2 max write" = 1048576;
       };
       work = {
-        path = "${config.user.home}/Work";
+        path = config.user.home;
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
