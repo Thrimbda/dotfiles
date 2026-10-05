@@ -1,0 +1,72 @@
+{
+  "p2p-benchmark.json": {
+    "transport": "p2p",
+    "timestamp": "2026-10-04T01:07:39+0800",
+    "list_names_128_seconds": 0.2813,
+    "list_stat_128_seconds": 4.5361,
+    "read_24_small_seconds": 2.6507,
+    "download_64m_seconds": 14.8831,
+    "download_mib_s": 4.3,
+    "upload_64m_fsync_seconds": 18.872,
+    "upload_mib_s": 3.39,
+    "hashes_match": true,
+    "atomic_save_median_ms": 459.5,
+    "atomic_save_max_ms": 498.9,
+    "unicode_read": true,
+    "case_distinct": true,
+    "symlink_read": true,
+    "finder_metadata": true,
+    "client_change_visible_remote": true,
+    "remote_change_visible_seconds": 0.0969
+  },
+  "cold-start-v12.json": {
+    "cold_start_delayed_frpc_seconds": 1,
+    "connect_seconds": 25.278,
+    "selected": "P2P after verified current-process NAT success"
+  },
+  "fallback-small-file.json": {
+    "test": "XTCP unavailable redirected to STCP",
+    "small_file_read_seconds": 5.502,
+    "contents_match": true,
+    "encryption_required": true
+  },
+  "short-pause.json": {
+    "pause_seconds": 5,
+    "read_completed_seconds": 5.355,
+    "read_contents_match": true
+  },
+  "direct-path-counter.json": {
+    "native_read_bytes": 67108864,
+    "elapsed_including_relay_probes_seconds": 10.772,
+    "relay_total_tx_bytes_delta": 208860,
+    "hash_match": true,
+    "relay_tx_below_quarter_of_file": true
+  },
+  "deployment": {
+    "axiom": "switched l9jz843bdrhai28b5d356yy629cis1bk; Result=success ExecMainStatus=0",
+    "ant": "switched nalhqya72a7nqcx5wsvk2g87kiz78vy7",
+    "charles": "switched 9my6b2cdx1fi5vj1hxdzj36qym79zyl2; darwin-rebuild exit=0",
+    "charles_current_system": "9my6b2cdx1fi5vj1hxdzj36qym79zyl2",
+    "git": "isolated codex/axiom-files delivery; status tracked by GitHub PR",
+    "charles_built_system": "9my6b2cdx1fi5vj1hxdzj36qym79zyl2",
+    "charles_client": "final v13 launch agents persisted; native SMB mounted; automount unpaused",
+    "post_switch_native_read": true,
+    "axiom_observed_failed_unit": "2026-10-05 systemd-coredump OOM; Samba/FRPC/WireGuard healthy; failure state preserved"
+  },
+  "cleanup": {
+    "owned_fixture_removed": true,
+    "temporary_frp_plaintext_configs_removed": true,
+    "temporary_proxy_yaml_removed": true,
+    "pending_system_gc_root_retained": false,
+    "deployment_snapshot_retained": true
+  },
+  "post_switch_smoke": {
+    "date": "2026-10-05",
+    "bytes_each_way": 2097152,
+    "download_seconds": 1.123,
+    "upload_fsync_seconds": 1.047,
+    "both_hashes_match": true,
+    "charles_switch_exit": 0,
+    "charles_system": "9my6b2cdx1fi5vj1hxdzj36qym79zyl2"
+  }
+}
