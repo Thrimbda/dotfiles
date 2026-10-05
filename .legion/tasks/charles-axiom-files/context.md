@@ -65,3 +65,9 @@ Charles 最终 v13 系统 /nix/store/9my6b2cdx1fi5vj1hxdzj36qym79zyl2-darwin-sys
 用户回复“已解锁”，继续既有部署和提交合并授权。核对主工作区运行配置与临时快照一致；未把用户 Codex/可写 SSH 改动加入 PR。Charles darwin-rebuild switch 退出 0，/run/current-system 与 system profile 均为 9my6b2cdx1fi5vj1hxdzj36qym79zyl2，最终 agent 正常，原生挂载未暂停，SMB3.1.1/AES128GCM/强制加密确认。切换后新建唯一测试目录：2 MiB 下载 1.123s、上传+fsync 1.047s，两端哈希正确，目录已清理。仅删除本任务 pending-system GC root。
 
 Axiom/Ant generation 未变化，三项文件/网络服务均正常。Axiom 发现今天 systemd-coredump unit 的 OOM 失败；不改动该状态，不把它误报为文件服务失败或全机无 failed units。origin/master 仍为 167f3e82，开始提交并按用户授权合并。
+
+## 用户目录共享验收
+
+用户要求将现有挂载根目录改为 Axiom /home/c1。仅修改 Samba share path 与配套文档，保留共享名 work 和现有客户端/传输。部署快照保留主工作区 Codex/可写 SSH 配置；工作树 codex/axiom-home 不包含这些用户改动。Axiom build 与 switch unit 均 success/0，当前 vkcljnr7j3lyk6j2j4dhz8z3w0i4qyl2。testparm path=/home/c1，smbd/frpc/wgdesk active，监听仍只有 loopback/WireGuard。
+
+Charles 非强制卸载成功，再以 P2P 挂载同一位置，自动挂载恢复。Work、dotfiles、.config、.ssh 目录均可访问，未读取私钥。根层新建唯一目录完成 2 MiB 下载1.197s、上传+fsync0.788s，两端哈希正确，上传 UID1000，目录已清理。首次直接读取一个 Linux 新建隐藏目录返回 ENOENT；目录枚举后的普通目录和隐藏目录读取通过，缓存期限未量化。SMB3.1.1/AES128GCM/ENCRYPTION_REQUIRED 保持。准备按既有授权提交合并。

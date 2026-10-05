@@ -1,6 +1,6 @@
-# Charles 访问 Axiom 项目文件
+# Charles 访问 Axiom 用户文件
 
-Charles 登录后自动把 Axiom 的 `/home/c1/Work` 挂载到 `~/Axiom`。使用 macOS 原生 SMB 客户端；Axiom 运行 Samba，不需要 SSHFS 或 FUSE-T。
+Charles 登录后自动把 Axiom 的 `/home/c1` 挂载到 `~/Axiom`。`Work` 是其中的子目录，在 Charles 上通过 `~/Axiom/Work` 访问。使用 macOS 原生 SMB 客户端；Axiom 运行 Samba，不需要 SSHFS 或 FUSE-T。
 
 ## 使用
 
@@ -31,7 +31,7 @@ axiom-files --transport frp connect
 
 ## 配置归属
 
-- `hosts/axiom/modules/files.nix`：仅共享 Work，限定 c1 账户，SMB3 与加密必须启用，Apple 元数据扩展，账户由 age 密文自动配置；FRP STCP/XTCP 代理连接本机 Samba。
+- `hosts/axiom/modules/files.nix`：共享 `/home/c1`，限定 c1 账户，SMB3 与加密必须启用，Apple 元数据扩展，账户由 age 密文自动配置；FRP STCP/XTCP 代理连接本机 Samba。共享名 `work` 保留以兼容现有自动挂载配置。
 - `config/wireguard/linux.nix`：Axiom 和 Ant 仅允许 Charles `10.77.0.4` 到 Axiom `10.77.0.2` 的 TCP 445。
 - `hosts/charles/modules/axiom-files.nix`：FRP P2P/STCP visitor 和登录挂载 agent；`bin/axiom-files.py` 调用系统 NetFS。
 - `hosts/{axiom,charles}/secrets/`：专用 SMB 密码与 FRP 访问密钥的 age 密文。Samba 密码与系统登录密码分开；明文不出现在命令参数或仓库中。
@@ -52,7 +52,7 @@ tail -20 ~/Library/Logs/axiom-files-frpc.log
 
 期望 `SMB_VERSION=SMB_3.1.1`、`ENCRYPTION_REQUIRED=TRUE`，并显示当前加密算法。SMB 内层加密让 Ant 只转发密文。
 
-回退先运行 `axiom-files disconnect`，再移除两个 host 的 files 模块 import 和对应 WireGuard 445 规则，按正常 Nix 流程构建、switch。保留 Axiom 的 Work 目录；无需删除项目文件。旧系统 generation 可用于恢复，重新启用 SMB 时保留加密凭据。
+回退先运行 `axiom-files disconnect`，再移除两个 host 的 files 模块 import 和对应 WireGuard 445 规则，按正常 Nix 流程构建、switch。保留 Axiom 的用户目录；无需删除文件。旧系统 generation 可用于恢复，重新启用 SMB 时保留加密凭据。
 
 为保证 Axiom 本地程序修改文件后 Charles 能看到新内容，启用了 Linux kernel oplocks，并关闭不协调本地写入的 SMB leases；该选择依据实际一致性测试和 [Samba 文档](https://www.samba.org/samba/docs/4.23/man-html/smb.conf.5.html#KERNELOPLOCKS)。网络卷仍受广域网延迟影响。大型构建、依赖安装和全仓库搜索宜在 Axiom 本地执行。
 
