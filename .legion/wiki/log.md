@@ -324,3 +324,6 @@
 - Added the completed `decommission-oneex-portfolio-account` summary after PR #203 merged and its Axiom-only generation/runtime proof passed; retired stale active-adapter truth and recorded the verified host-import/agenix-secret pattern.
 - Added the active `axiom-nvidia-59591-production` summary and host-scoped NVIDIA production-driver pinning pattern after Axiom deployed and verified 595.99.02.
 - Marked `axiom-nvidia-59591-production` completed after implementation PR #220 merged.
+- Added task summary for `doom-org-norang-minimal`.
+- Added Doom Org/Norang maintenance follow-ups for active-config GUI smoke, missing `F0B66B40` GPG secret key, and optional GNU `gls`.
+- Recorded the archive-source completeness failure shield recovered during `dotfiles-reconcile-git-state-20260907`.
