@@ -49,7 +49,7 @@ with lib;
 
   ## Local configuration
   config = { pkgs, ... }: {
-    imports = [ ./modules/screen-sharing.nix ./modules/axiom-files.nix ../../config/wireguard/darwin.nix ];
+    imports = [ ./modules/screen-sharing.nix ./modules/axiom-files.nix ../../config/wireguard/darwin.nix ../../config/ssh/mutable.nix ];
     users.users.c1 = {
       name = "c1";
       home = "/Users/c1";
@@ -75,15 +75,6 @@ with lib;
       PATH = "$HOME/.opencode/bin:$PATH";
       OPENCODE_ENABLE_EXA = "1";
       OPENCODE_EXPERIMENTAL = "true";
-    };
-
-    home.file = {
-      ".local/bin/ssh-route-probe" = {
-        source = ../../bin/ssh-route-probe;
-        executable = true;
-      };
-      ".ssh/config.d/relay.conf".source = ../../config/ssh/relay.conf;
-      ".ssh/config.d/charlie.conf".source = ../../config/ssh/charlie.conf;
     };
 
     user.packages = with pkgs; [
