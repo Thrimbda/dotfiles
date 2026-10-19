@@ -32,7 +32,12 @@ in {
   launchd.daemons.desktop-wireguard = {
     serviceConfig = {
       Label = "org.nixos.desktop-wireguard";
-      ProgramArguments = [ "${start}" ];
+      # The Nix volume may mount after launchd loads this job at boot.
+      ProgramArguments = [
+        "/bin/sh"
+        "-c"
+        "/bin/wait4path ${lib.escapeShellArg start} && exec ${lib.escapeShellArg start}"
+      ];
       RunAtLoad = true;
       KeepAlive = true;
       ThrottleInterval = 5;

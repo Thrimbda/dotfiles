@@ -1,0 +1,66 @@
+#!/bin/sh
+# Seed writable SSH files; keep existing local edits on subsequent runs.
+set -eu
+umask 077
+
+if [ "$#" -gt 3 ]; then
+  echo "usage: $0 [TARGET_HOME [CONFIG_SOURCE [PROBE_SOURCE]]]" >&2
+  exit 2
+fi
+repo=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+target_home=${1:-"$HOME"}
+source_dir=${2:-"$repo/config/ssh"}
+probe_source=${3:-"$repo/bin/ssh-route-probe"}
+temporary=
+trap '[ -z "$temporary" ] || rm -f -- "$temporary"' EXIT
+
+for source in "$source_dir/config" "$source_dir/known_hosts" \
+  "$source_dir/axiom.conf" "$source_dir/charlie.conf" "$source_dir/relay.conf" \
+  "$probe_source"; do
+  [ -r "$source" ] || { echo "Cannot read $source" >&2; exit 1; }
+done
+
+mkdir -p "$target_home/.ssh/config.d" "$target_home/.local/bin"
+chmod 700 "$target_home/.ssh" "$target_home/.ssh/config.d"
+
+seed_file() {
+  source=$1 destination=$2 mode=$3
+  if [ -L "$destination" ] || [ ! -e "$destination" ]; then
+    temporary=$(mktemp "${destination}.tmp.XXXXXX")
+    if [ -L "$destination" ]; then
+      # Materialize the current contents before Home Manager removes old links.
+      cat "$destination" > "$temporary"
+    else
+      cat "$source" > "$temporary"
+    fi
+    chmod "$mode" "$temporary"
+    mv -f -- "$temporary" "$destination"
+    temporary=
+  fi
+  [ -f "$destination" ] || { echo "Not a regular file: $destination" >&2; exit 1; }
+  chmod "$mode" "$destination"
+}
+
+seed_file "$source_dir/config" "$target_home/.ssh/config" 600
+for name in axiom charlie relay; do
+  seed_file "$source_dir/$name.conf" "$target_home/.ssh/config.d/$name.conf" 600
+done
+seed_file "$probe_source" "$target_home/.local/bin/ssh-route-probe" 700
+
+# Existing configs still need the fragment entrypoint, before specific hosts.
+if ! grep -Eq '^[[:space:]]*[Ii][Nn][Cc][Ll][Uu][Dd][Ee][[:space:]]+~/.ssh/config.d/\*\.conf[[:space:]]*$' "$target_home/.ssh/config"; then
+  temporary=$(mktemp "$target_home/.ssh/config.tmp.XXXXXX")
+  printf 'Include ~/.ssh/config.d/*.conf\n\n' > "$temporary"
+  cat "$target_home/.ssh/config" >> "$temporary"
+  chmod 600 "$temporary"
+  mv -f -- "$temporary" "$target_home/.ssh/config"
+  temporary=
+fi
+
+seed_file "$source_dir/known_hosts" "$target_home/.ssh/known_hosts" 600
+while read -r host key_type key; do
+  # Never replace an existing (including hashed) trust entry.
+  if ! ssh-keygen -F "$host" -f "$target_home/.ssh/known_hosts" >/dev/null; then
+    printf '\n%s %s %s\n' "$host" "$key_type" "$key" >> "$target_home/.ssh/known_hosts"
+  fi
+done < "$source_dir/known_hosts"

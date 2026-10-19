@@ -1,0 +1,86 @@
+Include ~/.ssh/config.d/*.conf
+
+IgnoreUnknown UseKeychain
+
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+
+Host *
+   HostkeyAlgorithms +ssh-rsa
+   PubkeyAcceptedAlgorithms +ssh-rsa
+
+Host jellicles
+    Hostname 121.4.80.179
+    User siyuan
+    Port 22
+    IdentityFile ~/.ssh/id_rsa
+
+Host jellicle
+    Hostname 65.52.177.213
+    User jellicles
+    Port 22
+    ServerAliveInterval 60
+    IdentityFile ~/.ssh/id_rsa
+
+Host suchu
+    HostName 172.21.2.197
+    User suchu
+    Port 22
+    IdentityFile ~/.ssh/id_rsa
+
+Host alans
+    HostName 202.120.40.8
+    Port 30350
+    User centos
+    IdentityFile ~/.ssh/id_rsa
+
+Host dx0-wan
+    Hostname home.192217.space
+    Port 50122
+    User hobochen
+    IdentityFile ~/.ssh/id_rsa
+
+Host atlas
+    Hostname 192.168.50.227
+    User c1
+    ServerAliveInterval 60
+    IdentityFile ~/.ssh/id_ed25519
+    
+Host atlas-home
+    Hostname 192.168.51.227
+    User c1
+    ServerAliveInterval 60
+    IdentityFile ~/.ssh/id_rsa
+
+Host autumn
+    Hostname aut.ccc1.space
+    User root
+    ServerAliveInterval 60
+    IdentityFile ~/.ssh/id_rsa
+
+Host acorn
+    Hostname acorn.host.0xc1.space
+    User c1
+    ServerAliveInterval 60
+    IdentityFile ~/.ssh/id_rsa
+
+Host azar
+    Hostname 8.159.128.125
+    User c1
+    ServerAliveInterval 60
+    IdentityFile ~/.ssh/id_ed25519
+
+Host charlie
+    Hostname 192.168.10.4
+    User c1
+    ServerAliveInterval 60
+    IdentityFile ~/.ssh/id_ed25519
+
+Host charlie-tunnel
+    Hostname 127.0.0.1
+    Port 2222
+    User c1
+    ProxyJump azar
+    IdentityFile ~/.ssh/id_ed25519
