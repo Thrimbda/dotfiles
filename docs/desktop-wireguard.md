@@ -23,7 +23,7 @@ Ant 公网桌面入口只有 UDP 51820。旧桌面 FRPS 7001、Sunshine FRPC、M
 
 ## 客户端与密钥
 
-Moonlight 使用 Axiom `10.77.0.2`，沿用原配对身份。`charlie-screen` 打开 `vnc://10.77.0.3`；也可以在“屏幕共享”应用中保存该地址并选择普通或高性能模式。
+Moonlight 使用 Axiom `10.77.0.2`，沿用原配对身份。`charlie-screen` 在 Charles 本机有 `192.168.10.0/24` 地址时优先使用 Charlie 的 LAN 地址 `192.168.10.4`，否则回退到 `10.77.0.3`；两条路径都先验证 RFB banner，`--check` 只打印选择结果。也可以在“屏幕共享”应用中保存 `vnc://10.77.0.3` 并选择普通或高性能模式。
 
 每台机器使用独立 WireGuard 密钥，私钥以机器 SSH identity 加密保存于 `hosts/<host>/secrets/desktop-wireguard.age`。明文只进入权限受限的运行目录，Nix store 和 Git 仅保存密文及公钥。端点每 25 秒保活。
 
@@ -33,6 +33,8 @@ Linux 服务名为 `wg-quick-wgdesk.service`，运行目录 `/run/desktop-wiregu
 
 在 Axiom 构建 Linux system closure，复制到 Ant 后执行原生 switch；Ant 不进行构建。两台 Mac 使用各自 Darwin system closure 激活。不得通过复制或手改 `/etc/systemd/system` 整个目录拼接系统 generation。
 
+macOS 的 `org.nixos.desktop-wireguard` 用 `/bin/sh -c "/bin/wait4path <start> && exec <start>"` 启动，等待 Nix store 挂载后再执行启动脚本。直接 exec store 脚本会在开机早期失败（`EX_CONFIG`，exit 78），表现为没有 `wireguard-go` 进程、`10.77.0.3` 落入默认路由。改动位于 `config/wireguard/darwin.nix`，只部署单个 plist 不算完成，需通过 nix-darwin 激活。
+
 完整配置包含 Sunshine 的 NVENC/headless 输出、Caelestia 对虚拟显示器的 DPMS 处理，以及 PR #238 的显卡选择和每会话启动 hooks。Axiom 不再导入已退役的 RustDesk 服务模块。
 
 首次完整 switch 时，清理此前仅用于分阶段部署的 WireGuard unit 覆盖、启动 target drop-in、Sunshine 参数覆盖和手动 Home Manager 文件链接，由原生系统配置接管。其他任务的覆盖保持原状。旧 system generation 和本次专用备份用于回滚。
@@ -40,6 +42,8 @@ Linux 服务名为 `wg-quick-wgdesk.service`，运行目录 `/run/desktop-wiregu
 ## 验收与限制
 
 2026-09-16 用户确认 Moonlight 和 Mac 屏幕共享已全部验收，包括此前待验证的普通/高性能模式。本次据此撤掉桌面 FRP 并进行完整系统 switch。
+
+2026-10-19 复核 Charles 的 WireGuard 启动故障：LaunchDaemon 曾在 Nix store 挂载前直接执行 store 脚本而失败（`EX_CONFIG`，exit 78），导致 `10.77.0.3` 没有 WireGuard 路由、屏幕共享超时。已改为 `wait4path` 包装并通过 `darwin-rebuild switch` 激活；`charlie-screen` 同时增加 LAN 优先、RFB 校验和 `--check`。本轮只验证了服务重载，新配置下的整机冷启动仍未复测。
 
 此前已直接验证四个 peer 握手、Sunshine serverinfo、Apple RFB banner、Moonlight 实际画面及私有源地址、Ant UDP 转发计数、Clash 重载后的路由，以及拒绝通过专网访问两台服务端的 SSH。Axiom 服务重启恢复、Charlie LaunchDaemon 被终止后自动重启并重新握手均通过。
 
