@@ -72,11 +72,13 @@ in {
     };
   };
 
-  # release.sh switches `current`; restarting here keeps the release sudo-free.
+  # release.sh renames a new `current` into appRoot; restarting here keeps releases
+  # sudo-free. The directory is watched because replacing an existing symlink does
+  # not trigger PathChanged on the link itself.
   systemd.paths.lol-replay-release = {
     wantedBy = [ "multi-user.target" ];
     pathConfig = {
-      PathChanged = "${appRoot}/current";
+      PathChanged = appRoot;
       Unit = "lol-replay-restart.service";
     };
   };
