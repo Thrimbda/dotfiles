@@ -11,8 +11,8 @@ rustPlatform.buildRustPackage rec {
   src = fetchFromGitHub {
     owner = "Thrimbda";
     repo = "auth-mini-gateway";
-    rev = "e92f0ebdbd203465d09a4698da56a636094f7246";
-    hash = "sha256-BZVkgRxzNqoZmhq7qq2JawXVOtpywJ7hP5rQwvCI+bA=";
+    rev = "195bfeeada3ef0a7d93ac16d2fa6cbed42290092";
+    hash = "sha256-h+VhegyM16TybH8tzamE6KTg0LOho0kHFjG9QnNnZ8g=";
   };
 
   cargoHash = "sha256-0x3JtygGkt9kbhWzi57+aSPlhG7XiAqZnTXyPW4mk+I=";
