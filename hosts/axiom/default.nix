@@ -9,6 +9,7 @@
     ../../config/wireguard/linux.nix
     ./modules/files.nix
     ./modules/acorn.nix
+    ./modules/lol-replay.nix
     ./modules/qwen.nix
     ./modules/autossh.nix
     ./modules/sunshine.nix

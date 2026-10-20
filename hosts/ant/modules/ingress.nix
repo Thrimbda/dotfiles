@@ -140,7 +140,7 @@ in {
       enable = true;
       email = "siyuan.arc@gmail.com";
       credentialsFile = ../secrets/cloudflare-dns.env.age;
-      hosts = [ "status-axiom.0xc1.wang" "opencode-axiom.0xc1.wang" "frps-acorn.0xc1.wang" ];
+      hosts = [ "status-axiom.0xc1.wang" "opencode-axiom.0xc1.wang" "frps-acorn.0xc1.wang" "lol.0xc1.wang" ];
     };
   };
   modules.services.auth-mini-gateway = {
@@ -157,5 +157,7 @@ in {
     nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances // {
     "status-axiom.0xc1.wang" = mkNodeProxyVhost "status-axiom.0xc1.wang" 18080 "";
     "opencode-axiom.0xc1.wang" = mkNodeProxyVhost "opencode-axiom.0xc1.wang" 18081 "";
+    # Authentication is the gateway's on Axiom; this only terminates TLS.
+    "lol.0xc1.wang" = mkNodeProxyVhost "lol.0xc1.wang" 18083 "";
   };
 }

@@ -41,7 +41,9 @@ let
         Type = "simple";
         User = cfg.user;
         Group = cfg.user;
-        EnvironmentFile = config.age.secrets.auth-mini-gateway-env.path;
+        # Later files override earlier ones, so an instance can replace the shared
+        # cookie secret and allowlist with its own.
+        EnvironmentFile = [ config.age.secrets.auth-mini-gateway-env.path ] ++ (instance.environmentFiles or []);
         ExecStart = "${cfg.package}/bin/auth-mini-gateway";
         Restart = "on-failure";
         RestartSec = "5s";
