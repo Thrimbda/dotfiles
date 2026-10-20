@@ -5,10 +5,7 @@ let
   facts = import ./_facts.nix;
   acorn = facts.acorn;
   relay = facts.ant;
-  userName = config.user.name;
   legionPiProfile = "${config.home.dataDir}/legion-pi/profile";
-  piWebDataDir = "${config.home.dataDir}/legion-pi/pi-web";
-  piWebUserManagerUnit = "user@${toString config.users.users.${userName}.uid}.service";
   gatewayEnvironment = {
     GATEWAY_MAX_DOWNSTREAM_CONNECTIONS = "256";
     GATEWAY_MAX_ACTIVE_UPSTREAMS = "128";
@@ -21,20 +18,11 @@ in {
   networking.hosts.${acorn.publicIp} = [ "constx.0xc1.wang" ];
 
   modules.shell.zsh.envInit = mkAfter ''
-    export PATH="${legionPiProfile}/runtime/node_modules/.bin:$PATH"
     export PI_CODING_AGENT_DIR="${legionPiProfile}/agent"
     export PI_CODING_AGENT_SESSION_DIR="${legionPiProfile}/sessions"
-    export PI_SUBAGENT_PI_BINARY="${legionPiProfile}/runtime/node_modules/.bin/pi"
+    export PI_SUBAGENT_PI_BINARY="${config.home.binDir}/pi"
     export PI_LENS_HOME="${legionPiProfile}/.legionmind/pi-lens"
-    export PI_WEB_DATA_DIR="${piWebDataDir}"
-    export PI_WEB_HOST="127.0.0.1"
-    export PI_WEB_PORT="8504"
   '';
-
-  assertions = [{
-    assertion = all (port: !(elem port config.networking.firewall.allowedTCPPorts)) [ 7782 8504 ];
-    message = "axiom PI WEB and auth gateway ports must remain closed in the host firewall";
-  }];
 
   modules.services.auth-mini-gateway = {
     enable = true;
@@ -55,15 +43,6 @@ in {
         upstreamProtocol = "http1";
         dependencies = [ "opencode-server.service" ];
         stateDirectory = "auth-mini-gateway-opencode-axiom";
-        extraEnvironment = gatewayEnvironment;
-      };
-      pi-axiom = {
-        publicHost = "pi-axiom.0xc1.wang";
-        port = 7782;
-        upstreamUrl = "http://127.0.0.1:8504";
-        upstreamProtocol = "http1";
-        dependencies = [ piWebUserManagerUnit ];
-        stateDirectory = "auth-mini-gateway-pi-axiom";
         extraEnvironment = gatewayEnvironment;
       };
     };
@@ -94,13 +73,11 @@ in {
       relay.frpcDirectRouteUnit
       "auth-mini-gateway-status-axiom.service"
       "auth-mini-gateway-opencode-axiom.service"
-      "auth-mini-gateway-pi-axiom.service"
     ];
     wants = [
       relay.frpcDirectRouteUnit
       "auth-mini-gateway-status-axiom.service"
       "auth-mini-gateway-opencode-axiom.service"
-      "auth-mini-gateway-pi-axiom.service"
     ];
     requires = [ relay.frpcDirectRouteUnit ];
   };
@@ -134,13 +111,6 @@ in {
         localIP = "127.0.0.1";
         localPort = 7780;
         remotePort = 18081;
-      }
-      {
-        name = "axiom-pi-web-http";
-        type = "tcp";
-        localIP = "127.0.0.1";
-        localPort = 7782;
-        remotePort = 18082;
       }
     ];
   };
