@@ -140,7 +140,7 @@ in {
       enable = true;
       email = "siyuan.arc@gmail.com";
       credentialsFile = ../secrets/cloudflare-dns.env.age;
-      hosts = [ "status-axiom.0xc1.wang" "opencode-axiom.0xc1.wang" "pi-axiom.0xc1.wang" "frps-acorn.0xc1.wang" ];
+      hosts = [ "status-axiom.0xc1.wang" "opencode-axiom.0xc1.wang" "frps-acorn.0xc1.wang" ];
     };
   };
   modules.services.auth-mini-gateway = {
@@ -153,23 +153,9 @@ in {
       databaseFile = "${instance.dbName}.sqlite";
     }) gatewayInstances;
   };
-  # SameSite cookies do not prevent sibling-origin WebSocket handshakes.
-  services.nginx.commonHttpConfig = ''
-    map "$http_upgrade:$http_origin" $pi_axiom_websocket_origin_rejected {
-      default 0;
-      ~*^websocket:https://pi-axiom\.0xc1\.wang$ 0;
-      ~*^websocket: 1;
-    }
-  '';
-
   services.nginx.virtualHosts = mapAttrs' (_: instance:
     nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances // {
     "status-axiom.0xc1.wang" = mkNodeProxyVhost "status-axiom.0xc1.wang" 18080 "";
     "opencode-axiom.0xc1.wang" = mkNodeProxyVhost "opencode-axiom.0xc1.wang" 18081 "";
-    "pi-axiom.0xc1.wang" = mkNodeProxyVhost "pi-axiom.0xc1.wang" 18082 ''
-      if ($pi_axiom_websocket_origin_rejected) {
-        return 403;
-      }
-    '';
   };
 }
