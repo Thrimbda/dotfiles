@@ -19,7 +19,8 @@ let
     SESSION_TOUCH_INTERVAL_SECONDS = "3600";
   };
 in {
-  # Own cookie secret and an allowlist of c1@ntnl.io only, overriding the shared file.
+  # Own cookie secret and an allowlist of c1@ntnl.io and siyuan.arc@gmail.com,
+  # overriding the shared file.
   age.secrets.lol-replay-gateway-env = {
     owner = config.modules.services.auth-mini-gateway.user;
     group = config.modules.services.auth-mini-gateway.user;
