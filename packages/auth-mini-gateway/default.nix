@@ -6,13 +6,13 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "auth-mini-gateway";
-  version = "0.1.0-unstable-2026-07-30";
+  version = "0.1.0-unstable-2026-10-20";
 
   src = fetchFromGitHub {
     owner = "Thrimbda";
     repo = "auth-mini-gateway";
-    rev = "e1ea3e77fc39612b7418a3a44db5e2cc2b8618d4";
-    hash = "sha256-gkaFhFbPk/oyyYrnOJzeRs0oexMQTMH7y5Ci3exqPxk=";
+    rev = "e92f0ebdbd203465d09a4698da56a636094f7246";
+    hash = "sha256-BZVkgRxzNqoZmhq7qq2JawXVOtpywJ7hP5rQwvCI+bA=";
   };
 
   cargoHash = "sha256-0x3JtygGkt9kbhWzi57+aSPlhG7XiAqZnTXyPW4mk+I=";

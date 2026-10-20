@@ -7,12 +7,17 @@
 
 stdenv.mkDerivation rec {
   pname = "auth-mini";
-  version = "latest-2026-07-24";
+  version = "latest-2026-10-05-156484e";
 
+  # zccz14/auth-mini publishes Rust binaries under the moving `latest` release
+  # and replaces the asset on every push to main, so an asset id stops
+  # resolving once upstream republishes. This asset was built by the release
+  # workflow from zccz14/auth-mini@156484e69d00487151a283edf96930fac9bc9cae
+  # (2026-10-05); its sha256 matches the published .sha256 asset.
   src = fetchurl {
-    url = "https://api.github.com/repos/zccz14/auth-mini/releases/assets/488807338";
+    url = "https://api.github.com/repos/zccz14/auth-mini/releases/assets/612783099";
     curlOpts = "--header Accept:application/octet-stream";
-    hash = "sha256-aAIhKH4MyncxGs9rXJdDCJ2I2RFTMrqDqfPONd6QiSI=";
+    hash = "sha256-EP3k3hXaMVxvvsx7najo+2/89UNobhygtHLutqssocw=";
   };
 
   nativeBuildInputs = lib.optionals stdenv.isLinux [ autoPatchelfHook ];
