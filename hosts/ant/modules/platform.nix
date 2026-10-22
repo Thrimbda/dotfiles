@@ -8,7 +8,12 @@
   user.hashedPassword = "!";
   users.users.root.initialPassword = lib.mkForce null;
   users.users.root.hashedPassword = "!";
-  services.openssh.settings.PermitRootLogin = "no";
+  services.openssh.settings = {
+    PermitRootLogin = "no";
+    # Reap unreachable tunnel clients so stale sessions release 2222/2223.
+    ClientAliveInterval = 30;
+    ClientAliveCountMax = 3;
+  };
   security.sudo.extraRules = [{
     users = [ "c1" ];
     commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
