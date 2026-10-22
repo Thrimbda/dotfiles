@@ -48,6 +48,8 @@ in {
   systemd.tmpfiles.rules = [
     "d ${appRoot} 0755 ${userName} users -"
     "d ${liveMirror} 0750 ${userName} users -"
+    # Watched wallets' live fills (replay-server's wallet poller), kept beside the mirror.
+    "d ${liveMirror}-wallets 0750 ${userName} users -"
   ];
 
   systemd.services.lol-replay = {
@@ -73,10 +75,10 @@ in {
       RestartSec = "5s";
       CacheDirectory = "lol-replay";
       UMask = "0027";
-      # Reads the repository and releases; writes only its cache and the live mirror.
+      # Reads the repository and releases; writes only its cache, the live mirror and its wallets file.
       ProtectHome = "read-only";
       ProtectSystem = "strict";
-      ReadWritePaths = [ liveMirror ];
+      ReadWritePaths = [ liveMirror "${liveMirror}-wallets" ];
       PrivateTmp = true;
       PrivateDevices = true;
       NoNewPrivileges = true;
