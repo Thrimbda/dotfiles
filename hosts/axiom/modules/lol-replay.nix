@@ -3,7 +3,9 @@
 # LoL replay workbench at lol.0xc1.wang, for C1's own research.
 # The server reads research data live from the repository; releases of the binary and
 # frontend come from laugh-out-loud/replay-server/release.sh into appRoot.
-# Path: Ant nginx (TLS) -> frps 18083 -> frpc -> gateway 7783 -> server 7790.
+# Path: Ant nginx (TLS, auth-mini gateway in adapter mode) -> frps 18083 -> frpc -> server 7790.
+# The live paths (/live/*, /api/wallets*) go from Ant to the lol-live instance on AWS instead
+# (laugh-out-loud replay-server/deploy/aws); see hosts/ant/modules/ingress.nix.
 #
 # Live view: oracle-trader runs on the GRID Hub host (AWS eu-west-1, i-089e6a0595feb271b) and
 # trader-tap serves its journal directory read-only on that host's 127.0.0.1:17790. The tunnel
@@ -19,24 +21,7 @@ let
   liveMirror = "/var/lib/lol-replay/live";
   tapLocalPort = 17791;
   hubInstance = "i-089e6a0595feb271b";
-  gatewayPort = 7783;
-  gatewayEnvironment = {
-    GATEWAY_MAX_DOWNSTREAM_CONNECTIONS = "256";
-    GATEWAY_MAX_ACTIVE_UPSTREAMS = "128";
-    GATEWAY_MAX_BLOCKING_RESOLVERS = "8";
-    TRUSTED_PROXY_CIDRS = "";
-    SESSION_ABSOLUTE_TTL_SECONDS = "2592000";
-    SESSION_TOUCH_INTERVAL_SECONDS = "3600";
-  };
 in {
-  # Own cookie secret and an allowlist of c1@ntnl.io and siyuan.arc@gmail.com,
-  # overriding the shared file.
-  age.secrets.lol-replay-gateway-env = {
-    owner = config.modules.services.auth-mini-gateway.user;
-    group = config.modules.services.auth-mini-gateway.user;
-    mode = "0400";
-  };
-
   # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_REGION of IAM user lol-live-tunnel; read by
   # systemd before it drops to the tunnel's dynamic user.
   age.secrets.lol-live-tunnel-aws = {
@@ -151,28 +136,15 @@ in {
     script = "${pkgs.systemd}/bin/systemctl restart lol-replay.service";
   };
 
-  modules.services.auth-mini-gateway.instances.lol-replay = {
-    publicHost = "lol.0xc1.wang";
-    port = gatewayPort;
-    upstreamUrl = "http://127.0.0.1:${toString serverPort}";
-    upstreamProtocol = "http1";
-    dependencies = [ "lol-replay.service" ];
-    stateDirectory = "auth-mini-gateway-lol-replay";
-    environmentFiles = [ config.age.secrets.lol-replay-gateway-env.path ];
-    extraEnvironment = gatewayEnvironment;
-  };
-
+  # No gateway here: Ant authenticates every request before it reaches this port, and frps keeps
+  # 18083 behind Ant's firewall.
   modules.services.frp.client.proxies = [{
     name = "axiom-lol-replay-http";
     type = "tcp";
     localIP = "127.0.0.1";
-    localPort = gatewayPort;
+    localPort = serverPort;
     remotePort = 18083;
   }];
-  systemd.services.frpc = {
-    after = [ "auth-mini-gateway-lol-replay.service" ];
-    wants = [ "auth-mini-gateway-lol-replay.service" ];
-  };
 
   modules.services.gatus = {
     endpoints = [{
@@ -183,8 +155,8 @@ in {
       conditions = [ "[STATUS] == 200" "[BODY].ok == true" ];
       extra-labels = config.modules.services.gatus.labels // { service = "lol-replay"; };
     }];
-    # Anonymous requests follow the gateway's login redirect: this checks TLS, the
-    # tunnel and the gateway, not the data behind them.
+    # Anonymous requests follow Ant's login redirect: this checks TLS and Ant's gateway, not
+    # the data behind them.
     publicEndpoints = [{
       name = "lol-replay-web";
       service = "lol-replay";
