@@ -21,6 +21,8 @@ let
   liveMirror = "/var/lib/lol-replay/live";
   tapLocalPort = 17791;
   hubInstance = "i-089e6a0595feb271b";
+  worldsDir = "${repo}/research/replay/out/worlds";
+  worldsS3 = "s3://ntnl-oracle-trader-prod-deploy-524909477426-eu-west-1/lol-live-data/worlds";
 in {
   # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_REGION of IAM user lol-live-tunnel; read by
   # systemd before it drops to the tunnel's dynamic user.
@@ -117,6 +119,50 @@ in {
       LockPersonality = true;
       SystemCallArchitectures = "native";
       MemoryMax = "256M";
+    };
+  };
+
+  # Worlds oracle replays for lol.0xc1.space: the lol-live instance on AWS pulls them from S3
+  # (laugh-out-loud replay-server/deploy/aws). Pushed whenever worlds_oracle.py rewrites the
+  # manifest; files first, manifest last. IAM user lol-worlds-push may only write that prefix.
+  age.secrets.lol-worlds-push-aws = {
+    owner = "root";
+    mode = "0400";
+  };
+  systemd.paths.lol-worlds-push = {
+    wantedBy = [ "multi-user.target" ];
+    pathConfig = {
+      PathChanged = "${worldsDir}/manifest.json";
+      Unit = "lol-worlds-push.service";
+    };
+  };
+  systemd.services.lol-worlds-push = {
+    description = "Push the Worlds oracle replays to S3 for lol.0xc1.space";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    path = [ pkgs.awscli2 ];
+    environment = {
+      AWS_CONFIG_FILE = "/dev/null";
+      AWS_SHARED_CREDENTIALS_FILE = "/dev/null";
+      HOME = "/tmp";
+    };
+    script = ''
+      # worlds_oracle.py writes the manifest after the files; let it finish.
+      sleep 10
+      aws s3 sync --only-show-errors --delete --exclude manifest.json ${worldsDir}/ ${worldsS3}/
+      aws s3 cp --only-show-errors ${worldsDir}/manifest.json ${worldsS3}/manifest.json
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      # Reads the repository under the user's home.
+      User = userName;
+      EnvironmentFile = config.age.secrets.lol-worlds-push-aws.path;
+      Restart = "on-failure";
+      RestartSec = "60s";
+      ProtectHome = "read-only";
+      ProtectSystem = "strict";
+      PrivateTmp = true;
+      NoNewPrivileges = true;
     };
   };
 
