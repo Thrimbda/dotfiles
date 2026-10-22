@@ -8,7 +8,7 @@ in {
   "codex-ntnl-key.age".publicKeys = [ acorn axiom ];
   "frp-token.age".publicKeys = [ acorn axiom ];
   "auth-mini-gateway-env.age".publicKeys = [ axiom ];
-  "lol-replay-gateway-env.age".publicKeys = [ axiom ];
   "lol-live-tunnel-aws.age".publicKeys = [ axiom acorn ];
+  "lol-worlds-push-aws.age".publicKeys = [ axiom ];
   "rustdesk-password.age".publicKeys = [ axiom ];
 }

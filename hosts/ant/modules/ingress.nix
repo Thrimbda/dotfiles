@@ -98,6 +98,78 @@ let
     extraConfig = instance.vhostExtraConfig;
   };
 
+  # lol.0xc1.wang: the gateway runs here in adapter mode, so one session covers both backends.
+  # Research replays come from Axiom (frp 18083, lol-replay-server), the live view and the
+  # watchlist from the lol-live instance on AWS (frp 18084). Neither backend authenticates; their
+  # frps ports are closed in the firewall (platform.nix), so only this nginx reaches them.
+  # Rollback of the live paths to Axiom, effective on the next request (no reload):
+  #   sudo touch /var/lib/lol-ingress/live-on-axiom     (undo: sudo rm it)
+  # Axiom must have its live view enabled (LIVE_TAP) for that to serve anything.
+  lol = {
+    hostName = "lol.0xc1.wang";
+    port = 7782;
+    replayUpstream = "http://127.0.0.1:18083";
+    liveUpstream = "http://127.0.0.1:18084";
+    liveOnAxiomFlag = "/var/lib/lol-ingress/live-on-axiom";
+  };
+
+  lolGateway = lol // { protectedUpstream = null; };
+
+  lolProtected = upstream: {
+    proxyPass = upstream;
+    recommendedProxySettings = false;
+    extraConfig = ''
+      auth_request /_auth;
+      error_page 401 = /__auth_mini_login_redirect;
+      error_page 403 = @auth_mini_forbidden;
+      proxy_http_version 1.1;
+      proxy_set_header Host ${lol.hostName};
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-For $remote_addr;
+      proxy_set_header Cookie "";
+      proxy_set_header Connection "";
+      proxy_request_buffering off;
+      # Live SSE streams: pass through unbuffered and keep them open.
+      proxy_buffering off;
+      proxy_cache off;
+      gzip off;
+      proxy_connect_timeout 10s;
+      proxy_send_timeout 24h;
+      proxy_read_timeout 24h;
+      proxy_next_upstream off;
+      proxy_redirect off;
+    '';
+  };
+
+  lolVhost = {
+    onlySSL = true;
+    useACMEHost = lol.hostName;
+    extraConfig = ''
+      client_max_body_size 1m;
+      set $lol_live ${lol.liveUpstream};
+      if (-f ${lol.liveOnAxiomFlag}) {
+        set $lol_live ${lol.replayUpstream};
+      }
+    '';
+    locations = mkGatewayRoutes lolGateway // {
+      "= /__auth_mini_login_redirect" = {
+        proxyPass = "${gatewayUrl lolGateway}/login";
+        extraConfig = gatewayForwardHeaders + ''
+          internal;
+          proxy_set_header X-Original-URI $request_uri;
+        '';
+      };
+      "@auth_mini_forbidden".extraConfig = ''
+        return 403 "This account has no access to lol.0xc1.wang\n";
+      '';
+      "/" = lolProtected lol.replayUpstream;
+      # Every live and watchlist route of replay-server (src/main.rs).
+      "^~ /live/" = lolProtected "$lol_live";
+      "= /api/wallets" = lolProtected "$lol_live";
+      "^~ /api/wallets/" = lolProtected "$lol_live";
+    };
+  };
+
   mkNodeProxyVhost = hostName: remotePort: extraLocationConfig: {
     onlySSL = true;
     useACMEHost = hostName;
@@ -151,13 +223,33 @@ in {
       stateDirectory = "auth-mini-gateway";
       stateDirectoryMode = "0750";
       databaseFile = "${instance.dbName}.sqlite";
-    }) gatewayInstances;
+    }) gatewayInstances // {
+      lol-replay = {
+        publicHost = lol.hostName;
+        inherit (lol) port;
+        stateDirectory = "auth-mini-gateway";
+        stateDirectoryMode = "0750";
+        databaseFile = "lol-replay.sqlite";
+        # Own cookie secret and the allowlist c1@ntnl.io + siyuan.arc@gmail.com.
+        environmentFiles = [ config.age.secrets.lol-replay-gateway-env.path ];
+        extraEnvironment = {
+          SESSION_ABSOLUTE_TTL_SECONDS = "2592000";
+          SESSION_TOUCH_INTERVAL_SECONDS = "3600";
+        };
+      };
+    };
   };
+  age.secrets.lol-replay-gateway-env = {
+    owner = config.modules.services.auth-mini-gateway.user;
+    group = config.modules.services.auth-mini-gateway.user;
+    mode = "0400";
+  };
+  # Holds the live-on-axiom rollback flag; nginx only reads it.
+  systemd.tmpfiles.rules = [ "d /var/lib/lol-ingress 0755 root root -" ];
   services.nginx.virtualHosts = mapAttrs' (_: instance:
     nameValuePair instance.hostName (mkGatewayVhost instance)) gatewayInstances // {
     "status-axiom.0xc1.wang" = mkNodeProxyVhost "status-axiom.0xc1.wang" 18080 "";
     "opencode-axiom.0xc1.wang" = mkNodeProxyVhost "opencode-axiom.0xc1.wang" 18081 "";
-    # Authentication is the gateway's on Axiom; this only terminates TLS.
-    "lol.0xc1.wang" = mkNodeProxyVhost "lol.0xc1.wang" 18083 "";
+    "lol.0xc1.wang" = lolVhost;
   };
 }
