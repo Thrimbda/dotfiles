@@ -11,6 +11,14 @@
 # Hub host); the server mirrors the files into liveMirror and streams them to the browser.
 # The tunnel's IAM user (lol-live-tunnel) may only start sessions of the SSM document
 # NTNL-LolLiveTapForward, whose remote port is fixed to 17790, on that one instance.
+#
+# Watched wallets' fills: wallet-feed (laugh-out-loud trader/crates/wallet-feed) runs on its own
+# instance (eu-west-1, t4g.micro, Name=lol-wallet-feed, not the Hub host), subscribes to the
+# Polymarket exchanges' OrderFilled logs on Polygon and serves the watched wallets' fills on that
+# instance's 127.0.0.1:17792. A second tunnel forwards it to 127.0.0.1:17792 here; the server keeps a
+# copy in ${liveMirror}-wallets/chain and sends the watchlist back over the same connection. The same
+# IAM user may also start NTNL-LolWalletFeedForward (remote port fixed to 17792) on that instance.
+# LIVE_WALLETS=poll in the server's environment goes back to polling the data API.
 let
   userName = config.user.name;
   repo = "${config.user.home}/Work/laugh-out-loud";
@@ -19,6 +27,44 @@ let
   liveMirror = "/var/lib/lol-replay/live";
   tapLocalPort = 17791;
   hubInstance = "i-089e6a0595feb271b";
+  feedLocalPort = 17792;
+  feedInstance = "i-04eb3bc6c8850c519";
+  # An SSM port forward with lol-live-tunnel's key; restarts by itself when a session ends, and the
+  # server reconnects to it on its own.
+  ssmForward = { description, instance, document, localPort }: {
+    inherit description;
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.awscli2 pkgs.ssm-session-manager-plugin ];
+    environment = {
+      AWS_CONFIG_FILE = "/dev/null";
+      AWS_SHARED_CREDENTIALS_FILE = "/dev/null";
+      HOME = "/tmp";
+    };
+    serviceConfig = {
+      Type = "simple";
+      DynamicUser = true;
+      EnvironmentFile = config.age.secrets.lol-live-tunnel-aws.path;
+      ExecStart = "${pkgs.awscli2}/bin/aws ssm start-session --target ${instance} --document-name ${document} --parameters localPortNumber=${toString localPort}";
+      Restart = "always";
+      RestartSec = "5s";
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      PrivateDevices = true;
+      NoNewPrivileges = true;
+      CapabilityBoundingSet = "";
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK" ];
+      RestrictNamespaces = true;
+      LockPersonality = true;
+      SystemCallArchitectures = "native";
+      MemoryMax = "256M";
+    };
+  };
   gatewayPort = 7783;
   gatewayEnvironment = {
     GATEWAY_MAX_DOWNSTREAM_CONNECTIONS = "256";
@@ -65,6 +111,7 @@ in {
       REPLAY_CACHE = "/var/cache/lol-replay";
       LIVE_TAP = "127.0.0.1:${toString tapLocalPort}";
       LIVE_MIRROR = liveMirror;
+      LIVE_WALLETS_FEED = "127.0.0.1:${toString feedLocalPort}";
       RUST_LOG = "info";
     };
     serviceConfig = {
@@ -75,7 +122,8 @@ in {
       RestartSec = "5s";
       CacheDirectory = "lol-replay";
       UMask = "0027";
-      # Reads the repository and releases; writes only its cache, the live mirror and its wallets file.
+      # Reads the repository and releases; writes only its cache, the live mirror and its wallets
+      # directory (the watchlist, the poller's file and the copy of wallet-feed's in chain/).
       ProtectHome = "read-only";
       ProtectSystem = "strict";
       ReadWritePaths = [ liveMirror "${liveMirror}-wallets" ];
@@ -98,41 +146,20 @@ in {
     };
   };
 
-  # SSM port forward to trader-tap on the GRID Hub host. Restarts by itself when a session ends;
-  # the server reconnects to it on its own and resumes from its mirror's sizes.
-  systemd.services.lol-live-tunnel = {
+  # SSM port forward to trader-tap on the GRID Hub host; the server resumes from its mirror's sizes.
+  systemd.services.lol-live-tunnel = ssmForward {
     description = "SSM port forward to trader-tap on the GRID Hub host (127.0.0.1:${toString tapLocalPort})";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
-    path = [ pkgs.awscli2 pkgs.ssm-session-manager-plugin ];
-    environment = {
-      AWS_CONFIG_FILE = "/dev/null";
-      AWS_SHARED_CREDENTIALS_FILE = "/dev/null";
-      HOME = "/tmp";
-    };
-    serviceConfig = {
-      Type = "simple";
-      DynamicUser = true;
-      EnvironmentFile = config.age.secrets.lol-live-tunnel-aws.path;
-      ExecStart = "${pkgs.awscli2}/bin/aws ssm start-session --target ${hubInstance} --document-name NTNL-LolLiveTapForward --parameters localPortNumber=${toString tapLocalPort}";
-      Restart = "always";
-      RestartSec = "5s";
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      PrivateDevices = true;
-      NoNewPrivileges = true;
-      CapabilityBoundingSet = "";
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK" ];
-      RestrictNamespaces = true;
-      LockPersonality = true;
-      SystemCallArchitectures = "native";
-      MemoryMax = "256M";
-    };
+    instance = hubInstance;
+    document = "NTNL-LolLiveTapForward";
+    localPort = tapLocalPort;
+  };
+
+  # SSM port forward to wallet-feed on its own instance; the server resumes from its copy's size.
+  systemd.services.lol-wallet-feed-tunnel = ssmForward {
+    description = "SSM port forward to wallet-feed on the lol-wallet-feed instance (127.0.0.1:${toString feedLocalPort})";
+    instance = feedInstance;
+    document = "NTNL-LolWalletFeedForward";
+    localPort = feedLocalPort;
   };
 
   # release.sh renames a new `current` into appRoot; restarting here keeps releases
