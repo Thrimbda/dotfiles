@@ -3,7 +3,6 @@ let
 in {
   "desktop-wireguard.age".publicKeys = [ ant ];
   "auth-mini-gateway-env.age".publicKeys = [ ant ];
-  "lol-replay-gateway-env.age".publicKeys = [ ant ];
   "cloudflare-dns.env.age".publicKeys = [ ant ];
   "frp-token.age".publicKeys = [ ant ];
   "frps-tls-key.age".publicKeys = [ ant ];
