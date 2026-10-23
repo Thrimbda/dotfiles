@@ -8,6 +8,10 @@
   user.hashedPassword = "!";
   users.users.root.initialPassword = lib.mkForce null;
   users.users.root.hashedPassword = "!";
+  # Keep client-alive deadlines running while dead reverse tunnels are probed.
+  programs.ssh.package = pkgs.openssh.overrideAttrs (old: {
+    patches = (old.patches or []) ++ [ ./openssh-client-alive-deadline.patch ];
+  });
   services.openssh.settings = {
     PermitRootLogin = "no";
     # Reap unreachable tunnel clients so stale sessions release 2222/2223.

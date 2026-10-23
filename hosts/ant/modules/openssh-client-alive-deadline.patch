@@ -1,0 +1,32 @@
+--- a/serverloop.c
++++ b/serverloop.c
+@@ -200,8 +200,8 @@
+ 		/* Time we last heard from the client OR sent a keepalive */
+ 		if (last_client_time == 0)
+ 			last_client_time = now;
+-		ptimeout_deadline_sec(&timeout, options.client_alive_interval);
+-		/* XXX ? deadline_monotime(last_client_time + alive_interval) */
++		ptimeout_deadline_monotime(&timeout,
++		    last_client_time + options.client_alive_interval);
+ 		client_alive_scheduled = 1;
+ 	}
+ 
+@@ -239,13 +239,12 @@
+ 	now = monotime(); /* need to reset after ppoll() */
+ 	/* ClientAliveInterval probing */
+ 	if (client_alive_scheduled) {
+-		if (ret == 0 &&
+-		    now >= last_client_time + options.client_alive_interval) {
+-			/* ppoll timed out and we're due to probe */
++		if (*conn_in_readyp) {
++			/* Data from peer; reset probe timer. */
++			last_client_time = now;
++		} else if (now >= last_client_time + options.client_alive_interval) {
++			/* Local channel activity must not postpone a client probe. */
+ 			client_alive_check(ssh);
+-			last_client_time = now;
+-		} else if (ret != 0 && *conn_in_readyp) {
+-			/* Data from peer; reset probe timer. */
+ 			last_client_time = now;
+ 		}
+ 	}

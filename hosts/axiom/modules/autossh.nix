@@ -22,14 +22,6 @@ in {
     remotePort = 2223;
   };
 
-  modules.services.ssh.serviceConfig = {
-    MemoryAccounting = true;
-    MemoryMin = "32M";
-    MemoryLow = "128M";
-    OOMPolicy = "continue";
-    OOMScoreAdjust = -900;
-  };
-
   environment.systemPackages = [ c1ctl ];
 
   systemd.targets.axiom-cli = {
