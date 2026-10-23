@@ -73,7 +73,9 @@ in {
           Type = "simple";
           User = user;
           WorkingDirectory = home;
-          ExecStart = "${cfg.package}/bin/autossh -M 0 -N -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes ${globalKnownHostsOption}${userKnownHostsOption}-R ${remoteForward} ${remote}";
+          # ServerAlive only covers established sessions; also bound a stalled
+          # TCP connection, SSH banner or key exchange during network recovery.
+          ExecStart = "${cfg.package}/bin/autossh -M 0 -N -o ConnectTimeout=15 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes ${globalKnownHostsOption}${userKnownHostsOption}-R ${remoteForward} ${remote}";
           Restart = "always";
           RestartSec = cfg.restartSec;
           MemoryAccounting = true;

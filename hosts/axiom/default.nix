@@ -12,6 +12,7 @@
     ./modules/lol-replay.nix
     ./modules/qwen.nix
     ./modules/autossh.nix
+    ./modules/memory-protection.nix
     ./modules/sunshine.nix
     ./modules/sunshine-relay.nix
     ./modules/caelestia.nix
