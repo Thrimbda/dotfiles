@@ -230,7 +230,7 @@ in {
         stateDirectory = "auth-mini-gateway";
         stateDirectoryMode = "0750";
         databaseFile = "lol-replay.sqlite";
-        # Own cookie secret and the allowlist c1@ntnl.io + siyuan.arc@gmail.com.
+        # Own cookie secret and the allowlist c1@ntnl.io, siyuan.arc@gmail.com, froggy2818@gmail.com.
         environmentFiles = [ config.age.secrets.lol-replay-gateway-env.path ];
         extraEnvironment = {
           SESSION_ABSOLUTE_TTL_SECONDS = "2592000";
