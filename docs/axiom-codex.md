@@ -9,7 +9,7 @@ Charles 管理 Axiom 时也使用已有的 `ssh axiom-tunnel`。
 - Codex CLI 由官方 standalone installer 安装到用户目录：版本文件位于
   `~/.codex/packages/standalone`，`~/.local/bin/codex` 启动器调用
   `~/.local/lib/codex/bin/codex`。CLI 版本不由 Nix 固定。
-- `hosts/axiom/modules/codex.nix` 只声明加密凭据，不安装 Codex CLI。
+- `hosts/axiom/modules/codex.nix` 声明加密凭据和远端文件读取兼容链接，不安装 Codex CLI。
   用户自己的 `~/.codex/config.toml` 保存 provider、模型和其他偏好。
 - provider token 存放在 `hosts/axiom/secrets/codex-ntnl-key.age`，agenix
   解密至 `/run/agenix/codex-ntnl-key`，由 `c1` 以 `0400` 读取。
@@ -26,6 +26,20 @@ ssh axiom-tunnel 'command -v codex && codex --version'
 ssh axiom-tunnel 'codex update'
 ssh axiom-tunnel 'codex --version'
 ```
+
+## 远端文件预览兼容
+
+桌面客户端 `26.1021.31345` 在 Unix 远端通过 `process/spawn` 执行
+`/bin/cat <文件路径>` 读取预览内容。NixOS 默认没有 `/bin/cat`，因此可能出现
+聊天、变更树正常，但 Markdown、HTML 无法打开；直接调用 `fs/readFile` 成功也不能排除该问题。
+
+Axiom 的 Codex 模块通过 `systemd.tmpfiles.rules` 将 `/bin/cat` 链接到
+`${pkgs.coreutils}/bin/cat`。规则在系统切换及启动时应用，随配置更新目标路径。
+部署后应验证 `/bin/cat` 可执行、原始 `process/spawn` 请求成功，再重新打开桌面预览。
+修改 `PATH` 无法修复客户端使用绝对路径的问题。
+
+上游取消这一绝对路径依赖后可移除规则；移除规则不会自动删除已创建的链接，
+清理时需先确认 `/bin/cat` 仍是本规则管理的符号链接。
 
 ## 日常切换 provider
 
