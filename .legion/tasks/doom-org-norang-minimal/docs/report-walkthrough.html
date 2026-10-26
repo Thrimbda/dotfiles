@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doom Org/Norang Minimal | Walkthrough</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: oklch(96% 0.014 92);
+      --surface: oklch(98% 0.008 92);
+      --surface-2: oklch(94% 0.012 105);
+      --ink: oklch(24% 0.018 132);
+      --muted: oklch(50% 0.026 132);
+      --line: oklch(82% 0.018 105);
+      --accent: oklch(44% 0.12 153);
+      --accent-soft: oklch(90% 0.06 150);
+      --warn: oklch(88% 0.08 82);
+      --ok: oklch(88% 0.07 144);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.64;
+    }
+    main {
+      width: min(1180px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    code {
+      padding: 0.08rem 0.28rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface-2);
+      font-size: 0.92em;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      gap: 34px;
+      align-items: end;
+      margin-bottom: 34px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    .lede {
+      max-width: 70ch;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.06rem;
+    }
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      padding: 22px;
+    }
+    .status h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      padding: 11px 0;
+    }
+    .status-row:first-of-type { border-top: 0; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--ok);
+      padding: 0.12rem 0.64rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+    .pill.pending { background: var(--warn); }
+    .layout {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      gap: 30px;
+      align-items: start;
+    }
+    nav {
+      position: sticky;
+      top: 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 16px;
+    }
+    nav a {
+      display: block;
+      padding: 7px 0;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    section {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      padding: 26px;
+      margin-bottom: 22px;
+    }
+    section h2 {
+      margin: 0 0 14px;
+      font-size: 1.25rem;
+      line-height: 1.25;
+    }
+    ul { padding-left: 1.2rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow-wrap: anywhere;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 11px;
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .note {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface-2);
+      padding: 16px;
+    }
+    .note h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+    @media (max-width: 900px) {
+      main { width: min(100vw - 24px, 760px); padding-top: 28px; }
+      .hero, .layout, .columns { grid-template-columns: 1fr; }
+      nav { position: static; }
+      section, .status { border-radius: 14px; padding: 20px; }
+      th, td { padding: 9px 6px; }
+    }
+    @media print {
+      body { background: var(--surface); }
+      nav { display: none; }
+      main { width: auto; padding: 0; }
+      section, .status { box-shadow: none; break-inside: avoid; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Legion implementation walkthrough</p>
+        <h1>Doom Org/Norang Minimal</h1>
+        <p class="lede">评审目标是确认 Doom private config 已经从通用编辑器配置收敛为 Org mode 与 <code>bh-org.el</code> / norang 工作流专用配置，并且最终 active config 已完成验证。</p>
+      </div>
+      <aside class="status" aria-label="交付状态">
+        <h2>当前状态</h2>
+        <div class="status-row"><span>Profile</span><span class="pill">implementation</span></div>
+        <div class="status-row"><span>Verification</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>Review</span><span class="pill">PASS</span></div>
+        <div class="status-row"><span>PR lifecycle</span><span class="pill">merged</span></div>
+        <div class="status-row"><span>Render</span><span class="pill pending">artifact-only</span></div>
+      </aside>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Walkthrough navigation">
+        <a href="#summary">摘要</a>
+        <a href="#scope">范围</a>
+        <a href="#evidence">证据</a>
+        <a href="#path">交付路径</a>
+        <a href="#changes">改动</a>
+        <a href="#verification">验证</a>
+        <a href="#risks">风险</a>
+        <a href="#final">终态</a>
+      </nav>
+
+      <div>
+        <section id="summary">
+          <h2>Reviewer Summary</h2>
+          <ul>
+            <li>Doom 模块已精简为 Org/Norang 与基础支撑能力。</li>
+            <li><code>bh-org.el</code> 保留 norang 核心逻辑，只修补旧接口兼容问题。</li>
+            <li><code>doom sync</code>、<code>doom doctor</code>、Lisp 括号检查、<code>bh-org.el</code> batch load 与 diff scope 检查均通过。</li>
+            <li><code>review-change</code> 为 PASS，无 blocking finding。</li>
+            <li>PR <a href="https://github.com/Thrimbda/doom-c1/pull/1">#1</a> 已合并，active <code>/Users/c1/.config/doom</code> 已刷新到 merge commit <code>507d5924f966a8da3e8736cf87f5d630da7cd86f</code>。</li>
+          </ul>
+        </section>
+
+        <section id="scope">
+          <h2>Scope</h2>
+          <div class="columns">
+            <div class="note">
+              <h3>In scope</h3>
+              <ul>
+                <li><code>/Users/c1/.config/doom/init.el</code></li>
+                <li><code>/Users/c1/.config/doom/packages.el</code></li>
+                <li><code>/Users/c1/.config/doom/config.el</code></li>
+                <li><code>/Users/c1/.config/doom/bh-org.el</code></li>
+                <li><code>.legion/tasks/doom-org-norang-minimal/**</code></li>
+              </ul>
+            </div>
+            <div class="note">
+              <h3>Out of scope</h3>
+              <ul>
+                <li><code>~/OneDrive/cone</code> Org 数据文件。</li>
+                <li>Doom Emacs 本体升级或降级。</li>
+                <li>新增 org-roam、journal、noter、present 等工作流。</li>
+                <li>GPG key 创建、导入或信任配置。</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2>Evidence Map</h2>
+          <table>
+            <thead>
+              <tr><th>Claim</th><th>Evidence</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Task contract 稳定</td><td><a href="../plan.md"><code>plan.md</code></a></td><td>PASS</td></tr>
+              <tr><td>设计门槛满足</td><td><a href="./rfc.md"><code>docs/rfc.md</code></a></td><td>PASS</td></tr>
+              <tr><td>Doom sync / doctor 通过</td><td><a href="./test-report.md"><code>docs/test-report.md</code></a></td><td>PASS</td></tr>
+              <tr><td><code>bh-org.el</code> 可加载</td><td><a href="./test-report.md"><code>docs/test-report.md</code></a></td><td>PASS</td></tr>
+              <tr><td>Scope 未越界</td><td><a href="./review-change.md"><code>docs/review-change.md</code></a></td><td>PASS</td></tr>
+              <tr><td>Security lens 覆盖 <code>org-crypt</code></td><td><a href="./review-change.md"><code>docs/review-change.md</code></a></td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="path">
+          <h2>Delivery Path</h2>
+          <ol>
+            <li>Legion contract 与 design-lite 已落盘。</li>
+            <li>Doom 配置改动已在 worktree <code>/Users/c1/.config/doom/.worktrees/doom-org-norang-minimal</code> 完成并提交。</li>
+            <li>验证与 review-change 已通过。</li>
+            <li>PR <a href="https://github.com/Thrimbda/doom-c1/pull/1">#1</a> 已合并，远端临时分支、本地分支与 worktree 已清理。</li>
+            <li>主 <code>/Users/c1/.config/doom</code> 已快进到最终配置并完成 active 验证。</li>
+          </ol>
+        </section>
+
+        <section id="render">
+          <h2>Render Handoff</h2>
+          <p>当前 HTML artifact 已生成，但本任务没有 Pages 或 CI rendered preview target 可供 <code>pr-html-render</code> 解析。保留 artifact-only fallback：审阅者可本地打开 <code>docs/report-walkthrough.html</code>。</p>
+        </section>
+
+        <section id="changes">
+          <h2>What Changed / What Was Decided</h2>
+          <ul>
+            <li><code>init.el</code>: 删除非目标模块，保留 <code>vertico</code>、基础 UI、基础 file management、macOS/tty、<code>emacs-lisp</code>、<code>org +crypt</code>、<code>sh</code> 和默认绑定。</li>
+            <li><code>packages.el</code>: 仅保留 <code>mixed-pitch</code>、<code>org-appear</code>、<code>rime</code>。</li>
+            <li><code>config.el</code>: 移除对 <code>org-pretty-table</code>、<code>org-books</code>、<code>projectile</code> title hook 的引用。</li>
+            <li><code>bh-org.el</code>: 修复 <code>org-switchb</code>、<code>cl-incf</code>、Babel language list 和缺失 clock sound 文件保护。</li>
+          </ul>
+        </section>
+
+        <section id="verification">
+          <h2>Verification / Review Status</h2>
+          <table>
+            <thead>
+              <tr><th>Check</th><th>Result</th><th>Evidence</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>doom sync</code></td><td>exit code 0</td><td><code>docs/test-report.md</code></td></tr>
+              <tr><td><code>doom doctor</code></td><td>exit code 0, active config only has fontconfig and gls warnings</td><td><code>docs/test-report.md</code></td></tr>
+              <tr><td><code>check-parens</code></td><td>exit code 0</td><td><code>docs/test-report.md</code></td></tr>
+              <tr><td><code>bh-org.el</code> batch load</td><td>exit code 0</td><td><code>docs/test-report.md</code></td></tr>
+              <tr><td><code>review-change</code></td><td>PASS</td><td><code>docs/review-change.md</code></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="risks">
+          <h2>Risks and Limits</h2>
+          <ul>
+            <li><code>org-crypt-key</code> 的 <code>F0B66B40</code> 在本机没有 secret key，使用 <code>:crypt:</code> 前需要用户配置可用 key。</li>
+            <li>没有做 GUI Emacs 人工交互烟测。</li>
+            <li>HTML walkthrough 没有远端 rendered preview，保留本地 artifact-only handoff。</li>
+            <li><code>gls</code> 缺失可能影响 dired 细节体验，不影响 Org/Norang 核心工作流。</li>
+          </ul>
+        </section>
+
+        <section id="checklist">
+          <h2>Reviewer Checklist</h2>
+          <ul>
+            <li>确认 Doom 精简范围符合用户只保留 Org/Norang 的目标。</li>
+            <li>确认移除模块不属于当前工作流必需能力。</li>
+            <li>确认 <code>bh-org.el</code> 只做兼容修补，没有重写 norang 任务判定逻辑。</li>
+            <li>确认 GPG key 风险已作为后续人工配置项暴露。</li>
+          </ul>
+        </section>
+
+        <section id="final">
+          <h2>Final State</h2>
+          <p>实现、验证、review-change、report walkthrough、wiki writeback 和 Git PR lifecycle 均已完成。PR <a href="https://github.com/Thrimbda/doom-c1/pull/1">#1</a> 已合并，主 <code>/Users/c1/.config/doom</code> 已刷新，临时 worktree 与分支已清理。剩余只有人工后续：GUI Emacs 烟测，以及按需配置 <code>F0B66B40</code> GPG secret key。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
