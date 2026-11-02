@@ -21,9 +21,9 @@ Lutris 管理启动环境；国服战网负责账号登录、安装游戏及自�
 
 - 战网本体位于 `~/Games/battlenet-cn/drive_c/Program Files (x86)/Battle.net`，由当前用户拥有，可自行更新，不锁定战网版本。
 - Lutris 使用 `GE-Proton (Latest)`，通过 umu 下载运行器和 Steam runtime；它们不在 Nix store 中固定版本。
-- Lutris 的游戏设置保存在 `~/.config/lutris/games/`，运行组件保存在 `~/.local/share/lutris/runtime/`。
+- Lutris 的游戏设置保存在 `~/.local/share/lutris/games/`，运行组件保存在 `~/.local/share/lutris/runtime/`。
 - Nix 管理 Lutris、umu、安装配方和桌面入口。系统 rebuild 不会重置战网账号设置、游戏文件或战网更新。
 
 若报缺少 DXVK 等 Lutris 组件，打开 Lutris 设置的 Updates 页面完成更新，再重试。不要通过关闭 DXVK 来绕过组件缺失。
 
-配置入口为 `hosts/axiom/modules/battlenet.nix`。其中仅针对 Lutris 0.5.22 修正安装器对 `ge-proton` 的解析，并在 FHS 环境中提供 Vulkan 检测工具。升级 Lutris 时应检查这两处兼容措施是否仍需要。
+配置入口为 `hosts/axiom/modules/battlenet.nix`。其中针对 Lutris 0.5.22 修正安装器对 `ge-proton` 的解析，并在 FHS 环境中提供 Vulkan 检测工具。升级 Lutris 时应检查这两处兼容措施是否仍需要。
