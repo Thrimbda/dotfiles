@@ -47,6 +47,12 @@ let
 in {
   environment.systemPackages = [ lutris pkgs.unstable.umu-launcher launcher desktop ];
 
+  # A portal activated before Hyprland's 05-session environment import keeps
+  # an empty DISPLAY and cannot open Battle.net's browser login in Zen.
+  hey.hooks.startup."06-portal-environment" = ''
+    hey.do systemctl --user try-restart xdg-desktop-portal.service
+  '';
+
   # A recipe, not a managed prefix: installation and all subsequent Battle.net
   # and game updates happen as the desktop user without a NixOS rebuild.
   environment.etc."lutris/battlenet-cn.yml".source = installer;

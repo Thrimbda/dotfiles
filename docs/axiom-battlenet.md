@@ -10,6 +10,8 @@ battlenet
 
 Lutris 管理启动环境；国服战网负责账号登录、安装游戏及自身更新。在战网中选择《魔兽世界》：“无限”即可下载安装。
 
+网易登录会打开 Linux 默认浏览器。若提示“使用浏览器完成登录”却没有打开网页，可在桌面终端执行 `systemctl --user restart xdg-desktop-portal.service` 后重新点击登录。Axiom 的启动配置会在导入显示环境后刷新已运行的 portal 服务，避免它沿用缺少 `DISPLAY` 的环境。
+
 ## 首次安装或重建环境
 
 1. 打开 `lutris`，等待首次运行的组件更新完成。
