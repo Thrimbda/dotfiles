@@ -5,11 +5,11 @@ let
   rustdeskPackage = (import ./_rustdesk-package.nix { inherit pkgs; }).package;
 in
 {
-  modules.desktop.audio.hdmi = {
-    enable = true;
-    card = "alsa_card.pci-0000_01_00.1";
-    sink = "alsa_output.pci-0000_01_00.1.hdmi-stereo";
-    lowPrioritySinks = [ "alsa_output.pci-0000_11_00.6.iec958-stereo" ];
+  # Let WirePlumber restore user choices and select available outputs.
+  # Keep PulseAudio from autospawning and claiming devices from PipeWire.
+  home.configFile."pulse/client.conf" = {
+    force = true;
+    text = "autospawn = no\n";
   };
 
   modules.services.todesk.enable = true;
