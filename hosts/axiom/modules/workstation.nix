@@ -12,6 +12,11 @@ in
     text = "autospawn = no\n";
   };
 
+  # Rebind the switch-on-connect module when WirePlumber recreates metadata.
+  services.pipewire.package = pkgs.pipewire.overrideAttrs (old: {
+    patches = (old.patches or []) ++ [ ./pipewire-switch-on-connect-metadata.patch ];
+  });
+
   # Prefer newly connected Bluetooth playback devices, preserving native fallback.
   # Exclude ALSA devices, Bluetooth inputs and virtual effects nodes.
   home.configFile."pipewire/pipewire-pulse.conf.d/50-bluetooth-output.conf".text = builtins.toJSON {
