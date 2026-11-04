@@ -12,6 +12,15 @@ in
     text = "autospawn = no\n";
   };
 
+  # Prefer newly connected Bluetooth playback devices, preserving native fallback.
+  # Exclude ALSA devices, Bluetooth inputs and virtual effects nodes.
+  home.configFile."pipewire/pipewire-pulse.conf.d/50-bluetooth-output.conf".text = builtins.toJSON {
+    "pulse.cmd" = [{
+      cmd = "load-module";
+      args = "module-switch-on-connect blocklist=^(alsa_|bluez_input[.]) ignore_virtual=true";
+    }];
+  };
+
   modules.services.todesk.enable = true;
   modules.services.docker.package = pkgs.docker_29;
   modules.virt.libvirt.enable = true;
