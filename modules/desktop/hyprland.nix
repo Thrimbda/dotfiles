@@ -21,6 +21,18 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
     zenWmClass = config.modules.desktop.browsers.zen.wmClass;
     primaryMonitor = findFirst (x: x.primary) {} cfg.monitors;
     primaryMonitorName = primaryMonitor.output or "";
+    # XWayland needs the current connector name, while Hyprland accepts desc:.
+    primaryMonitorScript = pkgs.writeShellScript "hyprland-set-primary-monitor" ''
+      set -eu
+      output="$(${config.programs.hyprland.package}/bin/hyprctl monitors -j | ${pkgs.jq}/bin/jq -r \
+        --arg selector ${escapeShellArg primaryMonitorName} '
+        [ .[] | select(if ($selector | startswith("desc:")) then
+            .description == ($selector | ltrimstr("desc:"))
+          else .name == $selector end) | .name ][0] // empty
+      ')"
+      [ -n "$output" ] || exit 0
+      ${pkgs.xorg.xrandr}/bin/xrandr --output "$output" --primary
+    '';
     secondaryMonitor =
       if cfg.workspaces.secondary.enable && primaryMonitorName != ""
       then findFirst (x: !(x.primary or false) && !(x.disable or false) && (x.output or "") != "") {} cfg.monitors
@@ -149,8 +161,6 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       EOF
       )"
 
-      [ -n "$commands" ] || exit 0
-
       status=0
       while IFS= read -r command; do
         [ -n "$command" ] || continue
@@ -160,6 +170,11 @@ let inherit (hey.lib.pkgs.for pkgs) mkLauncherEntry;
       done <<EOF
       $commands
       EOF
+      ${optionalString (primaryMonitorName != "") ''
+        if ! ${primaryMonitorScript}; then
+          status=1
+        fi
+      ''}
       exit "$status"
     '';
     monitorHotplugWatcher = pkgs.writeShellScript "hyprland-monitor-hotplug" ''
@@ -643,7 +658,7 @@ in {
           -- Since Wayland does not have a global primary monitor concept,
           -- XWayland windows need an explicit hint when an output is known.
           hl.on("hyprland.start", function()
-            hl.exec_cmd("xrandr --output ${primaryMonitorName} --primary")
+            hl.exec_cmd("${primaryMonitorScript}")
           end)
         ''}
         ${workspaceLines}

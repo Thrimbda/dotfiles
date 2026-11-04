@@ -31,8 +31,18 @@ let
       rustdeskSource = rustdesk.source;
       rustdeskCargoDeps = rustdesk.cargoDeps;
       rustdeskPackage = rustdesk.package;
+      primaryMonitor = findFirst (monitor: monitor.primary) {} config.modules.desktop.hyprland.monitors;
+      primaryMonitorSelector = primaryMonitor.output or "";
       rustdeskPortalPicker = pkgs.writeShellScript "axiom-rustdesk-portal-picker" ''
-        printf '%s\n' '[SELECTION]/screen:DP-1'
+        set -eu
+        output="$(${config.programs.hyprland.package}/bin/hyprctl monitors -j | ${pkgs.jq}/bin/jq -r \
+          --arg selector ${escapeShellArg primaryMonitorSelector} '
+          [ .[] | select(if ($selector | startswith("desc:")) then
+              .description == ($selector | ltrimstr("desc:"))
+            else .name == $selector end) | .name ][0] // empty
+        ')"
+        [ -n "$output" ] || exit 1
+        printf '[SELECTION]/screen:%s\n' "$output"
       '';
       rustdeskPortalConfig = pkgs.writeText "axiom-xdph.conf" ''
         screencopy {
@@ -179,7 +189,7 @@ let
         service-environment=${builtins.toJSON rustdeskRuntimeEnvironment}
         portal-picker=${rustdeskPortalPicker}
         portal-config=${rustdeskPortalConfig}
-        portal-output=DP-1
+        portal-output=${primaryMonitorSelector}
         software-cursor=true
         ciphertext=${../secrets/rustdesk-password.age}
       ''}";
