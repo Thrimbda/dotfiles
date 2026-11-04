@@ -32,7 +32,7 @@ let
       rustdeskCargoDeps = rustdesk.cargoDeps;
       rustdeskPackage = rustdesk.package;
       rustdeskPortalPicker = pkgs.writeShellScript "axiom-rustdesk-portal-picker" ''
-        printf '%s\n' '[SELECTION]/screen:DP-4'
+        printf '%s\n' '[SELECTION]/screen:DP-1'
       '';
       rustdeskPortalConfig = pkgs.writeText "axiom-xdph.conf" ''
         screencopy {
@@ -179,7 +179,7 @@ let
         service-environment=${builtins.toJSON rustdeskRuntimeEnvironment}
         portal-picker=${rustdeskPortalPicker}
         portal-config=${rustdeskPortalConfig}
-        portal-output=DP-4
+        portal-output=DP-1
         software-cursor=true
         ciphertext=${../secrets/rustdesk-password.age}
       ''}";

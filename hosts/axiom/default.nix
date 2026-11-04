@@ -79,7 +79,7 @@
         '';
         monitors = [
           {
-            output = "DP-4";
+            output = "DP-1";
             modePolicy = "native-max-refresh";
             fallbackMode = "3840x2160@240";
             position = "0x0";
@@ -92,7 +92,7 @@
             };
           }
           {
-            output = "DP-5";
+            output = "DP-2";
             modePolicy = "native-max-refresh";
             fallbackMode = "3840x2160@60";
             position = "2560x0";
