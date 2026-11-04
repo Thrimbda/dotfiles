@@ -79,7 +79,7 @@
         '';
         monitors = [
           {
-            output = "DP-4";
+            output = "desc:Microstep MPG272UX OLED 0x01010101";
             modePolicy = "native-max-refresh";
             fallbackMode = "3840x2160@240";
             position = "0x0";
@@ -92,7 +92,7 @@
             };
           }
           {
-            output = "DP-5";
+            output = "desc:Dell Inc. DELL U2720QM 42N2YG3";
             modePolicy = "native-max-refresh";
             fallbackMode = "3840x2160@60";
             position = "2560x0";
