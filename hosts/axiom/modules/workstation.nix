@@ -21,7 +21,6 @@ in
     }];
   };
 
-  modules.services.todesk.enable = true;
   modules.services.docker.package = pkgs.docker_29;
   modules.virt.libvirt.enable = true;
   modules.profiles.workstation = {
