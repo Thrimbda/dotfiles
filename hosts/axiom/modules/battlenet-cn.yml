@@ -1,0 +1,24 @@
+name: Battle.net 国服战网
+game_slug: battlenet-cn
+slug: battlenet-cn-ge-proton
+version: 国服 GE-Proton
+runner: wine
+
+script:
+  files:
+    - setup:
+        filename: Battle.net-Setup-CN.exe
+        url: https://downloader.battlenet.com.cn/download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live
+  game:
+    arch: win64
+    exe: drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe
+    prefix: $GAMEDIR
+  wine:
+    version: ge-proton
+  installer:
+    - task:
+        name: wineexec
+        executable: setup
+        args: --lang=zhCN
+        prefix: $GAMEDIR
+        description: 安装完成出现登录窗口后，请先关闭战网以完成 Lutris 安装；之后从“国服战网”入口登录。
