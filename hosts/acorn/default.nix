@@ -10,6 +10,7 @@
     ./modules/cybion.nix
     ./modules/ingress.nix
     ./modules/platform.nix
+    ./modules/szzx-public-test.nix
     ./modules/traffic-accounting.nix
     ./modules/vaultwarden.nix
     ./modules/we-bot.nix
